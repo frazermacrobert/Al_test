@@ -43,6 +43,34 @@ export const CLUES: Clue[] = [
     description: 'Drawings of the house in different arrangements. A small figure always stands in a room that doesn\'t exist yet.',
     sourceRoom: 'nursery',
   },
+  {
+    id: 'clue_servant_ledger',
+    mysteryId: 'fifth_place_setting',
+    title: 'The Housekeeper\'s Ledger',
+    description: 'Provisions for a fifth family member and a fifth servant, listed as "the usual arrangement."',
+    sourceRoom: 'servants_quarters',
+  },
+  {
+    id: 'clue_piano_resonance',
+    mysteryId: 'house_architecture',
+    title: 'The Piano Room Secret',
+    description: 'Playing the nursery lullaby opened a hidden panel. A child\'s handprint, pressed the year the house was "completed."',
+    sourceRoom: 'music_room',
+  },
+  {
+    id: 'clue_dance_pattern',
+    mysteryId: 'house_architecture',
+    title: 'The Dance Floor Map',
+    description: 'The ballroom floor traces the house\'s original layout. A mark where the nursery stands is worn smooth from standing.',
+    sourceRoom: 'ballroom',
+  },
+  {
+    id: 'clue_impossible_star',
+    mysteryId: 'house_architecture',
+    title: 'The Impossible Star',
+    description: 'Through the telescope: a window looking back. The same room. A different observer.',
+    sourceRoom: 'observatory',
+  },
 ];
 
 export const MYSTERIES: Mystery[] = [
@@ -72,6 +100,20 @@ export const MYSTERIES: Mystery[] = [
       type: 'upgrade',
       value: 'gallery_insight',
       description: 'The Portrait Gallery now reveals one additional clue per visit.',
+    },
+  },
+  {
+    id: 'house_architecture',
+    title: 'The Living Architecture',
+    question: 'Why does the house rebuild itself each night?',
+    description: 'The house changes. The rooms move. The architecture is not random — it is purposeful. Something is being constructed across many nights.',
+    clueIds: ['clue_piano_resonance', 'clue_dance_pattern', 'clue_impossible_star'],
+    requiredClues: 2,
+    resolution: 'The house is not a building — it is an instrument. Each night\'s arrangement is a different chord in a composition that has been playing for generations. When the right rooms connect in the right order, the house will finally be complete. And the child it was built to protect will step out of the architecture itself.',
+    reward: {
+      type: 'unlockRoom',
+      value: 'hidden_chapel',
+      description: 'The Hidden Chapel is now available in the draft.',
     },
   },
 ];

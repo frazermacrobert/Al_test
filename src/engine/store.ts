@@ -120,7 +120,12 @@ export const useGameStore = create<Store>((set, get) => ({
     grid[ENTRANCE_ROW][ENTRANCE_COL] = 'entrance_hall';
 
     const placedRooms = [{ roomId: 'entrance_hall', position: { row: ENTRANCE_ROW, col: ENTRANCE_COL } }];
-    const pool = buildDraftPool(state.architectCatalogue, ['entrance_hall'], rng);
+
+    const catalogue = [
+      ...state.architectCatalogue,
+      ...state.unlockedRooms.filter(r => !state.architectCatalogue.includes(r)),
+    ];
+    const pool = buildDraftPool(catalogue, ['entrance_hall'], rng);
     const hand = drawHand(pool, ['entrance_hall']);
 
     const nightObjective = getNightObjective(nightNumber);
@@ -128,6 +133,11 @@ export const useGameStore = create<Store>((set, get) => ({
     let silver = 1;
     let candles = 0;
     let keys = 0;
+
+    if (nightNumber >= 3) silver += 1;
+    if (nightNumber >= 4) candles += 1;
+
+    const bonusActions = nightNumber >= 5 ? 1 : 0;
 
     set({
       nightNumber,
@@ -143,7 +153,7 @@ export const useGameStore = create<Store>((set, get) => ({
       silver,
       candles,
       keys,
-      actions: STARTING_ACTIONS,
+      actions: STARTING_ACTIONS + bonusActions,
       activeSynergies: [],
       seed: state.seed,
       previousPhase: null,

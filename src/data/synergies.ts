@@ -39,6 +39,45 @@ export const SYNERGY_DEFINITIONS: SynergyDefinition[] = [
       clueId: 'clue_hidden_dates',
     },
   },
+  {
+    id: 'entertainment_wing',
+    name: 'The Entertainment Wing',
+    description: 'The Music Room and Ballroom recall grander times. The house rewards celebration.',
+    requiredRooms: ['music_room', 'ballroom'],
+    conditionType: 'adjacency',
+    effect: {
+      type: 'resource',
+      description: '+2 Silver from the echoes of old galas.',
+      resourceType: 'silver',
+      amount: 2,
+    },
+  },
+  {
+    id: 'below_stairs',
+    name: 'Below Stairs',
+    description: 'The Servants\' Quarters and Kitchen are connected. The staff knew every secret passage.',
+    requiredRooms: ['servants_quarters', 'kitchen'],
+    conditionType: 'adjacency',
+    effect: {
+      type: 'action',
+      description: '+1 Action from servant efficiency.',
+      resourceType: 'actions',
+      amount: 1,
+    },
+  },
+  {
+    id: 'natural_philosophy',
+    name: 'Natural Philosophy',
+    description: 'The Observatory and Conservatory together form a centre of inquiry. Light reveals more.',
+    requiredRooms: ['observatory', 'conservatory'],
+    conditionType: 'set',
+    effect: {
+      type: 'resource',
+      description: '+2 Candles from combining starlight and herbalism.',
+      resourceType: 'candles',
+      amount: 2,
+    },
+  },
 ];
 
 export function getSynergyDefinitions(): SynergyDefinition[] {

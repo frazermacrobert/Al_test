@@ -3,6 +3,10 @@ import { useGameStore } from '../../engine/store';
 export function InvitationScreen() {
   const nightNumber = useGameStore(s => s.nightNumber);
   const objective = useGameStore(s => s.nightObjective);
+  const silver = useGameStore(s => s.silver);
+  const candles = useGameStore(s => s.candles);
+  const actions = useGameStore(s => s.actions);
+  const casebook = useGameStore(s => s.casebook);
   const setPhase = useGameStore(s => s.setPhase);
 
   return (
@@ -25,8 +29,19 @@ export function InvitationScreen() {
         )}
 
         <div style={styles.resources}>
-          <span>You begin with: 1 Silver, 3 Actions</span>
+          <span>
+            You begin with: {silver} Silver{candles > 0 ? `, ${candles} Candle${candles > 1 ? 's' : ''}` : ''}, {actions} Actions
+          </span>
         </div>
+
+        {casebook.evidence.length > 0 && (
+          <div style={styles.persistInfo}>
+            {casebook.evidence.length} clue{casebook.evidence.length !== 1 ? 's' : ''} carried forward
+            {casebook.completedMysteries.length > 0 && (
+              <span> · {casebook.completedMysteries.length} myster{casebook.completedMysteries.length !== 1 ? 'ies' : 'y'} solved</span>
+            )}
+          </div>
+        )}
 
         <button
           className="btn btn-primary"
@@ -100,6 +115,11 @@ const styles: Record<string, React.CSSProperties> = {
   resources: {
     fontSize: 12,
     color: 'var(--text-muted)',
+  },
+  persistInfo: {
+    fontSize: 12,
+    color: 'var(--text-accent)',
+    fontWeight: 500,
   },
   btn: {
     width: '100%',
