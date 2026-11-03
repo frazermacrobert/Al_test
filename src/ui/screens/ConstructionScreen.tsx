@@ -239,6 +239,12 @@ function RoomCellIcon({ roomId, size }: { roomId: string; size: number }) {
     kitchen: 'M3 6h10v6H3V6zM6 6V4M10 6V4M3 9h10',
     portrait_gallery: 'M4 3h8v10H4V3zM6 6h4v3H6V6',
     nursery: 'M4 8a4 4 0 018 0M8 4V2M6 12h4M3 14h10',
+    conservatory: 'M3 4h10v8H3V4zM3 4l5-2 5 2M5 8v4M8 6v6M11 8v4',
+    wine_cellar: 'M4 6a4 3 0 018 0v4a4 3 0 01-8 0V6zM6 10h4',
+    music_room: 'M4 10c0-4 8-4 8 0v3H4v-3zM6 7V4M10 7V4',
+    servants_quarters: 'M3 3h10v10H3V3zM3 8h10M8 3v10',
+    ballroom: 'M2 12h12M4 12V6l4-3 4 3v6M7 12V9h2v3',
+    observatory: 'M5 14V8l3-6 3 6v6M4 14h8M8 2v2',
   };
 
   const path = icons[roomId] ?? 'M4 4h8v8H4z';
