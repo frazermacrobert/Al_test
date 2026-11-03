@@ -22,6 +22,7 @@ interface GameActions {
   placeRoom: (roomId: RoomId, pos: Position) => string | null;
   finishConstruction: () => void;
 
+  skipRoom: () => void;
   enterRoom: (roomId: RoomId) => void;
   exitRoom: () => void;
   performInteraction: (interactionId: string) => { error?: string; mysteryCompleted?: MysteryCompletionEvent } | null;
@@ -131,7 +132,7 @@ export const useGameStore = create<Store>((set, get) => ({
     const nightObjective = getNightObjective(nightNumber);
 
     let silver = 1;
-    let candles = 0;
+    let candles = 1;
     let keys = 0;
 
     if (nightNumber >= 3) silver += 1;
@@ -166,6 +167,19 @@ export const useGameStore = create<Store>((set, get) => ({
     if (state.draftsRemaining <= 0) return;
     if (!state.currentHand.includes(roomId)) return;
     set({ currentHand: [roomId] });
+  },
+
+  skipRoom: () => {
+    const state = get();
+    if (state.draftsRemaining <= 0) return;
+    const newDrafts = state.draftsRemaining - 1;
+    const nextHand = newDrafts > 0
+      ? drawHand(state.draftPool, state.placedRooms.map(r => r.roomId))
+      : [];
+    set({
+      draftsRemaining: newDrafts,
+      currentHand: nextHand,
+    });
   },
 
   placeRoom: (roomId: RoomId, pos: Position) => {

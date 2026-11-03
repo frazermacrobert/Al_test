@@ -144,6 +144,23 @@ export function getConnectedRooms(
   return connected;
 }
 
+export function hasAnyValidPlacement(
+  roomIds: RoomId[],
+  grid: (RoomId | null)[][],
+  placedRooms: PlacedRoom[]
+): boolean {
+  for (const roomId of roomIds) {
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (validatePlacement(roomId, { row, col }, grid, placedRooms).valid) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 export function createEmptyGrid(): (RoomId | null)[][] {
   return Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
 }

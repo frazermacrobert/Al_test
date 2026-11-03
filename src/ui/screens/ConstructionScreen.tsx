@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
 import { getSynergyDefinitions } from '../../data/synergies';
-import { GRID_SIZE } from '../../engine/types';
-import { validatePlacement } from '../../engine/grid';
+import { GRID_SIZE, Direction } from '../../engine/types';
+import { validatePlacement, getNeighbour, isInBounds, getAdjacentPlacedRooms } from '../../engine/grid';
+import { hasAnyValidPlacement } from '../../engine/grid';
+
+const OPPOSITE: Record<Direction, Direction> = { N: 'S', S: 'N', E: 'W', W: 'E' };
 
 export function ConstructionScreen() {
   const grid = useGameStore(s => s.grid);
@@ -12,6 +15,7 @@ export function ConstructionScreen() {
   const currentHand = useGameStore(s => s.currentHand);
   const draftsRemaining = useGameStore(s => s.draftsRemaining);
   const placeRoom = useGameStore(s => s.placeRoom);
+  const skipRoom = useGameStore(s => s.skipRoom);
   const finishConstruction = useGameStore(s => s.finishConstruction);
   const activeSynergies = useGameStore(s => s.activeSynergies);
 
@@ -19,17 +23,44 @@ export function ConstructionScreen() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [synergyNotice, setSynergyNotice] = useState<string | null>(null);
   const [tappedPlacedRoom, setTappedPlacedRoom] = useState<string | null>(null);
+  const [skipConfirm, setSkipConfirm] = useState(false);
+
+  const canPlaceAny = useMemo(
+    () => hasAnyValidPlacement(currentHand, grid, placedRooms),
+    [currentHand, grid, placedRooms]
+  );
+
+  // Auto-detect dead ends and show feedback
+  useEffect(() => {
+    if (draftsRemaining > 0 && currentHand.length > 0 && !canPlaceAny) {
+      setFeedback('No valid placements — skip to draw a new hand.');
+    }
+  }, [canPlaceAny, draftsRemaining, currentHand]);
 
   const handleSelectCard = (roomId: string) => {
     setSelectedRoom(roomId);
     setTappedPlacedRoom(null);
     setFeedback(null);
+    setSkipConfirm(false);
+  };
+
+  const handleSkip = () => {
+    if (!skipConfirm && canPlaceAny) {
+      setSkipConfirm(true);
+      setFeedback('Tap again to skip and draw new rooms.');
+      return;
+    }
+    skipRoom();
+    setSelectedRoom(null);
+    setFeedback(null);
+    setSkipConfirm(false);
   };
 
   const handleCellTap = (row: number, col: number) => {
     const existingRoom = grid[row][col];
     if (existingRoom) {
       setTappedPlacedRoom(existingRoom === tappedPlacedRoom ? null : existingRoom);
+      setSkipConfirm(false);
       return;
     }
     if (!selectedRoom) {
@@ -51,16 +82,41 @@ export function ConstructionScreen() {
       setSelectedRoom(null);
       setTappedPlacedRoom(null);
       setFeedback(null);
+      setSkipConfirm(false);
     }
   };
 
   const cellSize = Math.min(52, (window.innerWidth - 48) / GRID_SIZE);
+  const gap = 2;
+  const gridPx = GRID_SIZE * cellSize + (GRID_SIZE - 1) * gap;
 
   const previewRoom = selectedRoom
     ? getRoomDefinition(selectedRoom)
     : tappedPlacedRoom
       ? getRoomDefinition(tappedPlacedRoom)
       : null;
+
+  // Door connections for SVG overlay (between placed rooms)
+  const connections: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  for (const pr of placedRooms) {
+    const def = getRoomDefinition(pr.roomId);
+    if (!def) continue;
+    for (const dir of ['E', 'S'] as Direction[]) {
+      if (!def.doors[dir]) continue;
+      const np = getNeighbour(pr.position, dir);
+      if (!isInBounds(np)) continue;
+      const neighborId = grid[np.row][np.col];
+      if (!neighborId) continue;
+      const neighborDef = getRoomDefinition(neighborId);
+      if (!neighborDef || !neighborDef.doors[OPPOSITE[dir]]) continue;
+
+      const x1 = pr.position.col * (cellSize + gap) + cellSize / 2;
+      const y1 = pr.position.row * (cellSize + gap) + cellSize / 2;
+      const x2 = np.col * (cellSize + gap) + cellSize / 2;
+      const y2 = np.row * (cellSize + gap) + cellSize / 2;
+      connections.push({ x1, y1, x2, y2 });
+    }
+  }
 
   return (
     <div className="screen">
@@ -77,66 +133,88 @@ export function ConstructionScreen() {
 
       {/* Grid */}
       <div style={styles.gridContainer}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${GRID_SIZE}, ${cellSize}px)`,
-          gridTemplateRows: `repeat(${GRID_SIZE}, ${cellSize}px)`,
-          gap: 2,
-        }}>
-          {Array.from({ length: GRID_SIZE }, (_, row) =>
-            Array.from({ length: GRID_SIZE }, (_, col) => {
-              const roomId = grid[row][col];
-              const roomDef = roomId ? getRoomDefinition(roomId) : null;
-              const isValid = selectedRoom
-                ? validatePlacement(selectedRoom, { row, col }, grid, placedRooms).valid
-                : false;
-              const isEmpty = !roomId;
-              const isTappedPlaced = roomId === tappedPlacedRoom;
+        <div style={{ position: 'relative', width: gridPx, height: gridPx }}>
+          {/* Door connection lines */}
+          <svg
+            width={gridPx}
+            height={gridPx}
+            style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 0 }}
+          >
+            {connections.map((c, i) => (
+              <line
+                key={i}
+                x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                stroke="var(--text-accent)"
+                strokeWidth="2"
+                strokeOpacity="0.4"
+                strokeDasharray="4 2"
+              />
+            ))}
+          </svg>
 
-              return (
-                <div
-                  key={`${row}-${col}`}
-                  onClick={() => handleCellTap(row, col)}
-                  style={{
-                    width: cellSize,
-                    height: cellSize,
-                    background: isTappedPlaced
-                      ? 'var(--bg-card-hover)'
-                      : roomDef
-                        ? 'var(--bg-card)'
-                        : isValid
-                          ? 'rgba(139, 115, 64, 0.15)'
-                          : 'var(--bg-surface)',
-                    border: isTappedPlaced
-                      ? '2px solid var(--text-accent)'
-                      : roomDef
-                        ? '1px solid var(--border-medium)'
-                        : isValid
-                          ? '1px dashed var(--border-accent)'
-                          : '1px solid var(--border-subtle)',
-                    borderRadius: 4,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 8,
-                    color: roomDef ? 'var(--text-secondary)' : 'var(--text-muted)',
-                    textAlign: 'center',
-                    cursor: (isEmpty && selectedRoom) || roomDef ? 'pointer' : 'default',
-                    transition: 'background 0.15s, border-color 0.15s',
-                    padding: 2,
-                    lineHeight: 1.1,
-                    overflow: 'hidden',
-                  }}
-                >
-                  {roomDef ? (
-                    <RoomCellIcon roomId={roomId!} size={cellSize} />
-                  ) : isValid ? (
-                    <span style={{ fontSize: 16, color: 'var(--border-accent)' }}>+</span>
-                  ) : null}
-                </div>
-              );
-            })
-          )}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${GRID_SIZE}, ${cellSize}px)`,
+            gridTemplateRows: `repeat(${GRID_SIZE}, ${cellSize}px)`,
+            gap,
+            position: 'relative',
+            zIndex: 1,
+          }}>
+            {Array.from({ length: GRID_SIZE }, (_, row) =>
+              Array.from({ length: GRID_SIZE }, (_, col) => {
+                const roomId = grid[row][col];
+                const roomDef = roomId ? getRoomDefinition(roomId) : null;
+                const isValid = selectedRoom
+                  ? validatePlacement(selectedRoom, { row, col }, grid, placedRooms).valid
+                  : false;
+                const isEmpty = !roomId;
+                const isTappedPlaced = roomId === tappedPlacedRoom;
+
+                return (
+                  <div
+                    key={`${row}-${col}`}
+                    onClick={() => handleCellTap(row, col)}
+                    style={{
+                      width: cellSize,
+                      height: cellSize,
+                      background: isTappedPlaced
+                        ? 'var(--bg-card-hover)'
+                        : roomDef
+                          ? 'var(--bg-card)'
+                          : isValid
+                            ? 'rgba(139, 115, 64, 0.15)'
+                            : 'var(--bg-surface)',
+                      border: isTappedPlaced
+                        ? '2px solid var(--text-accent)'
+                        : roomDef
+                          ? '1px solid var(--border-medium)'
+                          : isValid
+                            ? '1px dashed var(--border-accent)'
+                            : '1px solid var(--border-subtle)',
+                      borderRadius: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: (isEmpty && selectedRoom) || roomDef ? 'pointer' : 'default',
+                      transition: 'background 0.15s, border-color 0.15s',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: roomDef ? 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.3)' : 'none',
+                    }}
+                  >
+                    {roomDef ? (
+                      <>
+                        <RoomCellIcon roomId={roomId!} size={cellSize} />
+                        <DoorEdges doors={roomDef.doors} size={cellSize} />
+                      </>
+                    ) : isValid ? (
+                      <span style={{ fontSize: 18, color: 'var(--border-accent)', fontWeight: 300 }}>+</span>
+                    ) : null}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
 
@@ -180,7 +258,12 @@ export function ConstructionScreen() {
 
       {/* Feedback */}
       {feedback && !previewRoom && (
-        <div style={styles.feedback}>{feedback}</div>
+        <div style={{
+          ...styles.feedback,
+          color: !canPlaceAny && draftsRemaining > 0
+            ? 'var(--color-danger)'
+            : 'var(--color-warning)',
+        }}>{feedback}</div>
       )}
 
       {/* Draft hand */}
@@ -200,6 +283,7 @@ export function ConstructionScreen() {
                     borderColor: isSelected ? 'var(--text-accent)' : 'var(--border-medium)',
                     background: isSelected ? 'var(--bg-card-hover)' : 'var(--bg-card)',
                     transform: isSelected ? 'translateY(-4px)' : 'none',
+                    boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.4)' : 'var(--shadow-card)',
                   }}
                 >
                   <span style={{
@@ -215,6 +299,20 @@ export function ConstructionScreen() {
               );
             })}
           </div>
+
+          {/* Skip button */}
+          <button
+            onClick={handleSkip}
+            style={{
+              ...styles.skipButton,
+              background: !canPlaceAny ? 'rgba(200, 80, 80, 0.15)' : 'transparent',
+              borderColor: !canPlaceAny ? 'var(--color-danger)' : 'var(--border-subtle)',
+              color: !canPlaceAny ? 'var(--color-danger)' : 'var(--text-muted)',
+              animation: !canPlaceAny ? 'subtlePulse 2s ease-in-out infinite' : 'none',
+            }}
+          >
+            {!canPlaceAny ? 'No valid spots — Skip hand' : skipConfirm ? 'Tap to confirm skip' : 'Skip hand'}
+          </button>
         </div>
       ) : (
         <div style={styles.handContainer}>
@@ -227,10 +325,46 @@ export function ConstructionScreen() {
   );
 }
 
+/** Small door marks on the edges of placed room cells */
+function DoorEdges({ doors, size }: { doors: { N: boolean; S: boolean; E: boolean; W: boolean }; size: number }) {
+  const markLen = Math.max(6, size * 0.22);
+  const markThick = 3;
+  const accent = 'var(--text-accent)';
+
+  return (
+    <>
+      {doors.N && (
+        <div style={{
+          position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+          width: markLen, height: markThick, background: accent, borderRadius: '0 0 2px 2px',
+        }} />
+      )}
+      {doors.S && (
+        <div style={{
+          position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)',
+          width: markLen, height: markThick, background: accent, borderRadius: '2px 2px 0 0',
+        }} />
+      )}
+      {doors.W && (
+        <div style={{
+          position: 'absolute', left: -1, top: '50%', transform: 'translateY(-50%)',
+          width: markThick, height: markLen, background: accent, borderRadius: '0 2px 2px 0',
+        }} />
+      )}
+      {doors.E && (
+        <div style={{
+          position: 'absolute', right: -1, top: '50%', transform: 'translateY(-50%)',
+          width: markThick, height: markLen, background: accent, borderRadius: '2px 0 0 2px',
+        }} />
+      )}
+    </>
+  );
+}
+
 function RoomCellIcon({ roomId, size }: { roomId: string; size: number }) {
   const def = getRoomDefinition(roomId);
   if (!def) return null;
-  const iconSize = Math.max(10, size * 0.5);
+  const iconSize = Math.max(12, size * 0.45);
 
   const icons: Record<string, string> = {
     entrance_hall: 'M8 2L2 6v8h12V6L8 2zM6 14v-4h4v4',
@@ -250,11 +384,19 @@ function RoomCellIcon({ roomId, size }: { roomId: string; size: number }) {
   const path = icons[roomId] ?? 'M4 4h8v8H4z';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, zIndex: 1 }}>
       <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" fill="none">
         <path d={path} stroke="var(--text-secondary)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span style={{ fontSize: Math.max(7, size * 0.14), color: 'var(--text-muted)', lineHeight: 1 }}>
+      <span style={{
+        fontSize: Math.max(7, size * 0.14),
+        color: 'var(--text-muted)',
+        lineHeight: 1,
+        maxWidth: size - 6,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}>
         {def.name.split(' ')[0]}
       </span>
     </div>
@@ -346,9 +488,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-accent)',
   },
   handContainer: {
-    padding: '12px 16px 24px',
+    padding: '10px 16px 20px',
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
     flexShrink: 0,
   },
   hand: {
@@ -369,8 +513,9 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'center',
     gap: 4,
-    transition: 'transform 0.15s, border-color 0.15s, background 0.15s',
+    transition: 'transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s',
     cursor: 'pointer',
+    boxShadow: 'var(--shadow-card)',
   },
   cardRarity: {
     fontSize: 9,
@@ -389,5 +534,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 9,
     color: 'var(--text-muted)',
     textTransform: 'capitalize' as const,
+  },
+  skipButton: {
+    padding: '8px 20px',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 12,
+    fontWeight: 500,
+    border: '1px solid var(--border-subtle)',
+    background: 'transparent',
+    color: 'var(--text-muted)',
+    transition: 'all 0.15s',
+    cursor: 'pointer',
   },
 };
