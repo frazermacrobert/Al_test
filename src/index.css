@@ -175,3 +175,25 @@ button {
   from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--text-accent); }
+  50% { opacity: 0.6; box-shadow: 0 0 1px var(--text-accent); }
+}
+
+.glow-dot {
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.btn-primary {
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+.btn-primary:active {
+  animation: none;
+}

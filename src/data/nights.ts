@@ -46,6 +46,33 @@ export const NIGHT_OBJECTIVES: NightObjective[] = [
       description: 'Spend a Candle on a supernatural search.',
     },
   },
+  {
+    title: 'The House Rearranges',
+    description: 'Discover a synergy between two rooms.',
+    flavour: 'The rooms are not random. The house remembers which rooms belong together, and rewards those who listen.',
+    optional: {
+      title: 'An Efficient Evening',
+      description: 'Complete all interactions in a single room.',
+    },
+  },
+  {
+    title: 'Deeper Corridors',
+    description: 'Visit at least four rooms and search for hidden passages.',
+    flavour: 'Tonight the house feels larger. Corridors stretch. Rooms multiply. The architecture breathes.',
+    optional: {
+      title: 'Generous Architecture',
+      description: 'Earn resources from at least two different synergies.',
+    },
+  },
+  {
+    title: 'The Child\'s Trail',
+    description: 'Find clues connected to the fifth child\'s story.',
+    flavour: 'In the quiet hours, small footprints appear in the dust. They lead deeper into the house. They always have.',
+    optional: {
+      title: 'A Complete Map',
+      description: 'Place all five draft rooms with valid door connections.',
+    },
+  },
 ];
 
 export function getNightObjective(nightNumber: number): NightObjective {
