@@ -18,13 +18,20 @@ export function ConstructionScreen() {
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [synergyNotice, setSynergyNotice] = useState<string | null>(null);
+  const [tappedPlacedRoom, setTappedPlacedRoom] = useState<string | null>(null);
 
   const handleSelectCard = (roomId: string) => {
     setSelectedRoom(roomId);
+    setTappedPlacedRoom(null);
     setFeedback(null);
   };
 
   const handleCellTap = (row: number, col: number) => {
+    const existingRoom = grid[row][col];
+    if (existingRoom) {
+      setTappedPlacedRoom(existingRoom === tappedPlacedRoom ? null : existingRoom);
+      return;
+    }
     if (!selectedRoom) {
       setFeedback('Select a room card first.');
       return;
@@ -37,16 +44,23 @@ export function ConstructionScreen() {
       const newSynergies = useGameStore.getState().activeSynergies;
       const fresh = newSynergies.filter(s => !prevSynergies.includes(s));
       if (fresh.length > 0) {
-          const syn = getSynergyDefinitions().find(s => s.id === fresh[0]);
+        const syn = getSynergyDefinitions().find(s => s.id === fresh[0]);
         if (syn) setSynergyNotice(`${syn.name}: ${syn.effect.description}`);
-        setTimeout(() => setSynergyNotice(null), 3000);
+        setTimeout(() => setSynergyNotice(null), 4000);
       }
       setSelectedRoom(null);
+      setTappedPlacedRoom(null);
       setFeedback(null);
     }
   };
 
   const cellSize = Math.min(52, (window.innerWidth - 48) / GRID_SIZE);
+
+  const previewRoom = selectedRoom
+    ? getRoomDefinition(selectedRoom)
+    : tappedPlacedRoom
+      ? getRoomDefinition(tappedPlacedRoom)
+      : null;
 
   return (
     <div className="screen">
@@ -77,24 +91,29 @@ export function ConstructionScreen() {
                 ? validatePlacement(selectedRoom, { row, col }, grid, placedRooms).valid
                 : false;
               const isEmpty = !roomId;
+              const isTappedPlaced = roomId === tappedPlacedRoom;
 
               return (
                 <div
                   key={`${row}-${col}`}
-                  onClick={() => isEmpty && handleCellTap(row, col)}
+                  onClick={() => handleCellTap(row, col)}
                   style={{
                     width: cellSize,
                     height: cellSize,
-                    background: roomDef
-                      ? 'var(--bg-card)'
-                      : isValid
-                        ? 'rgba(139, 115, 64, 0.15)'
-                        : 'var(--bg-surface)',
-                    border: roomDef
-                      ? '1px solid var(--border-medium)'
-                      : isValid
-                        ? '1px dashed var(--border-accent)'
-                        : '1px solid var(--border-subtle)',
+                    background: isTappedPlaced
+                      ? 'var(--bg-card-hover)'
+                      : roomDef
+                        ? 'var(--bg-card)'
+                        : isValid
+                          ? 'rgba(139, 115, 64, 0.15)'
+                          : 'var(--bg-surface)',
+                    border: isTappedPlaced
+                      ? '2px solid var(--text-accent)'
+                      : roomDef
+                        ? '1px solid var(--border-medium)'
+                        : isValid
+                          ? '1px dashed var(--border-accent)'
+                          : '1px solid var(--border-subtle)',
                     borderRadius: 4,
                     display: 'flex',
                     alignItems: 'center',
@@ -102,7 +121,7 @@ export function ConstructionScreen() {
                     fontSize: 8,
                     color: roomDef ? 'var(--text-secondary)' : 'var(--text-muted)',
                     textAlign: 'center',
-                    cursor: isEmpty && selectedRoom ? 'pointer' : 'default',
+                    cursor: (isEmpty && selectedRoom) || roomDef ? 'pointer' : 'default',
                     transition: 'background 0.15s, border-color 0.15s',
                     padding: 2,
                     lineHeight: 1.1,
@@ -124,12 +143,43 @@ export function ConstructionScreen() {
       {/* Synergy notice */}
       {synergyNotice && (
         <div style={styles.synergyNotice} className="fade-in">
-          {synergyNotice}
+          <span style={styles.synergyIcon}>&#x2726;</span> {synergyNotice}
+        </div>
+      )}
+
+      {/* Room preview panel */}
+      {previewRoom && (
+        <div style={styles.previewPanel} className="slide-up">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 600,
+                textTransform: 'uppercase' as const,
+                letterSpacing: '0.1em',
+                color: `var(--color-${previewRoom.rarity})`,
+              }}>
+                {previewRoom.rarity} · {previewRoom.category}
+              </span>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 18, marginTop: 2 }}>
+                {previewRoom.name}
+              </h3>
+            </div>
+            <DoorIndicator doors={previewRoom.doors} />
+          </div>
+          <p style={styles.previewFlavour}>{previewRoom.flavour}</p>
+          <div style={styles.previewMeta}>
+            <span>{previewRoom.interactions.length} interaction{previewRoom.interactions.length !== 1 ? 's' : ''}</span>
+            <span style={{ color: 'var(--text-muted)' }}>
+              {previewRoom.interactions.filter(i => i.type === 'inspect').length > 0 && 'Free inspect'}
+              {previewRoom.interactions.filter(i => i.type === 'search').length > 0 && ' + Searchable'}
+            </span>
+          </div>
         </div>
       )}
 
       {/* Feedback */}
-      {feedback && (
+      {feedback && !previewRoom && (
         <div style={styles.feedback}>{feedback}</div>
       )}
 
@@ -160,7 +210,7 @@ export function ConstructionScreen() {
                   </span>
                   <span style={styles.cardName}>{def.name}</span>
                   <span style={styles.cardCategory}>{def.category}</span>
-                  <DoorIndicator doors={def.doors} />
+                  <DoorIndicator doors={def.doors} size={20} />
                 </button>
               );
             })}
@@ -205,14 +255,19 @@ function RoomCellIcon({ roomId, size }: { roomId: string; size: number }) {
   );
 }
 
-function DoorIndicator({ doors }: { doors: { N: boolean; S: boolean; E: boolean; W: boolean } }) {
+function DoorIndicator({ doors, size = 24 }: { doors: { N: boolean; S: boolean; E: boolean; W: boolean }; size?: number }) {
+  const s = size;
+  const inner = s * 0.5;
+  const offset = (s - inner) / 2;
+  const mid = s / 2;
+  const gap = inner * 0.33;
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" style={{ marginTop: 4 }}>
-      <rect x="6" y="6" width="12" height="12" fill="none" stroke="var(--border-subtle)" strokeWidth="1" rx="2" />
-      {doors.N && <line x1="10" y1="6" x2="14" y2="6" stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.S && <line x1="10" y1="18" x2="14" y2="18" stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.W && <line x1="6" y1="10" x2="6" y2="14" stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.E && <line x1="18" y1="10" x2="18" y2="14" stroke="var(--text-accent)" strokeWidth="2" />}
+    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ flexShrink: 0 }}>
+      <rect x={offset} y={offset} width={inner} height={inner} fill="none" stroke="var(--border-subtle)" strokeWidth="1" rx="2" />
+      {doors.N && <line x1={mid - gap} y1={offset} x2={mid + gap} y2={offset} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.S && <line x1={mid - gap} y1={offset + inner} x2={mid + gap} y2={offset + inner} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.W && <line x1={offset} y1={mid - gap} x2={offset} y2={mid + gap} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.E && <line x1={offset + inner} y1={mid - gap} x2={offset + inner} y2={mid + gap} stroke="var(--text-accent)" strokeWidth="2" />}
     </svg>
   );
 }
@@ -251,12 +306,38 @@ const styles: Record<string, React.CSSProperties> = {
   synergyNotice: {
     textAlign: 'center',
     fontSize: 13,
+    fontWeight: 500,
     color: 'var(--color-success)',
-    padding: '6px 16px',
+    padding: '8px 16px',
     background: 'rgba(110, 168, 110, 0.1)',
-    borderTop: '1px solid rgba(110, 168, 110, 0.2)',
-    borderBottom: '1px solid rgba(110, 168, 110, 0.2)',
+    border: '1px solid rgba(110, 168, 110, 0.2)',
+    borderRadius: 'var(--radius-sm)',
+    margin: '0 16px',
     flexShrink: 0,
+  },
+  synergyIcon: {
+    fontSize: 14,
+  },
+  previewPanel: {
+    padding: '12px 16px',
+    background: 'var(--bg-card)',
+    borderTop: '1px solid var(--border-medium)',
+    flexShrink: 0,
+  },
+  previewFlavour: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: 13,
+    fontStyle: 'italic',
+    color: 'var(--text-secondary)',
+    marginTop: 4,
+    lineHeight: 1.5,
+  },
+  previewMeta: {
+    display: 'flex',
+    gap: 8,
+    marginTop: 6,
+    fontSize: 11,
+    color: 'var(--text-accent)',
   },
   handContainer: {
     padding: '12px 16px 24px',

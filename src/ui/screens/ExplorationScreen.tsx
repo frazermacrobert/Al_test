@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
+import { getSynergyDefinitions } from '../../data/synergies';
 import { GRID_SIZE, Direction } from '../../engine/types';
 import { getNeighbour, isInBounds } from '../../engine/grid';
 
@@ -18,6 +19,7 @@ export function ExplorationScreen() {
   const activeSynergies = useGameStore(s => s.activeSynergies);
 
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+  const [showSynergies, setShowSynergies] = useState(false);
 
   const selectedRoomId = selectedCell ? grid[selectedCell.row][selectedCell.col] : null;
   const selectedDef = selectedRoomId ? getRoomDefinition(selectedRoomId) : null;
@@ -27,17 +29,8 @@ export function ExplorationScreen() {
   const gap = 2;
   const gridPx = GRID_SIZE * cellSize + (GRID_SIZE - 1) * gap;
 
-  // Find bounding box of placed rooms to centre the map
-  let minR = GRID_SIZE, maxR = 0, minC = GRID_SIZE, maxC = 0;
-  for (const pr of placedRooms) {
-    minR = Math.min(minR, pr.position.row);
-    maxR = Math.max(maxR, pr.position.row);
-    minC = Math.min(minC, pr.position.col);
-    maxC = Math.max(maxC, pr.position.col);
-  }
-
   // Door connections for SVG overlay
-  const connections: { x1: number; y1: number; x2: number; y2: number; isSynergy: boolean }[] = [];
+  const connections: { x1: number; y1: number; x2: number; y2: number }[] = [];
   for (const pr of placedRooms) {
     const def = getRoomDefinition(pr.roomId);
     if (!def) continue;
@@ -54,9 +47,13 @@ export function ExplorationScreen() {
       const y1 = pr.position.row * (cellSize + gap) + cellSize / 2;
       const x2 = np.col * (cellSize + gap) + cellSize / 2;
       const y2 = np.row * (cellSize + gap) + cellSize / 2;
-      connections.push({ x1, y1, x2, y2, isSynergy: false });
+      connections.push({ x1, y1, x2, y2 });
     }
   }
+
+  const synergyDefs = activeSynergies
+    .map(id => getSynergyDefinitions().find(s => s.id === id))
+    .filter(Boolean);
 
   return (
     <div className="screen">
@@ -70,6 +67,30 @@ export function ExplorationScreen() {
             : 'No actions left — the dawn approaches'}
         </p>
       </div>
+
+      {/* Active synergies toggle */}
+      {synergyDefs.length > 0 && (
+        <div style={styles.synergyBar}>
+          <button
+            style={styles.synergyToggle}
+            onClick={() => setShowSynergies(!showSynergies)}
+          >
+            <span style={{ color: 'var(--color-success)' }}>&#x2726;</span>
+            {' '}{synergyDefs.length} synerg{synergyDefs.length !== 1 ? 'ies' : 'y'} active
+            <span style={{ fontSize: 10, marginLeft: 4 }}>{showSynergies ? '▲' : '▼'}</span>
+          </button>
+          {showSynergies && (
+            <div style={styles.synergyList} className="fade-in">
+              {synergyDefs.map(syn => syn && (
+                <div key={syn.id} style={styles.synergyItem}>
+                  <span style={styles.synergyName}>{syn.name}</span>
+                  <span style={styles.synergyDesc}>{syn.effect.description}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Map grid */}
       <div style={styles.gridContainer}>
@@ -151,7 +172,7 @@ export function ExplorationScreen() {
                     }}
                   >
                     <span style={{
-                      fontSize: Math.max(7, cellSize * 0.15),
+                      fontSize: Math.max(7, cellSize * 0.16),
                       color: rs?.visited ? 'var(--text-secondary)' : 'var(--text-primary)',
                       textAlign: 'center',
                       lineHeight: 1.1,
@@ -207,6 +228,18 @@ export function ExplorationScreen() {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
               {selectedState?.visited ? selectedDef.description : selectedDef.flavour}
             </p>
+            {selectedState?.visited && (
+              <div style={styles.roomProgress}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  {selectedState.completedInteractions.length}/{selectedDef.interactions.length} interactions
+                </span>
+                {selectedState.discoveredClues.length > 0 && (
+                  <span style={{ fontSize: 11, color: 'var(--text-accent)' }}>
+                    {selectedState.discoveredClues.length} clue{selectedState.discoveredClues.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <button
             className="btn btn-primary"
@@ -258,6 +291,44 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-secondary)',
     marginTop: 4,
   },
+  synergyBar: {
+    padding: '0 16px',
+    flexShrink: 0,
+  },
+  synergyToggle: {
+    width: '100%',
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-secondary)',
+    fontSize: 12,
+    fontWeight: 500,
+    padding: '6px 0',
+    textAlign: 'center',
+    fontFamily: 'var(--font-sans)',
+  },
+  synergyList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    paddingBottom: 8,
+  },
+  synergyItem: {
+    background: 'var(--bg-card)',
+    borderRadius: 'var(--radius-sm)',
+    padding: '6px 10px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  synergyName: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: 'var(--color-success)',
+  },
+  synergyDesc: {
+    fontSize: 11,
+    color: 'var(--text-secondary)',
+  },
   gridContainer: {
     flex: 1,
     display: 'flex',
@@ -274,6 +345,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   infoPanelHeader: {
     marginBottom: 12,
+  },
+  roomProgress: {
+    display: 'flex',
+    gap: 12,
+    marginTop: 6,
   },
   bottomActions: {
     display: 'flex',

@@ -4,6 +4,12 @@ import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
 import { RoomInteraction, MysteryCompletionEvent } from '../../engine/types';
 
+const TYPE_LABELS: Record<string, { label: string; color: string }> = {
+  inspect: { label: 'Free', color: 'var(--text-muted)' },
+  search: { label: 'Search', color: 'var(--color-candle)' },
+  special: { label: 'Special', color: 'var(--color-exceptional)' },
+};
+
 export function RoomScreen() {
   const currentRoom = useGameStore(s => s.currentRoom);
   const roomStates = useGameStore(s => s.roomStates);
@@ -44,9 +50,6 @@ export function RoomScreen() {
 
   const dismissResult = () => {
     setActiveResult(null);
-    if (mysteryEvent) {
-      // mystery event will show next
-    }
   };
 
   const dismissMystery = () => {
@@ -62,6 +65,9 @@ export function RoomScreen() {
     if ((cost.keys ?? 0) > keys) return false;
     return true;
   };
+
+  const completedCount = rs ? rs.completedInteractions.length : 0;
+  const totalInteractions = roomDef.interactions.length;
 
   return (
     <div className="screen">
@@ -87,6 +93,17 @@ export function RoomScreen() {
 
           <h2 style={styles.roomName}>{roomDef.name}</h2>
           <p style={styles.roomDesc}>{roomDef.description}</p>
+          <div style={styles.progressRow}>
+            <span style={styles.progressText}>
+              {completedCount}/{totalInteractions} discovered
+            </span>
+            <div style={styles.progressBar}>
+              <div style={{
+                ...styles.progressFill,
+                width: `${(completedCount / totalInteractions) * 100}%`,
+              }} />
+            </div>
+          </div>
         </div>
 
         {/* Mystery completion overlay */}
@@ -138,6 +155,7 @@ export function RoomScreen() {
               const completed = isCompleted(interaction.id);
               const affordable = canAfford(interaction.cost);
               const disabled = (completed && !interaction.repeatable) || !affordable;
+              const typeInfo = TYPE_LABELS[interaction.type] ?? TYPE_LABELS.inspect;
 
               return (
                 <button
@@ -147,14 +165,22 @@ export function RoomScreen() {
                     ...styles.interactionBtn,
                     opacity: disabled ? 0.45 : 1,
                     cursor: disabled ? 'default' : 'pointer',
+                    borderLeftColor: completed && !interaction.repeatable
+                      ? 'var(--color-success)'
+                      : !affordable
+                        ? 'var(--color-danger)'
+                        : 'var(--border-medium)',
                   }}
                 >
                   <div style={styles.interactionHeader}>
-                    <span style={styles.interactionType}>
-                      {interaction.type === 'inspect' ? 'Free' : `${interaction.type}`}
+                    <span style={{ ...styles.interactionType, color: typeInfo.color }}>
+                      {typeInfo.label}
                     </span>
                     {completed && !interaction.repeatable && (
                       <span style={styles.completedBadge}>Done</span>
+                    )}
+                    {!affordable && !completed && (
+                      <span style={styles.cantAffordBadge}>Can't afford</span>
                     )}
                   </div>
                   <span style={styles.interactionLabel}>{interaction.label}</span>
@@ -222,6 +248,30 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: 'italic',
     marginTop: 8,
     lineHeight: 1.6,
+  },
+  progressRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  progressText: {
+    fontSize: 11,
+    color: 'var(--text-muted)',
+    whiteSpace: 'nowrap',
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    background: 'var(--border-subtle)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    background: 'var(--color-success)',
+    borderRadius: 2,
+    transition: 'width 0.3s',
   },
   mysteryCard: {
     background: 'var(--bg-card)',
@@ -314,6 +364,7 @@ const styles: Record<string, React.CSSProperties> = {
   interactionBtn: {
     background: 'var(--bg-card)',
     border: '1px solid var(--border-medium)',
+    borderLeft: '3px solid var(--border-medium)',
     borderRadius: 'var(--radius-md)',
     padding: '12px 14px',
     textAlign: 'left',
@@ -332,12 +383,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.08em',
-    color: 'var(--text-muted)',
   },
   completedBadge: {
     fontSize: 9,
     fontWeight: 600,
     color: 'var(--color-success)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+  },
+  cantAffordBadge: {
+    fontSize: 9,
+    fontWeight: 600,
+    color: 'var(--color-danger)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.08em',
   },
