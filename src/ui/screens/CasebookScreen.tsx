@@ -6,20 +6,13 @@ type Tab = 'evidence' | 'mysteries';
 
 export function CasebookScreen() {
   const casebook = useGameStore(s => s.casebook);
-  const phase = useGameStore(s => s.phase);
-  const setPhase = useGameStore(s => s.setPhase);
+  const closeCasebook = useGameStore(s => s.closeCasebook);
   const [tab, setTab] = useState<Tab>('evidence');
-
-  const goBack = () => {
-    if (phase === 'casebook') {
-      setPhase('dawn');
-    }
-  };
 
   return (
     <div className="screen">
       <div style={styles.header}>
-        <button style={styles.backBtn} onClick={goBack}>
+        <button style={styles.backBtn} onClick={closeCasebook}>
           Back
         </button>
         <h2 style={styles.title}>Casebook</h2>

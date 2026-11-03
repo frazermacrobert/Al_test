@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import {
-  GameState, Phase, RoomId, Position, ClueId, SynergyId,
-  GRID_SIZE, ENTRANCE_ROW, ENTRANCE_COL, STARTING_ACTIONS, DRAFTS_PER_NIGHT,
+  GameState, Phase, RoomId, Position, MysteryCompletionEvent,
+  ENTRANCE_ROW, ENTRANCE_COL, STARTING_ACTIONS, DRAFTS_PER_NIGHT,
 } from './types';
 import { createEmptyGrid, validatePlacement } from './grid';
 import { buildDraftPool, drawHand, removeFromPool } from './draft';
 import { detectSynergies } from './synergies';
 import { getSynergyDefinitions } from '../data/synergies';
 import { getRoomDefinition, getPrototypeRoomIds } from '../data/rooms';
-import { getClue } from '../data/mysteries';
+import { getClue, getMystery, MYSTERIES } from '../data/mysteries';
 import { getNightObjective } from '../data/nights';
 import { createRng } from './rng';
 import { saveGame, loadGame, clearSave } from './persistence';
@@ -24,15 +24,23 @@ interface GameActions {
 
   enterRoom: (roomId: RoomId) => void;
   exitRoom: () => void;
-  performInteraction: (interactionId: string) => string | null;
+  performInteraction: (interactionId: string) => { error?: string; mysteryCompleted?: MysteryCompletionEvent } | null;
 
   endNight: () => void;
 
   setPhase: (phase: Phase) => void;
+  openCasebook: () => void;
+  closeCasebook: () => void;
   save: () => void;
 }
 
-type Store = GameState & GameActions;
+interface StoreExtras {
+  previousPhase: Phase | null;
+  pendingMysteryCompletion: MysteryCompletionEvent | null;
+  dismissMysteryCompletion: () => void;
+}
+
+type Store = GameState & GameActions & StoreExtras;
 
 function createInitialState(): GameState {
   return {
@@ -65,18 +73,38 @@ function createInitialState(): GameState {
   };
 }
 
+function checkMysteryCompletion(casebook: GameState['casebook']): MysteryCompletionEvent | null {
+  for (const mystery of MYSTERIES) {
+    if (casebook.completedMysteries.includes(mystery.id)) continue;
+    const progress = casebook.mysteryProgress[mystery.id] ?? [];
+    if (progress.length >= mystery.requiredClues) {
+      return {
+        mysteryId: mystery.id,
+        title: mystery.title,
+        resolution: mystery.resolution,
+        reward: mystery.reward,
+      };
+    }
+  }
+  return null;
+}
+
 export const useGameStore = create<Store>((set, get) => ({
   ...createInitialState(),
+  previousPhase: null,
+  pendingMysteryCompletion: null,
+
+  dismissMysteryCompletion: () => set({ pendingMysteryCompletion: null }),
 
   newGame: () => {
     clearSave();
-    set(createInitialState());
+    set({ ...createInitialState(), previousPhase: null, pendingMysteryCompletion: null });
   },
 
   loadSavedGame: () => {
     const saved = loadGame();
     if (saved) {
-      set(saved);
+      set({ ...saved, previousPhase: null, pendingMysteryCompletion: null });
       return true;
     }
     return false;
@@ -101,19 +129,6 @@ export const useGameStore = create<Store>((set, get) => ({
     let candles = 0;
     let keys = 0;
 
-    const activeSynergies = detectSynergies(grid, placedRooms);
-    for (const synId of activeSynergies) {
-      const syn = getSynergyDefinitions().find(s => s.id === synId);
-      if (!syn) continue;
-      if (syn.effect.type === 'resource') {
-        switch (syn.effect.resourceType) {
-          case 'silver': silver += syn.effect.amount ?? 0; break;
-          case 'candles': candles += syn.effect.amount ?? 0; break;
-          case 'keys': keys += syn.effect.amount ?? 0; break;
-        }
-      }
-    }
-
     set({
       nightNumber,
       phase: 'invitation',
@@ -129,8 +144,10 @@ export const useGameStore = create<Store>((set, get) => ({
       candles,
       keys,
       actions: STARTING_ACTIONS,
-      activeSynergies,
+      activeSynergies: [],
       seed: state.seed,
+      previousPhase: null,
+      pendingMysteryCompletion: null,
     });
   },
 
@@ -138,10 +155,7 @@ export const useGameStore = create<Store>((set, get) => ({
     const state = get();
     if (state.draftsRemaining <= 0) return;
     if (!state.currentHand.includes(roomId)) return;
-
-    set({
-      currentHand: [roomId],
-    });
+    set({ currentHand: [roomId] });
   },
 
   placeRoom: (roomId: RoomId, pos: Position) => {
@@ -215,7 +229,6 @@ export const useGameStore = create<Store>((set, get) => ({
       roomStates[roomId] = { visited: false, completedInteractions: [], discoveredClues: [] };
     }
     roomStates[roomId] = { ...roomStates[roomId], visited: true };
-
     set({ phase: 'room', currentRoom: roomId, roomStates });
   },
 
@@ -225,37 +238,35 @@ export const useGameStore = create<Store>((set, get) => ({
 
   performInteraction: (interactionId: string) => {
     const state = get();
-    if (!state.currentRoom) return 'No room selected.';
+    if (!state.currentRoom) return { error: 'No room selected.' };
 
     const roomDef = getRoomDefinition(state.currentRoom);
-    if (!roomDef) return 'Unknown room.';
+    if (!roomDef) return { error: 'Unknown room.' };
 
     const interaction = roomDef.interactions.find(i => i.id === interactionId);
-    if (!interaction) return 'Unknown interaction.';
+    if (!interaction) return { error: 'Unknown interaction.' };
 
     const rs = state.roomStates[state.currentRoom];
     if (rs?.completedInteractions.includes(interactionId) && !interaction.repeatable) {
-      return 'Already completed.';
+      return { error: 'Already completed.' };
     }
 
     const cost = interaction.cost;
-    if ((cost.actions ?? 0) > state.actions) return 'Not enough Actions.';
-    if ((cost.silver ?? 0) > state.silver) return 'Not enough Silver.';
-    if ((cost.candles ?? 0) > state.candles) return 'Not enough Candles.';
-    if ((cost.keys ?? 0) > state.keys) return 'Not enough Keys.';
+    if ((cost.actions ?? 0) > state.actions) return { error: 'Not enough Actions.' };
+    if ((cost.silver ?? 0) > state.silver) return { error: 'Not enough Silver.' };
+    if ((cost.candles ?? 0) > state.candles) return { error: 'Not enough Candles.' };
+    if ((cost.keys ?? 0) > state.keys) return { error: 'Not enough Keys.' };
 
     if (interaction.condition) {
       const cond = interaction.condition;
       switch (cond.type) {
         case 'hasClue':
           if (!state.casebook.evidence.includes(cond.value as string))
-            return 'You lack a required clue.';
-          break;
-        case 'hasResource':
+            return { error: 'You lack a required clue.' };
           break;
         case 'nightMin':
           if (state.nightNumber < (cond.value as number))
-            return 'Not yet. The house isn\'t ready.';
+            return { error: 'Not yet. The house isn\'t ready.' };
           break;
       }
     }
@@ -273,6 +284,7 @@ export const useGameStore = create<Store>((set, get) => ({
     let silver = newSilver;
     let candles = newCandles;
     let keys = newKeys;
+    let unlockedRooms = [...state.unlockedRooms];
 
     const outcome = interaction.outcome;
     if (outcome.type === 'resource') {
@@ -282,6 +294,8 @@ export const useGameStore = create<Store>((set, get) => ({
         case 'keys': keys += outcome.amount ?? 0; break;
       }
     }
+
+    let mysteryCompleted: MysteryCompletionEvent | null = null;
 
     if (outcome.type === 'clue' && outcome.clueId) {
       if (!casebook.evidence.includes(outcome.clueId)) {
@@ -299,6 +313,20 @@ export const useGameStore = create<Store>((set, get) => ({
             progress[clue.mysteryId] = [...mysteryClues, outcome.clueId];
           }
           casebook = { ...casebook, mysteryProgress: progress };
+
+          mysteryCompleted = checkMysteryCompletion(casebook);
+          if (mysteryCompleted) {
+            casebook = {
+              ...casebook,
+              completedMysteries: [...casebook.completedMysteries, mysteryCompleted.mysteryId],
+            };
+            if (mysteryCompleted.reward?.type === 'unlockRoom') {
+              const newRoom = mysteryCompleted.reward.value;
+              if (!unlockedRooms.includes(newRoom)) {
+                unlockedRooms = [...unlockedRooms, newRoom];
+              }
+            }
+          }
         }
       }
     }
@@ -312,23 +340,33 @@ export const useGameStore = create<Store>((set, get) => ({
       keys,
       roomStates,
       casebook,
+      unlockedRooms,
+      pendingMysteryCompletion: mysteryCompleted,
     });
 
+    if (mysteryCompleted) {
+      return { mysteryCompleted };
+    }
     return null;
   },
 
   endNight: () => {
-    const state = get();
-    set({
-      phase: 'dawn',
-    });
-
-    setTimeout(() => {
-      saveGame({ ...get() });
-    }, 0);
+    set({ phase: 'dawn' });
+    setTimeout(() => saveGame({ ...get() }), 0);
   },
 
   setPhase: (phase: Phase) => set({ phase }),
+
+  openCasebook: () => {
+    const state = get();
+    set({ previousPhase: state.phase, phase: 'casebook' });
+  },
+
+  closeCasebook: () => {
+    const state = get();
+    const returnTo = state.previousPhase ?? 'exploration';
+    set({ phase: returnTo, previousPhase: null });
+  },
 
   save: () => {
     saveGame(get());

@@ -9,6 +9,13 @@ export type Rarity = 'common' | 'unusual' | 'rare' | 'exceptional' | 'forbidden'
 
 export type Phase = 'title' | 'invitation' | 'construction' | 'exploration' | 'room' | 'dawn' | 'casebook';
 
+export interface MysteryCompletionEvent {
+  mysteryId: MysteryId;
+  title: string;
+  resolution: string;
+  reward?: MysteryReward;
+}
+
 export interface Position {
   row: number;
   col: number;

@@ -7,7 +7,7 @@ export function DawnScreen() {
   const roomStates = useGameStore(s => s.roomStates);
   const activeSynergies = useGameStore(s => s.activeSynergies);
   const startNight = useGameStore(s => s.startNight);
-  const setPhase = useGameStore(s => s.setPhase);
+  const openCasebook = useGameStore(s => s.openCasebook);
 
   const visitedCount = Object.values(roomStates).filter(r => r.visited).length;
   const cluesFound = casebook.evidence.length;
@@ -59,7 +59,7 @@ export function DawnScreen() {
           <button className="btn btn-primary" style={styles.mainBtn} onClick={startNight}>
             Begin Night {nightNumber + 1}
           </button>
-          <button className="btn btn-ghost" onClick={() => setPhase('casebook')}>
+          <button className="btn btn-ghost" onClick={openCasebook}>
             Review Casebook
           </button>
         </div>

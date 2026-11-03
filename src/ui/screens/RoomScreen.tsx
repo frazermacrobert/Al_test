@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
-import { RoomInteraction } from '../../engine/types';
+import { RoomInteraction, MysteryCompletionEvent } from '../../engine/types';
 
 export function RoomScreen() {
   const currentRoom = useGameStore(s => s.currentRoom);
@@ -13,9 +13,9 @@ export function RoomScreen() {
   const silver = useGameStore(s => s.silver);
   const candles = useGameStore(s => s.candles);
   const keys = useGameStore(s => s.keys);
-  const casebook = useGameStore(s => s.casebook);
 
   const [activeResult, setActiveResult] = useState<{ text: string; isClue: boolean } | null>(null);
+  const [mysteryEvent, setMysteryEvent] = useState<MysteryCompletionEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!currentRoom) return null;
@@ -27,14 +27,30 @@ export function RoomScreen() {
 
   const handleInteraction = (interaction: RoomInteraction) => {
     setError(null);
-    const err = performInteraction(interaction.id);
-    if (err) {
-      setError(err);
+    const result = performInteraction(interaction.id);
+
+    if (result?.error) {
+      setError(result.error);
       return;
     }
 
     const isClue = interaction.outcome.type === 'clue';
     setActiveResult({ text: interaction.outcome.text, isClue });
+
+    if (result?.mysteryCompleted) {
+      setMysteryEvent(result.mysteryCompleted);
+    }
+  };
+
+  const dismissResult = () => {
+    setActiveResult(null);
+    if (mysteryEvent) {
+      // mystery event will show next
+    }
+  };
+
+  const dismissMystery = () => {
+    setMysteryEvent(null);
   };
 
   const isCompleted = (id: string) => rs?.completedInteractions.includes(id) ?? false;
@@ -73,6 +89,24 @@ export function RoomScreen() {
           <p style={styles.roomDesc}>{roomDef.description}</p>
         </div>
 
+        {/* Mystery completion overlay */}
+        {mysteryEvent && !activeResult && (
+          <div style={styles.mysteryCard} className="fade-in">
+            <p style={styles.mysteryLabel}>Mystery Solved</p>
+            <h3 style={styles.mysteryTitle}>{mysteryEvent.title}</h3>
+            <p style={styles.mysteryResolution}>{mysteryEvent.resolution}</p>
+            {mysteryEvent.reward && (
+              <div style={styles.rewardBox}>
+                <p style={styles.rewardLabel}>Reward</p>
+                <p style={styles.rewardText}>{mysteryEvent.reward.description}</p>
+              </div>
+            )}
+            <button style={styles.dismissBtn} onClick={dismissMystery}>
+              Continue
+            </button>
+          </div>
+        )}
+
         {/* Result display */}
         {activeResult && (
           <div
@@ -86,10 +120,7 @@ export function RoomScreen() {
               <p style={styles.clueLabel}>Evidence Discovered</p>
             )}
             <p style={styles.resultText}>{activeResult.text}</p>
-            <button
-              style={styles.dismissBtn}
-              onClick={() => setActiveResult(null)}
-            >
+            <button style={styles.dismissBtn} onClick={dismissResult}>
               Continue
             </button>
           </div>
@@ -101,7 +132,7 @@ export function RoomScreen() {
         )}
 
         {/* Interactions */}
-        {!activeResult && (
+        {!activeResult && !mysteryEvent && (
           <div style={styles.interactions}>
             {roomDef.interactions.map(interaction => {
               const completed = isCompleted(interaction.id);
@@ -130,26 +161,26 @@ export function RoomScreen() {
                   <span style={styles.interactionDesc}>{interaction.description}</span>
                   {Object.keys(interaction.cost).length > 0 && (
                     <div style={styles.costRow}>
-                      {interaction.cost.actions && (
+                      {interaction.cost.actions ? (
                         <span style={{ color: 'var(--color-action)' }}>
                           {interaction.cost.actions} Action{interaction.cost.actions > 1 ? 's' : ''}
                         </span>
-                      )}
-                      {interaction.cost.silver && (
+                      ) : null}
+                      {interaction.cost.silver ? (
                         <span style={{ color: 'var(--color-silver)' }}>
                           {interaction.cost.silver} Silver
                         </span>
-                      )}
-                      {interaction.cost.candles && (
+                      ) : null}
+                      {interaction.cost.candles ? (
                         <span style={{ color: 'var(--color-candle)' }}>
                           {interaction.cost.candles} Candle{interaction.cost.candles > 1 ? 's' : ''}
                         </span>
-                      )}
-                      {interaction.cost.keys && (
+                      ) : null}
+                      {interaction.cost.keys ? (
                         <span style={{ color: 'var(--color-key)' }}>
                           {interaction.cost.keys} Key{interaction.cost.keys > 1 ? 's' : ''}
                         </span>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </button>
@@ -176,7 +207,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 500,
     padding: '8px 0',
-    marginBottom: 12,
     fontFamily: 'var(--font-sans)',
   },
   roomName: {
@@ -192,6 +222,51 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: 'italic',
     marginTop: 8,
     lineHeight: 1.6,
+  },
+  mysteryCard: {
+    background: 'var(--bg-card)',
+    border: '2px solid var(--text-accent)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 20,
+    marginBottom: 16,
+  },
+  mysteryLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.15em',
+    color: 'var(--text-accent)',
+    marginBottom: 8,
+  },
+  mysteryTitle: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: 22,
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    marginBottom: 10,
+  },
+  mysteryResolution: {
+    fontFamily: 'var(--font-serif)',
+    fontSize: 14,
+    lineHeight: 1.7,
+    color: 'var(--text-secondary)',
+  },
+  rewardBox: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTop: '1px solid var(--border-subtle)',
+  },
+  rewardLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.1em',
+    color: 'var(--color-success)',
+    marginBottom: 4,
+  },
+  rewardText: {
+    fontSize: 13,
+    color: 'var(--text-primary)',
   },
   resultCard: {
     background: 'var(--bg-card)',
