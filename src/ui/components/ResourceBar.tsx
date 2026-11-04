@@ -16,23 +16,30 @@ export function ResourceBar() {
     <div style={{ flexShrink: 0 }}>
       <div className="resource-bar">
         <div className="resource-item" style={{ marginRight: 'auto' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Night {nightNumber}</span>
+          <span style={{
+            color: 'var(--text-accent)',
+            fontSize: 12,
+            fontWeight: 600,
+            textShadow: '0 0 8px rgba(228, 180, 76, 0.2)',
+          }}>
+            Night {nightNumber}
+          </span>
         </div>
         <div className="resource-item" title="Silver">
           <span className="resource-icon resource-silver" />
-          <span style={{ color: 'var(--color-silver)' }}>{silver}</span>
+          <span style={{ color: 'var(--color-silver)', fontWeight: 500 }}>{silver}</span>
         </div>
         <div className="resource-item" title="Candles">
           <span className="resource-icon resource-candle" />
-          <span style={{ color: 'var(--color-candle)' }}>{candles}</span>
+          <span style={{ color: 'var(--color-candle)', fontWeight: 500 }}>{candles}</span>
         </div>
         <div className="resource-item" title="Keys">
           <span className="resource-icon resource-key" />
-          <span style={{ color: 'var(--color-key)' }}>{keys}</span>
+          <span style={{ color: 'var(--color-key)', fontWeight: 500 }}>{keys}</span>
         </div>
         <div className="resource-item" title="Actions">
           <span className="resource-icon resource-action" />
-          <span style={{ color: 'var(--color-action)', fontWeight: 600 }}>{actions}</span>
+          <span style={{ color: 'var(--color-action)', fontWeight: 700 }}>{actions}</span>
         </div>
       </div>
       {showInventory && inventory.length > 0 && (
@@ -40,11 +47,11 @@ export function ResourceBar() {
           {inventory.map(itemId => {
             const def = getItemDefinition(itemId);
             return (
-              <div key={itemId} style={styles.inventoryPill}>
-                <svg width={14} height={14} viewBox="0 0 16 16" fill="none">
+              <div key={itemId} className="badge badge-accent" style={styles.inventoryPill}>
+                <svg width={12} height={12} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
                   <path d={def?.icon ?? 'M4 4h8v8H4z'} stroke="var(--text-accent)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span style={styles.inventoryName}>{def?.name ?? itemId}</span>
+                {def?.name ?? itemId}
               </div>
             );
           })}
@@ -58,25 +65,13 @@ const styles: Record<string, React.CSSProperties> = {
   inventoryBar: {
     display: 'flex',
     gap: 6,
-    padding: '4px 16px 6px',
-    background: 'var(--bg-surface)',
+    padding: '5px 16px 6px',
+    background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-deep) 100%)',
     borderBottom: '1px solid var(--border-subtle)',
     overflowX: 'auto',
   },
   inventoryPill: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '3px 8px',
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-accent)',
-    borderRadius: 12,
     flexShrink: 0,
-  },
-  inventoryName: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: 'var(--text-accent)',
-    whiteSpace: 'nowrap' as const,
+    fontSize: 11,
   },
 };

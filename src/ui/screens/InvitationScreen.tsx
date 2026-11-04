@@ -13,42 +13,59 @@ export function InvitationScreen() {
   const maxTier = Math.max(...unlockedTiers);
 
   return (
-    <div className="screen" style={styles.container}>
+    <div className="screen bg-atmospheric" style={{ justifyContent: 'center', alignItems: 'center', padding: 24 }}>
       <div style={styles.content} className="fade-in">
-        <p style={styles.nightLabel}>Night {nightNumber}</p>
+        <span className="badge badge-accent">Night {nightNumber}</span>
+
         <h1 style={styles.title}>{objective?.title ?? 'The House Stirs'}</h1>
         <p style={styles.flavour}>{objective?.flavour}</p>
 
-        <div style={styles.card}>
-          <p style={styles.cardLabel}>The house requests:</p>
+        <div className="game-card" style={styles.card}>
+          <p className="uppercase" style={{ color: 'var(--text-accent)', marginBottom: 6 }}>
+            The house requests
+          </p>
           <p style={styles.cardText}>{objective?.description}</p>
         </div>
 
         {objective?.optional && (
-          <div style={{ ...styles.card, borderColor: 'var(--border-subtle)' }}>
-            <p style={styles.cardLabel}>Opportunity:</p>
+          <div className="game-card" style={{ ...styles.card, borderColor: 'var(--border-subtle)' }}>
+            <p className="uppercase" style={{ color: 'var(--text-muted)', marginBottom: 6 }}>
+              Opportunity
+            </p>
             <p style={styles.cardText}>{objective.optional.description}</p>
           </div>
         )}
 
         <div style={styles.resources}>
-          <span>
-            {silver} Silver, {candles} Candle{candles !== 1 ? 's' : ''}{keys > 0 ? `, ${keys} Key${keys !== 1 ? 's' : ''}` : ''}, {actions} Actions
+          <span className="badge" style={{ background: 'rgba(208, 208, 208, 0.08)', color: 'var(--color-silver)', border: '1px solid rgba(208, 208, 208, 0.15)' }}>
+            {silver} Silver
           </span>
-          {maxTier > 1 && (
-            <span style={{ display: 'block', marginTop: 4, color: 'var(--text-accent)' }}>
-              Tier {maxTier} rooms unlocked
+          <span className="badge" style={{ background: 'rgba(240, 184, 48, 0.08)', color: 'var(--color-candle)', border: '1px solid rgba(240, 184, 48, 0.15)' }}>
+            {candles} Candle{candles !== 1 ? 's' : ''}
+          </span>
+          {keys > 0 && (
+            <span className="badge" style={{ background: 'rgba(212, 152, 88, 0.08)', color: 'var(--color-key)', border: '1px solid rgba(212, 152, 88, 0.15)' }}>
+              {keys} Key{keys !== 1 ? 's' : ''}
             </span>
           )}
+          <span className="badge badge-success">
+            {actions} Action{actions !== 1 ? 's' : ''}
+          </span>
         </div>
 
+        {maxTier > 1 && (
+          <span className="badge badge-accent" style={{ fontSize: 11 }}>
+            Tier {maxTier} rooms unlocked
+          </span>
+        )}
+
         {casebook.evidence.length > 0 && (
-          <div style={styles.persistInfo}>
+          <p className="text-accent" style={styles.persistInfo}>
             {casebook.evidence.length} clue{casebook.evidence.length !== 1 ? 's' : ''} carried forward
             {casebook.completedMysteries.length > 0 && (
               <span> · {casebook.completedMysteries.length} myster{casebook.completedMysteries.length !== 1 ? 'ies' : 'y'} solved</span>
             )}
-          </div>
+          </p>
         )}
 
         <button
@@ -64,12 +81,6 @@ export function InvitationScreen() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: 'radial-gradient(ellipse at 50% 20%, #2a2818 0%, #1a1a12 70%)',
-    padding: 24,
-  },
   content: {
     display: 'flex',
     flexDirection: 'column',
@@ -77,14 +88,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 20,
     maxWidth: 360,
     textAlign: 'center',
-  },
-  nightLabel: {
-    fontFamily: 'var(--font-sans)',
-    fontSize: 12,
-    fontWeight: 500,
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.15em',
   },
   title: {
     fontFamily: 'var(--font-serif)',
@@ -101,19 +104,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   card: {
     width: '100%',
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-accent)',
-    borderRadius: 'var(--radius-md)',
     padding: '14px 16px',
     textAlign: 'left',
-  },
-  cardLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--text-accent)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
-    marginBottom: 6,
   },
   cardText: {
     fontSize: 14,
@@ -121,12 +113,13 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.5,
   },
   resources: {
-    fontSize: 12,
-    color: 'var(--text-muted)',
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
   },
   persistInfo: {
     fontSize: 12,
-    color: 'var(--text-accent)',
     fontWeight: 500,
   },
   btn: {

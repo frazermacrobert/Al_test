@@ -18,43 +18,47 @@ export function DawnScreen() {
   const maxTier = Math.max(...unlockedTiers);
 
   return (
-    <div className="screen" style={styles.container}>
+    <div className="screen bg-dawn">
       <div className="screen-scroll" style={styles.scrollContent}>
         <div style={styles.content} className="fade-in">
-          <p style={styles.nightLabel}>Dawn</p>
+          <span className="badge badge-accent">Dawn</span>
           <h1 style={styles.title}>Night {nightNumber} Ends</h1>
-          <p style={styles.flavour}>
+          <p className="font-serif" style={styles.flavour}>
             The house sighs. Walls shift. Rooms dissolve and reform.
             But what you've learned remains.
           </p>
 
-          <div style={styles.summary}>
+          <div className="game-card" style={styles.summary}>
             <SummaryRow label="Rooms explored" value={`${visitedCount}`} />
             <SummaryRow label="Evidence collected" value={`${cluesFound} total`} />
             {maxTier > 1 && (
-              <SummaryRow label="Rooms unlocked" value={`Tier ${maxTier}`} />
-            )}
-            {newClues.length > 0 && (
-              <div style={styles.newClues}>
-                <p style={styles.newCluesLabel}>New discoveries:</p>
-                {newClues.map(clueId => {
-                  const clue = getClue(clueId);
-                  return clue ? (
-                    <p key={clueId} style={styles.clueItem}>
-                      {clue.title}
-                    </p>
-                  ) : null;
-                })}
-              </div>
+              <SummaryRow label="Rooms unlocked" value={`Tier ${maxTier}`} accent />
             )}
             {activeSynergies.length > 0 && (
               <SummaryRow label="Active synergies" value={`${activeSynergies.length}`} />
             )}
           </div>
 
+          {newClues.length > 0 && (
+            <div className="game-card" style={styles.newCluesCard}>
+              <p className="uppercase" style={{ color: 'var(--text-accent)', marginBottom: 8 }}>
+                New discoveries
+              </p>
+              {newClues.map(clueId => {
+                const clue = getClue(clueId);
+                return clue ? (
+                  <div key={clueId} style={styles.clueRow}>
+                    <span style={styles.clueDot} />
+                    <span style={styles.clueItem}>{clue.title}</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          )}
+
           {completedMysteries.length > 0 && (
-            <div style={styles.mysteryProgress}>
-              <p style={styles.mysteryProgressLabel}>
+            <div className="mystery-card" style={styles.mysteryProgress}>
+              <p className="uppercase" style={{ color: 'var(--text-accent)', marginBottom: 8 }}>
                 Mysteries solved: {completedMysteries.length}/{totalMysteries}
               </p>
               {completedMysteries.map(mId => {
@@ -66,15 +70,24 @@ export function DawnScreen() {
             </div>
           )}
 
-          <div style={styles.persistNote}>
-            <p style={styles.persistLabel}>Persists to next night:</p>
-            <p style={styles.persistText}>
-              All evidence, solved mysteries, discovered synergies, and unlocked room tiers.
-            </p>
-            <p style={styles.persistLabel}>Resets:</p>
-            <p style={styles.persistText}>
-              Mansion layout, resources, actions, items, room interactions.
-            </p>
+          <div className="game-card" style={styles.persistNote}>
+            <div style={styles.persistSection}>
+              <p className="uppercase" style={{ color: 'var(--color-success)', marginBottom: 4 }}>
+                Persists
+              </p>
+              <p style={styles.persistText}>
+                Evidence, solved mysteries, synergies, and unlocked room tiers.
+              </p>
+            </div>
+            <div style={styles.persistDivider} />
+            <div style={styles.persistSection}>
+              <p className="uppercase" style={{ color: 'var(--color-danger)', marginBottom: 4 }}>
+                Resets
+              </p>
+              <p style={styles.persistText}>
+                Layout, resources, actions, items, room interactions.
+              </p>
+            </div>
           </div>
 
           <div style={styles.buttons}>
@@ -91,19 +104,19 @@ export function DawnScreen() {
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function SummaryRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div style={styles.summaryRow}>
       <span style={styles.summaryLabel}>{label}</span>
-      <span style={styles.summaryValue}>{value}</span>
+      <span style={{
+        ...styles.summaryValue,
+        color: accent ? 'var(--text-accent)' : 'var(--text-primary)',
+      }}>{value}</span>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    background: 'radial-gradient(ellipse at 50% 60%, #2a2818 0%, #1a1a12 70%)',
-  },
   scrollContent: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -118,20 +131,12 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
     margin: '0 auto',
   },
-  nightLabel: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.15em',
-  },
   title: {
     fontFamily: 'var(--font-serif)',
     fontSize: 28,
     fontWeight: 700,
   },
   flavour: {
-    fontFamily: 'var(--font-serif)',
     fontSize: 14,
     fontStyle: 'italic',
     color: 'var(--text-secondary)',
@@ -139,15 +144,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   summary: {
     width: '100%',
-    background: 'var(--bg-card)',
-    borderRadius: 'var(--radius-md)',
     padding: 16,
     textAlign: 'left',
   },
   summaryRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '6px 0',
+    padding: '8px 0',
     borderBottom: '1px solid var(--border-subtle)',
   },
   summaryLabel: {
@@ -159,38 +162,33 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     color: 'var(--text-primary)',
   },
-  newClues: {
-    padding: '8px 0',
-    borderBottom: '1px solid var(--border-subtle)',
+  newCluesCard: {
+    width: '100%',
+    padding: 16,
+    textAlign: 'left',
+    borderColor: 'var(--border-accent)',
   },
-  newCluesLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--text-accent)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginBottom: 6,
+  clueRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '4px 0',
+  },
+  clueDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: 'var(--text-accent)',
+    boxShadow: '0 0 6px rgba(228, 180, 76, 0.4)',
+    flexShrink: 0,
   },
   clueItem: {
     fontSize: 13,
     color: 'var(--text-primary)',
-    padding: '3px 0',
   },
   mysteryProgress: {
     width: '100%',
-    background: 'var(--bg-card)',
-    border: '1px solid var(--text-accent)',
-    borderRadius: 'var(--radius-md)',
-    padding: 14,
     textAlign: 'left',
-  },
-  mysteryProgressLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--text-accent)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginBottom: 6,
   },
   mysteryItem: {
     fontSize: 13,
@@ -200,21 +198,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   persistNote: {
     width: '100%',
+    padding: 16,
     textAlign: 'left',
-    padding: '0 4px',
   },
-  persistLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginTop: 8,
+  persistSection: {
+    padding: '4px 0',
+  },
+  persistDivider: {
+    height: 1,
+    background: 'var(--border-subtle)',
+    margin: '8px 0',
   },
   persistText: {
     fontSize: 13,
     color: 'var(--text-secondary)',
-    marginTop: 2,
+    lineHeight: 1.5,
   },
   buttons: {
     display: 'flex',

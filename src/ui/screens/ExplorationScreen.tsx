@@ -100,12 +100,14 @@ export function ExplorationScreen() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen bg-atmospheric">
       <ResourceBar />
 
-      <div style={styles.header}>
-        <h2 style={styles.title}>Ashcombe House</h2>
-        <p style={styles.subtitle}>
+      <div className="screen-header">
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 600 }}>
+          Ashcombe House
+        </h2>
+        <p style={{ fontSize: 13, color: actions > 0 ? 'var(--text-secondary)' : 'var(--color-warning)', marginTop: 4 }}>
           {actions > 0
             ? `${actions} action${actions !== 1 ? 's' : ''} remaining`
             : 'No actions left — the dawn approaches'}
@@ -114,21 +116,32 @@ export function ExplorationScreen() {
 
       {/* Active synergies toggle */}
       {synergyDefs.length > 0 && (
-        <div style={styles.synergyBar}>
+        <div style={{ padding: '0 16px', flexShrink: 0 }}>
           <button
-            style={styles.synergyToggle}
             onClick={() => setShowSynergies(!showSynergies)}
+            style={{
+              width: '100%',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              fontSize: 12,
+              fontWeight: 500,
+              padding: '6px 0',
+              textAlign: 'center',
+              fontFamily: 'var(--font-sans)',
+              cursor: 'pointer',
+            }}
           >
             <span style={{ color: 'var(--color-success)' }}>&#x2726;</span>
             {' '}{synergyDefs.length} synerg{synergyDefs.length !== 1 ? 'ies' : 'y'} active
             <span style={{ fontSize: 10, marginLeft: 4 }}>{showSynergies ? '▲' : '▼'}</span>
           </button>
           {showSynergies && (
-            <div style={styles.synergyList} className="fade-in">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingBottom: 8 }} className="fade-in">
               {synergyDefs.map(syn => syn && (
-                <div key={syn.id} style={styles.synergyItem}>
-                  <span style={styles.synergyName}>{syn.name}</span>
-                  <span style={styles.synergyDesc}>{syn.effect.description}</span>
+                <div key={syn.id} className="game-card" style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-success)' }}>{syn.name}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{syn.effect.description}</span>
                 </div>
               ))}
             </div>
@@ -137,7 +150,14 @@ export function ExplorationScreen() {
       )}
 
       {/* Map grid */}
-      <div style={styles.gridContainer}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px 16px',
+        minHeight: 0,
+      }}>
         <div style={{ position: 'relative', width: gridPx, height: gridPx }}>
           {/* Door connection lines */}
           <svg
@@ -151,7 +171,7 @@ export function ExplorationScreen() {
                 x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
                 stroke="var(--text-accent)"
                 strokeWidth="2"
-                strokeOpacity="0.4"
+                strokeOpacity="0.35"
                 strokeDasharray="4 2"
               />
             ))}
@@ -193,45 +213,35 @@ export function ExplorationScreen() {
                 const iconPath = getRoomIcon(roomId!);
                 const iconSize = Math.max(14, cellSize * 0.5);
 
+                const cellClasses = [
+                  'grid-cell',
+                  isCurrent ? 'grid-cell-current' : '',
+                  isSelected && !isCurrent ? 'grid-cell-selected' : '',
+                  dimmed ? 'grid-cell-dimmed' : '',
+                ].filter(Boolean).join(' ');
+
                 return (
                   <div
                     key={`${row}-${col}`}
+                    className={cellClasses}
                     onClick={() => handleCellTap(row, col)}
                     style={{
                       width: cellSize,
                       height: cellSize,
                       background: isCurrent
-                        ? 'rgba(212, 168, 83, 0.2)'
+                        ? 'rgba(228, 180, 76, 0.15)'
                         : isSelected
                           ? 'var(--bg-card-hover)'
-                          : dimmed
-                            ? 'var(--bg-deep)'
-                            : rs?.visited
-                              ? 'var(--bg-card)'
-                              : 'var(--bg-surface)',
+                          : rs?.visited
+                            ? 'var(--bg-card)'
+                            : 'var(--bg-surface)',
                       border: isCurrent
-                        ? '2px solid var(--text-accent)'
+                        ? undefined
                         : isSelected
-                          ? '2px solid var(--border-accent)'
-                          : dimmed
-                            ? '1px solid var(--border-subtle)'
-                            : '1px solid var(--border-medium)',
-                      borderRadius: 4,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      opacity: dimmed ? 0.45 : 1,
-                      boxShadow: isCurrent
-                        ? '0 0 8px rgba(212, 168, 83, 0.3), inset 0 1px 0 rgba(255,255,255,0.06)'
-                        : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.3)',
+                          ? undefined
+                          : '1px solid var(--border-medium)',
                     }}
                   >
-                    {/* Room icon */}
                     <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" fill="none" style={{ zIndex: 1 }}>
                       <path
                         d={iconPath}
@@ -254,7 +264,6 @@ export function ExplorationScreen() {
                       {roomDef.name.split(' ')[0]}
                     </span>
 
-                    {/* Door edge marks */}
                     <DoorEdges doors={roomDef.doors} size={cellSize} />
 
                     {/* Move cost badge */}
@@ -262,7 +271,7 @@ export function ExplorationScreen() {
                       <div style={{
                         position: 'absolute', bottom: 2, right: 2,
                         background: canAffordMove ? 'var(--color-action)' : 'var(--color-danger)',
-                        color: '#1a1a12',
+                        color: '#12110c',
                         fontSize: 8,
                         fontWeight: 700,
                         borderRadius: 3,
@@ -280,12 +289,12 @@ export function ExplorationScreen() {
                         position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
                         width: 5, height: 5, borderRadius: '50%',
                         background: 'var(--text-accent)',
-                        boxShadow: '0 0 4px var(--text-accent)',
+                        boxShadow: '0 0 6px var(--text-accent)',
                         zIndex: 2,
                       }} />
                     )}
 
-                    {/* Status indicator */}
+                    {/* Undiscovered indicator */}
                     {!isCurrent && hasUndiscovered && (
                       <div className="glow-dot" style={{
                         position: 'absolute', top: 3, right: 3,
@@ -294,6 +303,7 @@ export function ExplorationScreen() {
                         zIndex: 2,
                       }} />
                     )}
+                    {/* Fully explored indicator */}
                     {!isCurrent && rs?.visited && !hasUndiscovered && (
                       <div style={{
                         position: 'absolute', top: 3, right: 3,
@@ -312,44 +322,37 @@ export function ExplorationScreen() {
 
       {/* Room info panel */}
       {selectedDef && (
-        <div style={styles.infoPanel} className="slide-up">
-          <div style={styles.infoPanelHeader}>
+        <div className="info-panel slide-up">
+          <div style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.1em',
-                  color: `var(--color-${selectedDef.rarity})`,
-                }}>
+                <span className="badge badge-accent" style={{ color: `var(--color-${selectedDef.rarity})` }}>
                   {selectedDef.rarity} · {selectedDef.category}
                 </span>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 20 }}>{selectedDef.name}</h3>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 20, marginTop: 4 }}>{selectedDef.name}</h3>
               </div>
               <DoorIndicator doors={selectedDef.doors} />
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 6, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
               {selectedState?.visited ? selectedDef.description : selectedDef.flavour}
             </p>
             {selectedState?.visited && (
-              <div style={styles.roomProgress}>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <span className="badge badge-accent">
                   {selectedState.completedInteractions.length}/{selectedDef.interactions.length} interactions
                 </span>
                 {selectedState.discoveredClues.length > 0 && (
-                  <span style={{ fontSize: 11, color: 'var(--text-accent)' }}>
+                  <span className="badge badge-success">
                     {selectedState.discoveredClues.length} clue{selectedState.discoveredClues.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
             )}
-            {/* Move cost indicator */}
             {selectedMoveCost !== null && selectedMoveStatus !== 'current' && (
-              <div style={{
-                marginTop: 6,
+              <p style={{
+                marginTop: 8,
                 fontSize: 12,
-                fontWeight: 500,
+                fontWeight: 600,
                 color: selectedMoveStatus === 'reachable'
                   ? 'var(--color-action)'
                   : selectedMoveStatus === 'tooExpensive'
@@ -359,7 +362,7 @@ export function ExplorationScreen() {
                 {selectedMoveStatus === 'reachable' && `${selectedMoveCost} action${selectedMoveCost !== 1 ? 's' : ''} to move`}
                 {selectedMoveStatus === 'tooExpensive' && `Need ${selectedMoveCost} actions (have ${actions})`}
                 {selectedMoveStatus === 'unreachable' && 'No path to this room'}
-              </div>
+              </p>
             )}
           </div>
           <button
@@ -388,9 +391,13 @@ export function ExplorationScreen() {
 
       {/* Inventory + bottom actions */}
       {!selectedDef && (
-        <div style={styles.bottomArea}>
-          {/* Inventory bar */}
-          <div style={styles.inventoryBar}>
+        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 10,
+            padding: '10px 16px 4px',
+          }}>
             {Array.from({ length: MAX_INVENTORY }, (_, i) => {
               const itemId = inventory[i];
               const itemDef = itemId ? getItemDefinition(itemId) : null;
@@ -399,15 +406,22 @@ export function ExplorationScreen() {
                 <div
                   key={i}
                   style={{
-                    ...styles.inventorySlot,
-                    borderColor: itemDef ? 'var(--border-accent)' : 'var(--border-subtle)',
-                    borderStyle: itemDef ? 'solid' : 'dashed',
-                    background: itemDef ? 'var(--bg-card)' : 'transparent',
+                    width: 64,
+                    height: 48,
+                    borderRadius: 'var(--radius-sm)',
+                    border: itemDef ? '1px solid var(--border-accent)' : '1px dashed var(--border-subtle)',
+                    background: itemDef
+                      ? 'linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%)'
+                      : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: itemDef ? 'var(--shadow-card)' : 'none',
                   }}
                   title={itemDef?.name}
                 >
                   {itemDef ? (
-                    <div style={styles.inventoryItem}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                       <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
                         <path
                           d={itemDef.icon}
@@ -417,7 +431,19 @@ export function ExplorationScreen() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span style={styles.inventoryName}>{itemDef.name.split(' ')[0]}</span>
+                      <span style={{
+                        fontSize: 8,
+                        color: 'var(--text-secondary)',
+                        fontWeight: 500,
+                        lineHeight: 1,
+                        maxWidth: 56,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                      }}>
+                        {itemDef.name.split(' ')[0]}
+                      </span>
                     </div>
                   ) : (
                     <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Empty</span>
@@ -427,7 +453,11 @@ export function ExplorationScreen() {
             })}
           </div>
 
-          <div style={styles.bottomActions}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '8px 16px 24px',
+          }}>
             <button className="btn btn-ghost" onClick={openCasebook}>
               Casebook
             </button>
@@ -501,122 +531,3 @@ function hasUndiscoveredContent(
   const completed = state?.completedInteractions ?? [];
   return roomDef.interactions.some(i => !completed.includes(i.id));
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  header: {
-    padding: '12px 16px 8px',
-    textAlign: 'center',
-    flexShrink: 0,
-  },
-  title: {
-    fontFamily: 'var(--font-serif)',
-    fontSize: 22,
-    fontWeight: 600,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: 'var(--text-secondary)',
-    marginTop: 4,
-  },
-  synergyBar: {
-    padding: '0 16px',
-    flexShrink: 0,
-  },
-  synergyToggle: {
-    width: '100%',
-    background: 'none',
-    border: 'none',
-    color: 'var(--text-secondary)',
-    fontSize: 12,
-    fontWeight: 500,
-    padding: '6px 0',
-    textAlign: 'center',
-    fontFamily: 'var(--font-sans)',
-  },
-  synergyList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 6,
-    paddingBottom: 8,
-  },
-  synergyItem: {
-    background: 'var(--bg-card)',
-    borderRadius: 'var(--radius-sm)',
-    padding: '6px 10px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  synergyName: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: 'var(--color-success)',
-  },
-  synergyDesc: {
-    fontSize: 11,
-    color: 'var(--text-secondary)',
-  },
-  gridContainer: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '8px 16px',
-    minHeight: 0,
-  },
-  infoPanel: {
-    padding: '16px',
-    background: 'var(--bg-card)',
-    borderTop: '1px solid var(--border-medium)',
-    flexShrink: 0,
-  },
-  infoPanelHeader: {
-    marginBottom: 12,
-  },
-  roomProgress: {
-    display: 'flex',
-    gap: 12,
-    marginTop: 6,
-  },
-  bottomArea: {
-    flexShrink: 0,
-    borderTop: '1px solid var(--border-subtle)',
-  },
-  inventoryBar: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 10,
-    padding: '10px 16px 4px',
-  },
-  inventorySlot: {
-    width: 64,
-    height: 48,
-    borderRadius: 'var(--radius-sm)',
-    border: '1px dashed var(--border-subtle)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inventoryItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 2,
-  },
-  inventoryName: {
-    fontSize: 8,
-    color: 'var(--text-secondary)',
-    fontWeight: 500,
-    lineHeight: 1,
-    maxWidth: 56,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    textAlign: 'center',
-  },
-  bottomActions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '8px 16px 24px',
-  },
-};
