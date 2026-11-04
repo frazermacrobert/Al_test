@@ -1,27 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
 import { getSynergyDefinitions } from '../../data/synergies';
-import { GRID_SIZE, Direction } from '../../engine/types';
-import { getNeighbour, isInBounds } from '../../engine/grid';
+import { getItemDefinition } from '../../data/items';
+import { GRID_SIZE, Direction, MAX_INVENTORY } from '../../engine/types';
+import { getNeighbour, isInBounds, getReachabilityMap } from '../../engine/grid';
+import { getRoomIcon } from '../roomIcons';
 
 const OPPOSITE: Record<Direction, Direction> = { N: 'S', S: 'N', E: 'W', W: 'E' };
-
-const ROOM_ICONS: Record<string, string> = {
-  entrance_hall: 'M8 2L2 6v8h12V6L8 2zM6 14v-4h4v4',
-  library: 'M3 2h10v12H3V2zM5 4h6M5 6h6M5 8h4',
-  study: 'M2 4h12v8H2V4zM5 12v2h6v-2M8 4V2',
-  kitchen: 'M3 6h10v6H3V6zM6 6V4M10 6V4M3 9h10',
-  portrait_gallery: 'M4 3h8v10H4V3zM6 6h4v3H6V6',
-  nursery: 'M4 8a4 4 0 018 0M8 4V2M6 12h4M3 14h10',
-  conservatory: 'M3 4h10v8H3V4zM3 4l5-2 5 2M5 8v4M8 6v6M11 8v4',
-  wine_cellar: 'M4 6a4 3 0 018 0v4a4 3 0 01-8 0V6zM6 10h4',
-  music_room: 'M4 10c0-4 8-4 8 0v3H4v-3zM6 7V4M10 7V4',
-  servants_quarters: 'M3 3h10v10H3V3zM3 8h10M8 3v10',
-  ballroom: 'M2 12h12M4 12V6l4-3 4 3v6M7 12V9h2v3',
-  observatory: 'M5 14V8l3-6 3 6v6M4 14h8M8 2v2',
-};
 
 export function ExplorationScreen() {
   const grid = useGameStore(s => s.grid);
@@ -32,9 +19,16 @@ export function ExplorationScreen() {
   const actions = useGameStore(s => s.actions);
   const openCasebook = useGameStore(s => s.openCasebook);
   const activeSynergies = useGameStore(s => s.activeSynergies);
+  const currentRoom = useGameStore(s => s.currentRoom);
+  const inventory = useGameStore(s => s.inventory);
 
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [showSynergies, setShowSynergies] = useState(false);
+
+  const reachability = useMemo(() => {
+    if (!currentRoom) return new Map<string, number>();
+    return getReachabilityMap(currentRoom, grid, placedRooms);
+  }, [currentRoom, grid, placedRooms]);
 
   const selectedRoomId = selectedCell ? grid[selectedCell.row][selectedCell.col] : null;
   const selectedDef = selectedRoomId ? getRoomDefinition(selectedRoomId) : null;
@@ -44,7 +38,6 @@ export function ExplorationScreen() {
   const gap = 2;
   const gridPx = GRID_SIZE * cellSize + (GRID_SIZE - 1) * gap;
 
-  // Door connections for SVG overlay
   const connections: { x1: number; y1: number; x2: number; y2: number }[] = [];
   for (const pr of placedRooms) {
     const def = getRoomDefinition(pr.roomId);
@@ -69,6 +62,42 @@ export function ExplorationScreen() {
   const synergyDefs = activeSynergies
     .map(id => getSynergyDefinitions().find(s => s.id === id))
     .filter(Boolean);
+
+  const handleCellTap = (row: number, col: number) => {
+    const roomId = grid[row][col];
+    if (!roomId) {
+      setSelectedCell(null);
+      return;
+    }
+    const alreadySelected = selectedCell?.row === row && selectedCell?.col === col;
+    if (alreadySelected && roomId) {
+      if (roomId === currentRoom) {
+        enterRoom(roomId);
+      } else {
+        const cost = reachability.get(roomId);
+        if (cost !== undefined && cost <= actions) {
+          enterRoom(roomId);
+        }
+      }
+    } else {
+      setSelectedCell({ row, col });
+    }
+  };
+
+  let selectedMoveCost: number | null = null;
+  let selectedMoveStatus: 'current' | 'reachable' | 'tooExpensive' | 'unreachable' = 'unreachable';
+  if (selectedRoomId) {
+    if (selectedRoomId === currentRoom) {
+      selectedMoveStatus = 'current';
+      selectedMoveCost = 0;
+    } else {
+      const cost = reachability.get(selectedRoomId);
+      if (cost !== undefined) {
+        selectedMoveCost = cost;
+        selectedMoveStatus = cost <= actions ? 'reachable' : 'tooExpensive';
+      }
+    }
+  }
 
   return (
     <div className="screen">
@@ -143,7 +172,13 @@ export function ExplorationScreen() {
                 const roomDef = roomId ? getRoomDefinition(roomId) : null;
                 const rs = roomId ? roomStates[roomId] : null;
                 const isSelected = selectedCell?.row === row && selectedCell?.col === col;
+                const isCurrent = roomId === currentRoom;
                 const hasUndiscovered = roomDef ? hasUndiscoveredContent(roomDef, rs) : false;
+
+                const moveCost = roomId ? reachability.get(roomId) : undefined;
+                const isReachable = moveCost !== undefined;
+                const canAffordMove = isReachable && moveCost <= actions;
+                const dimmed = roomDef && !isCurrent && !canAffordMove;
 
                 if (!roomDef) {
                   return (
@@ -155,30 +190,32 @@ export function ExplorationScreen() {
                   );
                 }
 
-                const iconPath = ROOM_ICONS[roomId!] ?? 'M4 4h8v8H4z';
+                const iconPath = getRoomIcon(roomId!);
                 const iconSize = Math.max(14, cellSize * 0.5);
 
                 return (
                   <div
                     key={`${row}-${col}`}
-                    onClick={() => {
-                      if (isSelected && roomId) {
-                        enterRoom(roomId);
-                      } else {
-                        setSelectedCell({ row, col });
-                      }
-                    }}
+                    onClick={() => handleCellTap(row, col)}
                     style={{
                       width: cellSize,
                       height: cellSize,
-                      background: isSelected
-                        ? 'var(--bg-card-hover)'
-                        : rs?.visited
-                          ? 'var(--bg-card)'
-                          : 'var(--bg-surface)',
-                      border: isSelected
+                      background: isCurrent
+                        ? 'rgba(212, 168, 83, 0.2)'
+                        : isSelected
+                          ? 'var(--bg-card-hover)'
+                          : dimmed
+                            ? 'var(--bg-deep)'
+                            : rs?.visited
+                              ? 'var(--bg-card)'
+                              : 'var(--bg-surface)',
+                      border: isCurrent
                         ? '2px solid var(--text-accent)'
-                        : '1px solid var(--border-medium)',
+                        : isSelected
+                          ? '2px solid var(--border-accent)'
+                          : dimmed
+                            ? '1px solid var(--border-subtle)'
+                            : '1px solid var(--border-medium)',
                       borderRadius: 4,
                       display: 'flex',
                       flexDirection: 'column',
@@ -188,14 +225,17 @@ export function ExplorationScreen() {
                       transition: 'all 0.15s',
                       position: 'relative',
                       overflow: 'hidden',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.3)',
+                      opacity: dimmed ? 0.45 : 1,
+                      boxShadow: isCurrent
+                        ? '0 0 8px rgba(212, 168, 83, 0.3), inset 0 1px 0 rgba(255,255,255,0.06)'
+                        : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.3)',
                     }}
                   >
                     {/* Room icon */}
                     <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" fill="none" style={{ zIndex: 1 }}>
                       <path
                         d={iconPath}
-                        stroke={rs?.visited ? 'var(--text-secondary)' : 'var(--text-primary)'}
+                        stroke={isCurrent ? 'var(--text-accent)' : rs?.visited ? 'var(--text-secondary)' : 'var(--text-primary)'}
                         strokeWidth="1.2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -203,7 +243,7 @@ export function ExplorationScreen() {
                     </svg>
                     <span style={{
                       fontSize: Math.max(7, cellSize * 0.14),
-                      color: rs?.visited ? 'var(--text-muted)' : 'var(--text-secondary)',
+                      color: isCurrent ? 'var(--text-accent)' : rs?.visited ? 'var(--text-muted)' : 'var(--text-secondary)',
                       lineHeight: 1,
                       zIndex: 1,
                       maxWidth: cellSize - 6,
@@ -217,8 +257,36 @@ export function ExplorationScreen() {
                     {/* Door edge marks */}
                     <DoorEdges doors={roomDef.doors} size={cellSize} />
 
+                    {/* Move cost badge */}
+                    {!isCurrent && isReachable && moveCost > 0 && (
+                      <div style={{
+                        position: 'absolute', bottom: 2, right: 2,
+                        background: canAffordMove ? 'var(--color-action)' : 'var(--color-danger)',
+                        color: '#1a1a12',
+                        fontSize: 8,
+                        fontWeight: 700,
+                        borderRadius: 3,
+                        padding: '0 3px',
+                        lineHeight: '13px',
+                        zIndex: 2,
+                      }}>
+                        {moveCost}
+                      </div>
+                    )}
+
+                    {/* Current room marker */}
+                    {isCurrent && (
+                      <div style={{
+                        position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
+                        width: 5, height: 5, borderRadius: '50%',
+                        background: 'var(--text-accent)',
+                        boxShadow: '0 0 4px var(--text-accent)',
+                        zIndex: 2,
+                      }} />
+                    )}
+
                     {/* Status indicator */}
-                    {hasUndiscovered && (
+                    {!isCurrent && hasUndiscovered && (
                       <div className="glow-dot" style={{
                         position: 'absolute', top: 3, right: 3,
                         width: 6, height: 6, borderRadius: '50%',
@@ -226,7 +294,7 @@ export function ExplorationScreen() {
                         zIndex: 2,
                       }} />
                     )}
-                    {rs?.visited && !hasUndiscovered && (
+                    {!isCurrent && rs?.visited && !hasUndiscovered && (
                       <div style={{
                         position: 'absolute', top: 3, right: 3,
                         width: 6, height: 6, borderRadius: '50%',
@@ -276,33 +344,103 @@ export function ExplorationScreen() {
                 )}
               </div>
             )}
+            {/* Move cost indicator */}
+            {selectedMoveCost !== null && selectedMoveStatus !== 'current' && (
+              <div style={{
+                marginTop: 6,
+                fontSize: 12,
+                fontWeight: 500,
+                color: selectedMoveStatus === 'reachable'
+                  ? 'var(--color-action)'
+                  : selectedMoveStatus === 'tooExpensive'
+                    ? 'var(--color-danger)'
+                    : 'var(--text-muted)',
+              }}>
+                {selectedMoveStatus === 'reachable' && `${selectedMoveCost} action${selectedMoveCost !== 1 ? 's' : ''} to move`}
+                {selectedMoveStatus === 'tooExpensive' && `Need ${selectedMoveCost} actions (have ${actions})`}
+                {selectedMoveStatus === 'unreachable' && 'No path to this room'}
+              </div>
+            )}
           </div>
           <button
-            className="btn btn-primary"
-            style={{ width: '100%' }}
-            onClick={() => enterRoom(selectedRoomId!)}
+            className={`btn ${selectedMoveStatus === 'current' || selectedMoveStatus === 'reachable' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{
+              width: '100%',
+              opacity: selectedMoveStatus === 'tooExpensive' || selectedMoveStatus === 'unreachable' ? 0.5 : 1,
+            }}
+            disabled={selectedMoveStatus === 'tooExpensive' || selectedMoveStatus === 'unreachable'}
+            onClick={() => {
+              if (selectedRoomId && (selectedMoveStatus === 'current' || selectedMoveStatus === 'reachable')) {
+                enterRoom(selectedRoomId);
+              }
+            }}
           >
-            {selectedState?.visited ? 'Return to Room' : 'Enter Room'}
+            {selectedMoveStatus === 'current'
+              ? 'Enter Room'
+              : selectedMoveStatus === 'reachable'
+                ? `Move Here (${selectedMoveCost} action${selectedMoveCost !== 1 ? 's' : ''})`
+                : selectedMoveStatus === 'tooExpensive'
+                  ? 'Not Enough Actions'
+                  : 'Unreachable'}
           </button>
         </div>
       )}
 
-      {/* Bottom actions */}
+      {/* Inventory + bottom actions */}
       {!selectedDef && (
-        <div style={styles.bottomActions}>
-          <button className="btn btn-ghost" onClick={openCasebook}>
-            Casebook
-          </button>
-          <button className="btn btn-secondary" onClick={endNight}>
-            End the Night
-          </button>
+        <div style={styles.bottomArea}>
+          {/* Inventory bar */}
+          <div style={styles.inventoryBar}>
+            {Array.from({ length: MAX_INVENTORY }, (_, i) => {
+              const itemId = inventory[i];
+              const itemDef = itemId ? getItemDefinition(itemId) : null;
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    ...styles.inventorySlot,
+                    borderColor: itemDef ? 'var(--border-accent)' : 'var(--border-subtle)',
+                    borderStyle: itemDef ? 'solid' : 'dashed',
+                    background: itemDef ? 'var(--bg-card)' : 'transparent',
+                  }}
+                  title={itemDef?.name}
+                >
+                  {itemDef ? (
+                    <div style={styles.inventoryItem}>
+                      <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+                        <path
+                          d={itemDef.icon}
+                          stroke="var(--text-accent)"
+                          strokeWidth="1.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span style={styles.inventoryName}>{itemDef.name.split(' ')[0]}</span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Empty</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={styles.bottomActions}>
+            <button className="btn btn-ghost" onClick={openCasebook}>
+              Casebook
+            </button>
+            <button className="btn btn-secondary" onClick={endNight}>
+              End the Night
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-/** Door marks on cell edges matching connected doorways */
 function DoorEdges({ doors, size }: { doors: { N: boolean; S: boolean; E: boolean; W: boolean }; size: number }) {
   const markLen = Math.max(6, size * 0.22);
   const markThick = 3;
@@ -440,10 +578,45 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
     marginTop: 6,
   },
+  bottomArea: {
+    flexShrink: 0,
+    borderTop: '1px solid var(--border-subtle)',
+  },
+  inventoryBar: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 10,
+    padding: '10px 16px 4px',
+  },
+  inventorySlot: {
+    width: 64,
+    height: 48,
+    borderRadius: 'var(--radius-sm)',
+    border: '1px dashed var(--border-subtle)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inventoryItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
+  },
+  inventoryName: {
+    fontSize: 8,
+    color: 'var(--text-secondary)',
+    fontWeight: 500,
+    lineHeight: 1,
+    maxWidth: 56,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    textAlign: 'center',
+  },
   bottomActions: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '12px 16px 24px',
-    flexShrink: 0,
+    padding: '8px 16px 24px',
   },
 };

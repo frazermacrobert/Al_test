@@ -4,9 +4,9 @@ import { shuffle } from './rng';
 
 const RARITY_WEIGHTS: Record<Rarity, number> = {
   common: 40,
-  unusual: 30,
-  rare: 18,
-  exceptional: 9,
+  uncommon: 25,
+  rare: 15,
+  exceptional: 8,
   forbidden: 3,
 };
 

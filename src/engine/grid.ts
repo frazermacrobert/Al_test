@@ -164,3 +164,104 @@ export function hasAnyValidPlacement(
 export function createEmptyGrid(): (RoomId | null)[][] {
   return Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
 }
+
+/** BFS shortest path distance (in room-to-room moves) between two rooms via connected doors. */
+export function findPathCost(
+  fromRoomId: RoomId,
+  toRoomId: RoomId,
+  grid: (RoomId | null)[][],
+  placedRooms: PlacedRoom[]
+): number | null {
+  if (fromRoomId === toRoomId) return 0;
+
+  const fromRoom = placedRooms.find(r => r.roomId === fromRoomId);
+  const toRoom = placedRooms.find(r => r.roomId === toRoomId);
+  if (!fromRoom || !toRoom) return null;
+
+  const visited = new Set<string>();
+  const queue: { pos: Position; cost: number }[] = [{ pos: fromRoom.position, cost: 0 }];
+  visited.add(`${fromRoom.position.row},${fromRoom.position.col}`);
+
+  while (queue.length > 0) {
+    const { pos, cost } = queue.shift()!;
+    const currentId = grid[pos.row][pos.col];
+    if (!currentId) continue;
+    const currentDef = getRoomDefinition(currentId);
+    if (!currentDef) continue;
+
+    for (const dir of ['N', 'S', 'E', 'W'] as Direction[]) {
+      if (!currentDef.doors[dir]) continue;
+      const np = getNeighbour(pos, dir);
+      const key = `${np.row},${np.col}`;
+      if (!isInBounds(np) || visited.has(key)) continue;
+      const neighborId = grid[np.row][np.col];
+      if (!neighborId) continue;
+      const neighborDef = getRoomDefinition(neighborId);
+      if (!neighborDef || !neighborDef.doors[OPPOSITE[dir]]) continue;
+
+      if (neighborId === toRoomId) return cost + 1;
+
+      visited.add(key);
+      queue.push({ pos: np, cost: cost + 1 });
+    }
+  }
+
+  return null;
+}
+
+/** Returns a map of roomId → movement cost from a given starting room. */
+export function getReachabilityMap(
+  fromRoomId: RoomId,
+  grid: (RoomId | null)[][],
+  placedRooms: PlacedRoom[]
+): Map<RoomId, number> {
+  const result = new Map<RoomId, number>();
+  result.set(fromRoomId, 0);
+
+  const fromRoom = placedRooms.find(r => r.roomId === fromRoomId);
+  if (!fromRoom) return result;
+
+  const visited = new Set<string>();
+  const queue: { pos: Position; cost: number }[] = [{ pos: fromRoom.position, cost: 0 }];
+  visited.add(`${fromRoom.position.row},${fromRoom.position.col}`);
+
+  while (queue.length > 0) {
+    const { pos, cost } = queue.shift()!;
+    const currentId = grid[pos.row][pos.col];
+    if (!currentId) continue;
+    const currentDef = getRoomDefinition(currentId);
+    if (!currentDef) continue;
+
+    for (const dir of ['N', 'S', 'E', 'W'] as Direction[]) {
+      if (!currentDef.doors[dir]) continue;
+      const np = getNeighbour(pos, dir);
+      const key = `${np.row},${np.col}`;
+      if (!isInBounds(np) || visited.has(key)) continue;
+      const neighborId = grid[np.row][np.col];
+      if (!neighborId) continue;
+      const neighborDef = getRoomDefinition(neighborId);
+      if (!neighborDef || !neighborDef.doors[OPPOSITE[dir]]) continue;
+
+      visited.add(key);
+      result.set(neighborId, cost + 1);
+      queue.push({ pos: np, cost: cost + 1 });
+    }
+  }
+
+  return result;
+}
+
+/** Distance from a position to the entrance (useful during construction). */
+export function distanceFromEntrance(
+  pos: Position,
+  grid: (RoomId | null)[][],
+  placedRooms: PlacedRoom[]
+): number | null {
+  const entranceRoom = placedRooms.find(r => r.roomId === 'entrance_hall');
+  if (!entranceRoom) return null;
+
+  const roomId = grid[pos.row]?.[pos.col];
+  if (!roomId) return null;
+
+  return findPathCost('entrance_hall', roomId, grid, placedRooms);
+}

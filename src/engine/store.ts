@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import {
-  GameState, Phase, RoomId, Position, MysteryCompletionEvent,
-  ENTRANCE_ROW, ENTRANCE_COL, STARTING_ACTIONS, DRAFTS_PER_NIGHT,
+  GameState, Phase, RoomId, ItemId, Position, MysteryCompletionEvent,
+  ENTRANCE_ROW, ENTRANCE_COL, STARTING_ACTIONS, DRAFTS_PER_NIGHT, MAX_INVENTORY,
 } from './types';
-import { createEmptyGrid, validatePlacement } from './grid';
+import { createEmptyGrid, validatePlacement, findPathCost } from './grid';
 import { buildDraftPool, drawHand, removeFromPool } from './draft';
 import { detectSynergies } from './synergies';
 import { getSynergyDefinitions } from '../data/synergies';
-import { getRoomDefinition, getPrototypeRoomIds } from '../data/rooms';
-import { getClue, getMystery, MYSTERIES } from '../data/mysteries';
+import { getRoomDefinition, getPrototypeRoomIds, getRoomsByTier } from '../data/rooms';
+import { getClue, MYSTERIES } from '../data/mysteries';
 import { getNightObjective } from '../data/nights';
 import { createRng } from './rng';
 import { saveGame, loadGame, clearSave } from './persistence';
@@ -23,9 +23,12 @@ interface GameActions {
   finishConstruction: () => void;
 
   skipRoom: () => void;
+  moveToRoom: (roomId: RoomId) => string | null;
   enterRoom: (roomId: RoomId) => void;
   exitRoom: () => void;
-  performInteraction: (interactionId: string) => { error?: string; mysteryCompleted?: MysteryCompletionEvent } | null;
+  performInteraction: (interactionId: string) => InteractionResult | null;
+  pickUpItem: (itemId: ItemId) => boolean;
+  dropItem: (itemId: ItemId) => void;
 
   endNight: () => void;
 
@@ -35,13 +38,43 @@ interface GameActions {
   save: () => void;
 }
 
+interface InteractionResult {
+  error?: string;
+  mysteryCompleted?: MysteryCompletionEvent;
+  itemGained?: ItemId;
+  clueGained?: string;
+}
+
 interface StoreExtras {
   previousPhase: Phase | null;
   pendingMysteryCompletion: MysteryCompletionEvent | null;
+  lastInteractionText: string | null;
   dismissMysteryCompletion: () => void;
 }
 
 type Store = GameState & GameActions & StoreExtras;
+
+function getStartingResources(nightNumber: number) {
+  let silver = 1;
+  let candles = 1;
+  let keys = 0;
+  let actions = STARTING_ACTIONS;
+
+  if (nightNumber >= 3) silver += 1;
+  if (nightNumber >= 5) { candles += 1; actions += 1; }
+  if (nightNumber >= 7) { silver += 1; keys += 1; }
+  if (nightNumber >= 9) actions += 1;
+
+  return { silver, candles, keys, actions };
+}
+
+function getMaxTier(completedMysteries: string[]): number {
+  let tier = 1;
+  if (completedMysteries.includes('fifth_place_setting')) tier = 2;
+  if (completedMysteries.includes('missing_portrait')) tier = 3;
+  if (completedMysteries.includes('living_architecture')) tier = 4;
+  return tier;
+}
 
 function createInitialState(): GameState {
   return {
@@ -59,6 +92,7 @@ function createInitialState(): GameState {
     candles: 0,
     keys: 0,
     actions: STARTING_ACTIONS,
+    inventory: [],
     casebook: {
       evidence: [],
       mysteryProgress: {},
@@ -66,11 +100,13 @@ function createInitialState(): GameState {
       connections: [],
     },
     unlockedRooms: [],
+    unlockedTiers: [1],
+    visitedRoomIds: [],
     discoveredSynergies: [],
     activeSynergies: [],
     architectCatalogue: getPrototypeRoomIds(),
     seed: Date.now(),
-    saveVersion: 1,
+    saveVersion: 2,
   };
 }
 
@@ -94,18 +130,32 @@ export const useGameStore = create<Store>((set, get) => ({
   ...createInitialState(),
   previousPhase: null,
   pendingMysteryCompletion: null,
+  lastInteractionText: null,
 
   dismissMysteryCompletion: () => set({ pendingMysteryCompletion: null }),
 
   newGame: () => {
     clearSave();
-    set({ ...createInitialState(), previousPhase: null, pendingMysteryCompletion: null });
+    set({
+      ...createInitialState(),
+      previousPhase: null,
+      pendingMysteryCompletion: null,
+      lastInteractionText: null,
+    });
   },
 
   loadSavedGame: () => {
     const saved = loadGame();
     if (saved) {
-      set({ ...saved, previousPhase: null, pendingMysteryCompletion: null });
+      set({
+        ...saved,
+        inventory: saved.inventory ?? [],
+        unlockedTiers: saved.unlockedTiers ?? [1],
+        visitedRoomIds: saved.visitedRoomIds ?? [],
+        previousPhase: null,
+        pendingMysteryCompletion: null,
+        lastInteractionText: null,
+      });
       return true;
     }
     return false;
@@ -122,23 +172,18 @@ export const useGameStore = create<Store>((set, get) => ({
 
     const placedRooms = [{ roomId: 'entrance_hall', position: { row: ENTRANCE_ROW, col: ENTRANCE_COL } }];
 
+    const maxTier = getMaxTier(state.casebook.completedMysteries);
+    const tierRooms = getRoomsByTier(maxTier);
     const catalogue = [
-      ...state.architectCatalogue,
-      ...state.unlockedRooms.filter(r => !state.architectCatalogue.includes(r)),
+      ...tierRooms,
+      ...state.unlockedRooms.filter(r => !tierRooms.includes(r)),
     ];
+
     const pool = buildDraftPool(catalogue, ['entrance_hall'], rng);
     const hand = drawHand(pool, ['entrance_hall']);
 
     const nightObjective = getNightObjective(nightNumber);
-
-    let silver = 1;
-    let candles = 1;
-    let keys = 0;
-
-    if (nightNumber >= 3) silver += 1;
-    if (nightNumber >= 4) candles += 1;
-
-    const bonusActions = nightNumber >= 5 ? 1 : 0;
+    const resources = getStartingResources(nightNumber);
 
     set({
       nightNumber,
@@ -151,14 +196,13 @@ export const useGameStore = create<Store>((set, get) => ({
       draftsRemaining: DRAFTS_PER_NIGHT,
       currentRoom: null,
       roomStates: {},
-      silver,
-      candles,
-      keys,
-      actions: STARTING_ACTIONS + bonusActions,
+      ...resources,
+      inventory: [],
       activeSynergies: [],
       seed: state.seed,
       previousPhase: null,
       pendingMysteryCompletion: null,
+      lastInteractionText: null,
     });
   },
 
@@ -243,11 +287,58 @@ export const useGameStore = create<Store>((set, get) => ({
   },
 
   finishConstruction: () => {
-    set({ phase: 'exploration', currentHand: [] });
+    set({ phase: 'exploration', currentHand: [], currentRoom: 'entrance_hall' });
+    const state = get();
+    const roomStates = { ...state.roomStates };
+    if (!roomStates['entrance_hall']) {
+      roomStates['entrance_hall'] = { visited: false, completedInteractions: [], discoveredClues: [] };
+    }
+    set({ roomStates });
+  },
+
+  moveToRoom: (roomId: RoomId) => {
+    const state = get();
+    if (!state.currentRoom) return 'You are not in a room.';
+    if (state.currentRoom === roomId) return null;
+
+    const cost = findPathCost(state.currentRoom, roomId, state.grid, state.placedRooms);
+    if (cost === null) return 'No path to that room.';
+    if (cost > state.actions) return `Not enough actions. Need ${cost}, have ${state.actions}.`;
+
+    const roomStates = { ...state.roomStates };
+    if (!roomStates[roomId]) {
+      roomStates[roomId] = { visited: false, completedInteractions: [], discoveredClues: [] };
+    }
+    roomStates[roomId] = { ...roomStates[roomId], visited: true };
+
+    const visitedRoomIds = state.visitedRoomIds.includes(roomId)
+      ? state.visitedRoomIds
+      : [...state.visitedRoomIds, roomId];
+
+    set({
+      currentRoom: roomId,
+      actions: state.actions - cost,
+      roomStates,
+      visitedRoomIds,
+    });
+
+    return null;
   },
 
   enterRoom: (roomId: RoomId) => {
     const state = get();
+
+    if (state.phase === 'exploration') {
+      if (state.currentRoom === roomId) {
+        set({ phase: 'room' });
+        return;
+      }
+      const error = get().moveToRoom(roomId);
+      if (error) return;
+      set({ phase: 'room' });
+      return;
+    }
+
     const roomStates = { ...state.roomStates };
     if (!roomStates[roomId]) {
       roomStates[roomId] = { visited: false, completedInteractions: [], discoveredClues: [] };
@@ -257,7 +348,7 @@ export const useGameStore = create<Store>((set, get) => ({
   },
 
   exitRoom: () => {
-    set({ phase: 'exploration', currentRoom: null });
+    set({ phase: 'exploration', lastInteractionText: null });
   },
 
   performInteraction: (interactionId: string) => {
@@ -276,10 +367,10 @@ export const useGameStore = create<Store>((set, get) => ({
     }
 
     const cost = interaction.cost;
-    if ((cost.actions ?? 0) > state.actions) return { error: 'Not enough Actions.' };
-    if ((cost.silver ?? 0) > state.silver) return { error: 'Not enough Silver.' };
-    if ((cost.candles ?? 0) > state.candles) return { error: 'Not enough Candles.' };
-    if ((cost.keys ?? 0) > state.keys) return { error: 'Not enough Keys.' };
+    if ((cost.actions ?? 0) > state.actions) return { error: 'Not enough actions.' };
+    if ((cost.silver ?? 0) > state.silver) return { error: 'Not enough silver.' };
+    if ((cost.candles ?? 0) > state.candles) return { error: 'Not enough candles.' };
+    if ((cost.keys ?? 0) > state.keys) return { error: 'Not enough keys.' };
 
     if (interaction.condition) {
       const cond = interaction.condition;
@@ -288,6 +379,10 @@ export const useGameStore = create<Store>((set, get) => ({
           if (!state.casebook.evidence.includes(cond.value as string))
             return { error: 'You lack a required clue.' };
           break;
+        case 'hasItem':
+          if (!state.inventory.includes(cond.value as string))
+            return { error: `Requires: ${cond.value}` };
+          break;
         case 'nightMin':
           if (state.nightNumber < (cond.value as number))
             return { error: 'Not yet. The house isn\'t ready.' };
@@ -295,22 +390,24 @@ export const useGameStore = create<Store>((set, get) => ({
       }
     }
 
-    const newActions = state.actions - (cost.actions ?? 0);
-    const newSilver = state.silver - (cost.silver ?? 0);
-    const newCandles = state.candles - (cost.candles ?? 0);
-    const newKeys = state.keys - (cost.keys ?? 0);
+    let newActions = state.actions - (cost.actions ?? 0);
+    let silver = state.silver - (cost.silver ?? 0);
+    let candles = state.candles - (cost.candles ?? 0);
+    let keys = state.keys - (cost.keys ?? 0);
 
     const roomStates = { ...state.roomStates };
     const roomState = { ...roomStates[state.currentRoom]! };
     roomState.completedInteractions = [...roomState.completedInteractions, interactionId];
 
     let casebook = { ...state.casebook };
-    let silver = newSilver;
-    let candles = newCandles;
-    let keys = newKeys;
     let unlockedRooms = [...state.unlockedRooms];
+    let unlockedTiers = [...state.unlockedTiers];
+    let inventory = [...state.inventory];
+    let itemGained: ItemId | undefined;
+    let clueGained: string | undefined;
 
     const outcome = interaction.outcome;
+
     if (outcome.type === 'resource') {
       switch (outcome.resourceType) {
         case 'silver': silver += outcome.amount ?? 0; break;
@@ -319,15 +416,32 @@ export const useGameStore = create<Store>((set, get) => ({
       }
     }
 
+    if (outcome.type === 'item' && outcome.itemId) {
+      if (inventory.length < MAX_INVENTORY) {
+        inventory = [...inventory, outcome.itemId];
+        itemGained = outcome.itemId;
+      }
+      // If consuming an item via condition, remove it
+      if (interaction.condition?.type === 'hasItem') {
+        inventory = inventory.filter(i => i !== interaction.condition!.value);
+      }
+    }
+
     let mysteryCompleted: MysteryCompletionEvent | null = null;
 
     if (outcome.type === 'clue' && outcome.clueId) {
+      // If consuming an item via condition, remove it
+      if (interaction.condition?.type === 'hasItem') {
+        inventory = inventory.filter(i => i !== interaction.condition!.value);
+      }
+
       if (!casebook.evidence.includes(outcome.clueId)) {
         casebook = {
           ...casebook,
           evidence: [...casebook.evidence, outcome.clueId],
         };
         roomState.discoveredClues = [...roomState.discoveredClues, outcome.clueId];
+        clueGained = outcome.clueId;
 
         const clue = getClue(outcome.clueId);
         if (clue) {
@@ -344,6 +458,12 @@ export const useGameStore = create<Store>((set, get) => ({
               ...casebook,
               completedMysteries: [...casebook.completedMysteries, mysteryCompleted.mysteryId],
             };
+            if (mysteryCompleted.reward?.type === 'unlockTier') {
+              const tierNum = parseInt(mysteryCompleted.reward.value);
+              if (!isNaN(tierNum) && !unlockedTiers.includes(tierNum)) {
+                unlockedTiers = [...unlockedTiers, tierNum];
+              }
+            }
             if (mysteryCompleted.reward?.type === 'unlockRoom') {
               const newRoom = mysteryCompleted.reward.value;
               if (!unlockedRooms.includes(newRoom)) {
@@ -362,16 +482,32 @@ export const useGameStore = create<Store>((set, get) => ({
       silver,
       candles,
       keys,
+      inventory,
       roomStates,
       casebook,
       unlockedRooms,
+      unlockedTiers,
       pendingMysteryCompletion: mysteryCompleted,
+      lastInteractionText: outcome.text,
     });
 
     if (mysteryCompleted) {
-      return { mysteryCompleted };
+      return { mysteryCompleted, itemGained, clueGained };
     }
-    return null;
+    return itemGained || clueGained ? { itemGained, clueGained } : null;
+  },
+
+  pickUpItem: (itemId: ItemId) => {
+    const state = get();
+    if (state.inventory.length >= MAX_INVENTORY) return false;
+    if (state.inventory.includes(itemId)) return false;
+    set({ inventory: [...state.inventory, itemId] });
+    return true;
+  },
+
+  dropItem: (itemId: ItemId) => {
+    const state = get();
+    set({ inventory: state.inventory.filter(i => i !== itemId) });
   },
 
   endNight: () => {

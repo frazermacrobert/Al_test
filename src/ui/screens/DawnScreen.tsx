@@ -6,6 +6,7 @@ export function DawnScreen() {
   const casebook = useGameStore(s => s.casebook);
   const roomStates = useGameStore(s => s.roomStates);
   const activeSynergies = useGameStore(s => s.activeSynergies);
+  const unlockedTiers = useGameStore(s => s.unlockedTiers);
   const startNight = useGameStore(s => s.startNight);
   const openCasebook = useGameStore(s => s.openCasebook);
 
@@ -14,6 +15,7 @@ export function DawnScreen() {
   const newClues = Object.values(roomStates).flatMap(r => r.discoveredClues);
   const completedMysteries = casebook.completedMysteries;
   const totalMysteries = MYSTERIES.length;
+  const maxTier = Math.max(...unlockedTiers);
 
   return (
     <div className="screen" style={styles.container}>
@@ -29,6 +31,9 @@ export function DawnScreen() {
           <div style={styles.summary}>
             <SummaryRow label="Rooms explored" value={`${visitedCount}`} />
             <SummaryRow label="Evidence collected" value={`${cluesFound} total`} />
+            {maxTier > 1 && (
+              <SummaryRow label="Rooms unlocked" value={`Tier ${maxTier}`} />
+            )}
             {newClues.length > 0 && (
               <div style={styles.newClues}>
                 <p style={styles.newCluesLabel}>New discoveries:</p>
@@ -47,7 +52,6 @@ export function DawnScreen() {
             )}
           </div>
 
-          {/* Mystery progress */}
           {completedMysteries.length > 0 && (
             <div style={styles.mysteryProgress}>
               <p style={styles.mysteryProgressLabel}>
@@ -65,11 +69,11 @@ export function DawnScreen() {
           <div style={styles.persistNote}>
             <p style={styles.persistLabel}>Persists to next night:</p>
             <p style={styles.persistText}>
-              All evidence, solved mysteries, discovered synergies, and unlocked rooms.
+              All evidence, solved mysteries, discovered synergies, and unlocked room tiers.
             </p>
             <p style={styles.persistLabel}>Resets:</p>
             <p style={styles.persistText}>
-              Mansion layout, resources, actions, room interactions.
+              Mansion layout, resources, actions, items, room interactions.
             </p>
           </div>
 

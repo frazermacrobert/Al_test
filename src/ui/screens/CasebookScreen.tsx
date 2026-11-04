@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { useGameStore } from '../../engine/store';
 import { getClue, getMystery, MYSTERIES } from '../../data/mysteries';
+import { getItemDefinition } from '../../data/items';
+import { MAX_INVENTORY } from '../../engine/types';
 
-type Tab = 'evidence' | 'mysteries';
+type Tab = 'evidence' | 'mysteries' | 'inventory';
 
 export function CasebookScreen() {
   const casebook = useGameStore(s => s.casebook);
+  const inventory = useGameStore(s => s.inventory);
+  const phase = useGameStore(s => s.previousPhase);
   const closeCasebook = useGameStore(s => s.closeCasebook);
   const [tab, setTab] = useState<Tab>('evidence');
+
+  const showInventory = phase === 'exploration' || phase === 'room';
 
   return (
     <div className="screen">
@@ -31,6 +37,14 @@ export function CasebookScreen() {
         >
           Mysteries
         </button>
+        {showInventory && (
+          <button
+            style={{ ...styles.tab, ...(tab === 'inventory' ? styles.tabActive : {}) }}
+            onClick={() => setTab('inventory')}
+          >
+            Items ({inventory.length}/{MAX_INVENTORY})
+          </button>
+        )}
       </div>
 
       <div className="screen-scroll" style={{ padding: '16px' }}>
@@ -46,7 +60,7 @@ export function CasebookScreen() {
                 if (!clue) return null;
                 return (
                   <div key={clueId} style={styles.card} className="fade-in">
-                    <p style={styles.cardSource}>From: {clue.sourceRoom.replace('_', ' ')}</p>
+                    <p style={styles.cardSource}>From: {clue.sourceRoom.replace(/_/g, ' ')}</p>
                     <h3 style={styles.cardTitle}>{clue.title}</h3>
                     <p style={styles.cardDesc}>{clue.description}</p>
                   </div>
@@ -94,6 +108,35 @@ export function CasebookScreen() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {tab === 'inventory' && (
+          <div style={styles.list}>
+            {inventory.length === 0 ? (
+              <p style={styles.empty}>
+                No items in your possession. Search rooms to find useful objects.
+              </p>
+            ) : (
+              inventory.map(itemId => {
+                const def = getItemDefinition(itemId);
+                if (!def) return null;
+                return (
+                  <div key={itemId} style={styles.itemCard} className="fade-in">
+                    <div style={styles.itemHeader}>
+                      <svg width={24} height={24} viewBox="0 0 16 16" fill="none">
+                        <path d={def.icon} stroke="var(--text-accent)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <h3 style={styles.cardTitle}>{def.name}</h3>
+                    </div>
+                    <p style={styles.cardDesc}>{def.description}</p>
+                  </div>
+                );
+              })
+            )}
+            <p style={styles.slotInfo}>
+              {MAX_INVENTORY - inventory.length} empty slot{MAX_INVENTORY - inventory.length !== 1 ? 's' : ''}
+            </p>
           </div>
         )}
       </div>
@@ -162,6 +205,18 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 'var(--radius-md)',
     padding: '12px 14px',
   },
+  itemCard: {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border-accent)',
+    borderRadius: 'var(--radius-md)',
+    padding: '12px 14px',
+  },
+  itemHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 6,
+  },
   cardSource: {
     fontSize: 10,
     fontWeight: 600,
@@ -208,5 +263,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-primary)',
     fontStyle: 'italic',
     lineHeight: 1.6,
+  },
+  slotInfo: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: 'var(--text-muted)',
+    padding: '8px 0',
   },
 };

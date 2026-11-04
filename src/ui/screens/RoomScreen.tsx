@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
-import { RoomInteraction, MysteryCompletionEvent } from '../../engine/types';
+import { getItemDefinition } from '../../data/items';
+import { RoomInteraction, MysteryCompletionEvent, MAX_INVENTORY } from '../../engine/types';
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   inspect: { label: 'Free', color: 'var(--text-muted)' },
   search: { label: 'Search', color: 'var(--color-candle)' },
   special: { label: 'Special', color: 'var(--color-exceptional)' },
 };
+
+type ResultKind = 'clue' | 'item' | 'narrative';
 
 export function RoomScreen() {
   const currentRoom = useGameStore(s => s.currentRoom);
@@ -19,8 +22,9 @@ export function RoomScreen() {
   const silver = useGameStore(s => s.silver);
   const candles = useGameStore(s => s.candles);
   const keys = useGameStore(s => s.keys);
+  const inventory = useGameStore(s => s.inventory);
 
-  const [activeResult, setActiveResult] = useState<{ text: string; isClue: boolean } | null>(null);
+  const [activeResult, setActiveResult] = useState<{ text: string; kind: ResultKind; itemId?: string } | null>(null);
   const [mysteryEvent, setMysteryEvent] = useState<MysteryCompletionEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,8 +44,15 @@ export function RoomScreen() {
       return;
     }
 
-    const isClue = interaction.outcome.type === 'clue';
-    setActiveResult({ text: interaction.outcome.text, isClue });
+    const kind: ResultKind =
+      interaction.outcome.type === 'clue' ? 'clue' :
+      interaction.outcome.type === 'item' ? 'item' : 'narrative';
+
+    setActiveResult({
+      text: interaction.outcome.text,
+      kind,
+      itemId: result?.itemGained ?? interaction.outcome.itemId,
+    });
 
     if (result?.mysteryCompleted) {
       setMysteryEvent(result.mysteryCompleted);
@@ -58,11 +69,15 @@ export function RoomScreen() {
 
   const isCompleted = (id: string) => rs?.completedInteractions.includes(id) ?? false;
 
-  const canAfford = (cost: RoomInteraction['cost']) => {
+  const canAfford = (interaction: RoomInteraction) => {
+    const cost = interaction.cost;
     if ((cost.actions ?? 0) > actions) return false;
     if ((cost.silver ?? 0) > silver) return false;
     if ((cost.candles ?? 0) > candles) return false;
     if ((cost.keys ?? 0) > keys) return false;
+    if (interaction.condition?.type === 'hasItem') {
+      if (!inventory.includes(interaction.condition.value as string)) return false;
+    }
     return true;
   };
 
@@ -106,6 +121,30 @@ export function RoomScreen() {
           </div>
         </div>
 
+        {/* Inventory display */}
+        {inventory.length > 0 && (
+          <div style={styles.inventoryBar}>
+            <span style={styles.inventoryLabel}>Inventory</span>
+            <div style={styles.inventoryItems}>
+              {inventory.map(itemId => {
+                const item = getItemDefinition(itemId);
+                if (!item) return null;
+                return (
+                  <div key={itemId} style={styles.inventoryPill}>
+                    <svg width={14} height={14} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+                      <path d={item.icon} stroke="var(--color-action)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span style={styles.inventoryPillName}>{item.name}</span>
+                  </div>
+                );
+              })}
+              {Array.from({ length: MAX_INVENTORY - inventory.length }).map((_, i) => (
+                <div key={`empty-${i}`} style={styles.inventorySlotEmpty} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Mystery completion overlay */}
         {mysteryEvent && !activeResult && (
           <div style={styles.mysteryCard} className="fade-in">
@@ -129,14 +168,36 @@ export function RoomScreen() {
           <div
             style={{
               ...styles.resultCard,
-              borderColor: activeResult.isClue ? 'var(--text-accent)' : 'var(--border-medium)',
+              borderColor: activeResult.kind === 'clue'
+                ? 'var(--text-accent)'
+                : activeResult.kind === 'item'
+                  ? 'var(--color-action)'
+                  : 'var(--border-medium)',
             }}
             className="fade-in"
           >
-            {activeResult.isClue && (
+            {activeResult.kind === 'clue' && (
               <p style={styles.clueLabel}>Evidence Discovered</p>
             )}
+            {activeResult.kind === 'item' && (
+              <p style={styles.itemLabel}>Item Found</p>
+            )}
             <p style={styles.resultText}>{activeResult.text}</p>
+            {activeResult.kind === 'item' && activeResult.itemId && (() => {
+              const itemDef = getItemDefinition(activeResult.itemId);
+              if (!itemDef) return null;
+              return (
+                <div style={styles.itemFoundBox}>
+                  <svg width={20} height={20} viewBox="0 0 16 16" fill="none">
+                    <path d={itemDef.icon} stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div>
+                    <span style={styles.itemFoundName}>{itemDef.name}</span>
+                    <span style={styles.itemFoundDesc}>{itemDef.description}</span>
+                  </div>
+                </div>
+              );
+            })()}
             <button style={styles.dismissBtn} onClick={dismissResult}>
               Continue
             </button>
@@ -153,9 +214,15 @@ export function RoomScreen() {
           <div style={styles.interactions}>
             {roomDef.interactions.map(interaction => {
               const completed = isCompleted(interaction.id);
-              const affordable = canAfford(interaction.cost);
+              const affordable = canAfford(interaction);
               const disabled = (completed && !interaction.repeatable) || !affordable;
               const typeInfo = TYPE_LABELS[interaction.type] ?? TYPE_LABELS.inspect;
+
+              const hasItemCond = interaction.condition?.type === 'hasItem'
+                ? interaction.condition.value as string
+                : null;
+              const hasItemDef = hasItemCond ? getItemDefinition(hasItemCond) : null;
+              const playerHasItem = hasItemCond ? inventory.includes(hasItemCond) : true;
 
               return (
                 <button
@@ -180,33 +247,58 @@ export function RoomScreen() {
                       <span style={styles.completedBadge}>Done</span>
                     )}
                     {!affordable && !completed && (
-                      <span style={styles.cantAffordBadge}>Can't afford</span>
+                      <span style={styles.cantAffordBadge}>
+                        {!playerHasItem ? 'Missing item' : 'Can\'t afford'}
+                      </span>
                     )}
                   </div>
                   <span style={styles.interactionLabel}>{interaction.label}</span>
                   <span style={styles.interactionDesc}>{interaction.description}</span>
-                  {Object.keys(interaction.cost).length > 0 && (
-                    <div style={styles.costRow}>
-                      {interaction.cost.actions ? (
-                        <span style={{ color: 'var(--color-action)' }}>
-                          {interaction.cost.actions} Action{interaction.cost.actions > 1 ? 's' : ''}
-                        </span>
-                      ) : null}
-                      {interaction.cost.silver ? (
-                        <span style={{ color: 'var(--color-silver)' }}>
-                          {interaction.cost.silver} Silver
-                        </span>
-                      ) : null}
-                      {interaction.cost.candles ? (
-                        <span style={{ color: 'var(--color-candle)' }}>
-                          {interaction.cost.candles} Candle{interaction.cost.candles > 1 ? 's' : ''}
-                        </span>
-                      ) : null}
-                      {interaction.cost.keys ? (
-                        <span style={{ color: 'var(--color-key)' }}>
-                          {interaction.cost.keys} Key{interaction.cost.keys > 1 ? 's' : ''}
-                        </span>
-                      ) : null}
+
+                  {/* Cost and condition row */}
+                  <div style={styles.costRow}>
+                    {interaction.cost.actions ? (
+                      <span style={{ color: 'var(--color-action)' }}>
+                        {interaction.cost.actions} Action{interaction.cost.actions > 1 ? 's' : ''}
+                      </span>
+                    ) : null}
+                    {interaction.cost.silver ? (
+                      <span style={{ color: 'var(--color-silver)' }}>
+                        {interaction.cost.silver} Silver
+                      </span>
+                    ) : null}
+                    {interaction.cost.candles ? (
+                      <span style={{ color: 'var(--color-candle)' }}>
+                        {interaction.cost.candles} Candle{interaction.cost.candles > 1 ? 's' : ''}
+                      </span>
+                    ) : null}
+                    {interaction.cost.keys ? (
+                      <span style={{ color: 'var(--color-key)' }}>
+                        {interaction.cost.keys} Key{interaction.cost.keys > 1 ? 's' : ''}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {/* Item requirement */}
+                  {hasItemDef && (
+                    <div style={styles.itemReqRow}>
+                      <svg width={12} height={12} viewBox="0 0 16 16" fill="none">
+                        <path
+                          d={hasItemDef.icon}
+                          stroke={playerHasItem ? 'var(--color-action)' : 'var(--color-danger)'}
+                          strokeWidth="1.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span style={{
+                        color: playerHasItem ? 'var(--color-action)' : 'var(--color-danger)',
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}>
+                        Requires {hasItemDef.name}
+                        {playerHasItem ? ' (consumes)' : ' — not in inventory'}
+                      </span>
                     </div>
                   )}
                 </button>
@@ -273,6 +365,48 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 2,
     transition: 'width 0.3s',
   },
+  inventoryBar: {
+    marginBottom: 16,
+    padding: '10px 12px',
+    background: 'var(--bg-card)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border-subtle)',
+  },
+  inventoryLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.1em',
+    color: 'var(--text-muted)',
+    display: 'block',
+    marginBottom: 8,
+  },
+  inventoryItems: {
+    display: 'flex',
+    gap: 6,
+  },
+  inventoryPill: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '4px 8px',
+    background: 'var(--bg-card-hover)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border-medium)',
+  },
+  inventoryPillName: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: 'var(--text-primary)',
+    whiteSpace: 'nowrap' as const,
+  },
+  inventorySlotEmpty: {
+    width: 32,
+    height: 26,
+    borderRadius: 'var(--radius-sm)',
+    border: '1px dashed var(--border-subtle)',
+    background: 'transparent',
+  },
   mysteryCard: {
     background: 'var(--bg-card)',
     border: '2px solid var(--text-accent)',
@@ -333,11 +467,42 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-accent)',
     marginBottom: 8,
   },
+  itemLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.1em',
+    color: 'var(--color-action)',
+    marginBottom: 8,
+  },
   resultText: {
     fontFamily: 'var(--font-serif)',
     fontSize: 15,
     lineHeight: 1.7,
     color: 'var(--text-primary)',
+  },
+  itemFoundBox: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 12,
+    padding: '10px 12px',
+    background: 'rgba(122, 184, 122, 0.08)',
+    border: '1px solid rgba(122, 184, 122, 0.2)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  itemFoundName: {
+    display: 'block',
+    fontSize: 13,
+    fontWeight: 600,
+    color: 'var(--color-action)',
+  },
+  itemFoundDesc: {
+    display: 'block',
+    fontSize: 12,
+    color: 'var(--text-secondary)',
+    lineHeight: 1.4,
+    marginTop: 2,
   },
   dismissBtn: {
     marginTop: 12,
@@ -415,5 +580,11 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: 4,
     fontSize: 11,
     fontWeight: 500,
+  },
+  itemReqRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
   },
 };

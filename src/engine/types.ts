@@ -2,10 +2,11 @@ export type RoomId = string;
 export type SynergyId = string;
 export type ClueId = string;
 export type MysteryId = string;
+export type ItemId = string;
 
 export type Direction = 'N' | 'S' | 'E' | 'W';
 
-export type Rarity = 'common' | 'unusual' | 'rare' | 'exceptional' | 'forbidden';
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'exceptional' | 'forbidden';
 
 export type Phase = 'title' | 'invitation' | 'construction' | 'exploration' | 'room' | 'dawn' | 'casebook';
 
@@ -28,6 +29,13 @@ export interface DoorConfig {
   W: boolean;
 }
 
+export interface ItemDefinition {
+  id: ItemId;
+  name: string;
+  icon: string;
+  description: string;
+}
+
 export interface InteractionCost {
   actions?: number;
   silver?: number;
@@ -36,10 +44,11 @@ export interface InteractionCost {
 }
 
 export interface InteractionOutcome {
-  type: 'resource' | 'clue' | 'event' | 'narrative';
+  type: 'resource' | 'clue' | 'event' | 'narrative' | 'item';
   resourceType?: 'silver' | 'candles' | 'keys';
   amount?: number;
   clueId?: ClueId;
+  itemId?: ItemId;
   text: string;
 }
 
@@ -55,7 +64,7 @@ export interface RoomInteraction {
 }
 
 export interface InteractionCondition {
-  type: 'hasClue' | 'hasResource' | 'nightMin' | 'synergyActive' | 'roomPlaced';
+  type: 'hasClue' | 'hasResource' | 'nightMin' | 'synergyActive' | 'roomPlaced' | 'hasItem';
   value: string | number;
 }
 
@@ -69,6 +78,7 @@ export interface RoomDefinition {
   tags: string[];
   interactions: RoomInteraction[];
   category: 'functional' | 'discovery' | 'story';
+  tier: 1 | 2 | 3 | 4;
 }
 
 export interface PlacedRoom {
@@ -102,7 +112,7 @@ export interface Mystery {
 }
 
 export interface MysteryReward {
-  type: 'unlockRoom' | 'upgrade' | 'item';
+  type: 'unlockRoom' | 'upgrade' | 'item' | 'unlockTier';
   value: string;
   description: string;
 }
@@ -161,8 +171,12 @@ export interface GameState {
   keys: number;
   actions: number;
 
+  inventory: ItemId[];
+
   casebook: Casebook;
   unlockedRooms: RoomId[];
+  unlockedTiers: number[];
+  visitedRoomIds: RoomId[];
   discoveredSynergies: SynergyId[];
   activeSynergies: SynergyId[];
   architectCatalogue: RoomId[];
@@ -177,3 +191,4 @@ export const ENTRANCE_COL = 2;
 export const STARTING_ACTIONS = 3;
 export const DRAFTS_PER_NIGHT = 5;
 export const HAND_SIZE = 3;
+export const MAX_INVENTORY = 3;

@@ -36,7 +36,7 @@ export const SYNERGY_DEFINITIONS: SynergyDefinition[] = [
     effect: {
       type: 'clue',
       description: 'A hidden connection between the child and the family becomes visible.',
-      clueId: 'clue_hidden_dates',
+      clueId: 'hidden_dates',
     },
   },
   {

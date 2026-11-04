@@ -5,9 +5,12 @@ export function InvitationScreen() {
   const objective = useGameStore(s => s.nightObjective);
   const silver = useGameStore(s => s.silver);
   const candles = useGameStore(s => s.candles);
+  const keys = useGameStore(s => s.keys);
   const actions = useGameStore(s => s.actions);
   const casebook = useGameStore(s => s.casebook);
+  const unlockedTiers = useGameStore(s => s.unlockedTiers);
   const setPhase = useGameStore(s => s.setPhase);
+  const maxTier = Math.max(...unlockedTiers);
 
   return (
     <div className="screen" style={styles.container}>
@@ -30,8 +33,13 @@ export function InvitationScreen() {
 
         <div style={styles.resources}>
           <span>
-            You begin with: {silver} Silver{candles > 0 ? `, ${candles} Candle${candles > 1 ? 's' : ''}` : ''}, {actions} Actions
+            {silver} Silver, {candles} Candle{candles !== 1 ? 's' : ''}{keys > 0 ? `, ${keys} Key${keys !== 1 ? 's' : ''}` : ''}, {actions} Actions
           </span>
+          {maxTier > 1 && (
+            <span style={{ display: 'block', marginTop: 4, color: 'var(--text-accent)' }}>
+              Tier {maxTier} rooms unlocked
+            </span>
+          )}
         </div>
 
         {casebook.evidence.length > 0 && (
