@@ -155,10 +155,10 @@ export function ExplorationScreen() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px 16px',
+        padding: '8px 12px',
         minHeight: 0,
       }}>
-        <div style={{ position: 'relative', width: gridPx, height: gridPx }}>
+        <div className="grid-board" style={{ position: 'relative' }}>
           {/* Door connection lines */}
           <svg
             width={gridPx}
@@ -166,14 +166,22 @@ export function ExplorationScreen() {
             style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 0 }}
           >
             {connections.map((c, i) => (
-              <line
-                key={i}
-                x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
-                stroke="var(--text-accent)"
-                strokeWidth="2"
-                strokeOpacity="0.35"
-                strokeDasharray="4 2"
-              />
+              <g key={i}>
+                <line
+                  x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                  stroke="var(--text-accent)"
+                  strokeWidth="6"
+                  strokeOpacity="0.08"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                  stroke="var(--text-accent)"
+                  strokeWidth="2.5"
+                  strokeOpacity="0.5"
+                  strokeLinecap="round"
+                />
+              </g>
             ))}
           </svg>
 
@@ -204,21 +212,27 @@ export function ExplorationScreen() {
                   return (
                     <div
                       key={`${row}-${col}`}
-                      style={{ width: cellSize, height: cellSize, background: 'transparent' }}
+                      className="grid-cell-empty"
+                      style={{ width: cellSize, height: cellSize }}
                       onClick={() => setSelectedCell(null)}
                     />
                   );
                 }
 
                 const iconPath = getRoomIcon(roomId!);
-                const iconSize = Math.max(14, cellSize * 0.5);
+                const iconSize = Math.max(16, cellSize * 0.55);
 
+                const rarityClass = roomDef.rarity ? `grid-cell-${roomDef.rarity}` : '';
                 const cellClasses = [
                   'grid-cell',
-                  isCurrent ? 'grid-cell-current' : '',
+                  isCurrent ? 'grid-cell-current' : rarityClass,
                   isSelected && !isCurrent ? 'grid-cell-selected' : '',
                   dimmed ? 'grid-cell-dimmed' : '',
                 ].filter(Boolean).join(' ');
+
+                const iconColor = isCurrent
+                  ? 'var(--text-accent)'
+                  : `var(--color-${roomDef.rarity})`;
 
                 return (
                   <div
@@ -228,25 +242,15 @@ export function ExplorationScreen() {
                     style={{
                       width: cellSize,
                       height: cellSize,
-                      background: isCurrent
-                        ? 'rgba(228, 180, 76, 0.15)'
-                        : isSelected
-                          ? 'var(--bg-card-hover)'
-                          : rs?.visited
-                            ? 'var(--bg-card)'
-                            : 'var(--bg-surface)',
-                      border: isCurrent
-                        ? undefined
-                        : isSelected
-                          ? undefined
-                          : '1px solid var(--border-medium)',
                     }}
                   >
-                    <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" fill="none" style={{ zIndex: 1 }}>
+                    <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" style={{ zIndex: 1 }}>
                       <path
                         d={iconPath}
-                        stroke={isCurrent ? 'var(--text-accent)' : rs?.visited ? 'var(--text-secondary)' : 'var(--text-primary)'}
-                        strokeWidth="1.2"
+                        fill={iconColor}
+                        fillOpacity="0.2"
+                        stroke={iconColor}
+                        strokeWidth="1.3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
@@ -422,11 +426,13 @@ export function ExplorationScreen() {
                 >
                   {itemDef ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+                      <svg width={20} height={20} viewBox="0 0 16 16">
                         <path
                           d={itemDef.icon}
+                          fill="var(--text-accent)"
+                          fillOpacity="0.15"
                           stroke="var(--text-accent)"
-                          strokeWidth="1.2"
+                          strokeWidth="1.3"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -434,7 +440,7 @@ export function ExplorationScreen() {
                       <span style={{
                         fontSize: 8,
                         color: 'var(--text-secondary)',
-                        fontWeight: 500,
+                        fontWeight: 600,
                         lineHeight: 1,
                         maxWidth: 56,
                         overflow: 'hidden',
@@ -446,7 +452,9 @@ export function ExplorationScreen() {
                       </span>
                     </div>
                   ) : (
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Empty</span>
+                    <svg width={16} height={16} viewBox="0 0 16 16" style={{ opacity: 0.2 }}>
+                      <rect x="3" y="3" width="10" height="10" rx="2" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="2 2" fill="none" />
+                    </svg>
                   )}
                 </div>
               );
@@ -458,11 +466,17 @@ export function ExplorationScreen() {
             justifyContent: 'space-between',
             padding: '8px 16px 24px',
           }}>
-            <button className="btn btn-ghost" onClick={openCasebook}>
+            <button className="btn btn-ghost" onClick={openCasebook} style={{ gap: 6 }}>
+              <svg width={16} height={16} viewBox="0 0 16 16">
+                <path d="M3 2h10v12H3V2zM5 4h6M5 6h6M5 8h4" fill="var(--text-accent)" fillOpacity="0.1" stroke="var(--text-accent)" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
               Casebook
             </button>
-            <button className="btn btn-secondary" onClick={endNight}>
-              End the Night
+            <button className="btn btn-secondary" onClick={endNight} style={{ gap: 6 }}>
+              <svg width={16} height={16} viewBox="0 0 16 16">
+                <path d="M8 2a6 6 0 016 6 6 6 0 01-6 6 6 6 0 01-6-6 6 6 0 016-6zM8 5v3l2 2" fill="none" stroke="var(--text-secondary)" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+              End Night
             </button>
           </div>
         </div>

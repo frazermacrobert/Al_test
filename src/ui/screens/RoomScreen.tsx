@@ -3,6 +3,7 @@ import { useGameStore } from '../../engine/store';
 import { ResourceBar } from '../components/ResourceBar';
 import { getRoomDefinition } from '../../data/rooms';
 import { getItemDefinition } from '../../data/items';
+import { getRoomIcon } from '../roomIcons';
 import { RoomInteraction, MysteryCompletionEvent, MAX_INVENTORY } from '../../engine/types';
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
@@ -101,17 +102,41 @@ export function RoomScreen() {
       <div className="screen-scroll" style={{ padding: '0 16px 32px' }}>
         {/* Room header */}
         <div style={{ paddingTop: 16, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)', marginBottom: 16 }} className="fade-in">
-          <h2 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 26,
-            fontWeight: 700,
-          }}>{roomDef.name}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 'var(--radius-sm)',
+              background: `linear-gradient(135deg, var(--rarity-${roomDef.rarity}-bg) 0%, transparent 100%)`,
+              border: `1px solid var(--rarity-${roomDef.rarity}-border)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: 'var(--shadow-tile)',
+            }}>
+              <svg width={28} height={28} viewBox="0 0 16 16">
+                <path
+                  d={getRoomIcon(currentRoom!)}
+                  fill={`var(--color-${roomDef.rarity})`}
+                  fillOpacity="0.25"
+                  stroke={`var(--color-${roomDef.rarity})`}
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h2 style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 24,
+                fontWeight: 700,
+              }}>{roomDef.name}</h2>
+            </div>
+          </div>
           <p style={{
             fontFamily: 'var(--font-serif)',
             fontSize: 15,
             color: 'var(--text-secondary)',
             fontStyle: 'italic',
-            marginTop: 8,
+            marginTop: 10,
             lineHeight: 1.6,
           }}>{roomDef.description}</p>
 
@@ -152,8 +177,8 @@ export function RoomScreen() {
                 if (!item) return null;
                 return (
                   <div key={itemId} className="badge badge-accent" style={{ padding: '4px 8px', gap: 4 }}>
-                    <svg width={14} height={14} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                      <path d={item.icon} stroke="var(--text-accent)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width={14} height={14} viewBox="0 0 16 16" style={{ flexShrink: 0 }}>
+                      <path d={item.icon} fill="var(--text-accent)" fillOpacity="0.2" stroke="var(--text-accent)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <span style={{ fontSize: 11, fontWeight: 500 }}>{item.name}</span>
                   </div>
@@ -196,9 +221,9 @@ export function RoomScreen() {
         {/* Result display */}
         {activeResult && (
           <div
-            className={`fade-in result-card ${
-              activeResult.kind === 'clue' ? 'result-card-clue' :
-              activeResult.kind === 'item' ? 'result-card-item' : ''
+            className={`slide-up result-card result-discover ${
+              activeResult.kind === 'clue' ? 'result-card-clue result-discover-clue' :
+              activeResult.kind === 'item' ? 'result-card-item result-discover-item' : ''
             }`}
           >
             {activeResult.kind === 'clue' && (
@@ -225,8 +250,8 @@ export function RoomScreen() {
                   border: '1px solid rgba(92, 184, 92, 0.2)',
                   borderRadius: 'var(--radius-sm)',
                 }}>
-                  <svg width={20} height={20} viewBox="0 0 16 16" fill="none">
-                    <path d={itemDef.icon} stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width={22} height={22} viewBox="0 0 16 16">
+                    <path d={itemDef.icon} fill="var(--color-action)" fillOpacity="0.2" stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <div>
                     <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--color-action)' }}>
@@ -332,9 +357,11 @@ export function RoomScreen() {
                   {/* Item requirement */}
                   {hasItemDef && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                      <svg width={12} height={12} viewBox="0 0 16 16" fill="none">
+                      <svg width={14} height={14} viewBox="0 0 16 16">
                         <path
                           d={hasItemDef.icon}
+                          fill={playerHasItem ? 'var(--color-action)' : 'var(--color-danger)'}
+                          fillOpacity="0.2"
                           stroke={playerHasItem ? 'var(--color-action)' : 'var(--color-danger)'}
                           strokeWidth="1.2"
                           strokeLinecap="round"

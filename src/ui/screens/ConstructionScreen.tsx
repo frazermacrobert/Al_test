@@ -138,24 +138,32 @@ export function ConstructionScreen() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px 16px',
+        padding: '8px 12px',
         minHeight: 0,
       }}>
-        <div style={{ position: 'relative', width: gridPx, height: gridPx }}>
+        <div className="grid-board" style={{ position: 'relative' }}>
           <svg
             width={gridPx}
             height={gridPx}
             style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 0 }}
           >
             {connections.map((c, i) => (
-              <line
-                key={i}
-                x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
-                stroke="var(--text-accent)"
-                strokeWidth="2"
-                strokeOpacity="0.35"
-                strokeDasharray="4 2"
-              />
+              <g key={i}>
+                <line
+                  x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                  stroke="var(--text-accent)"
+                  strokeWidth="6"
+                  strokeOpacity="0.08"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                  stroke="var(--text-accent)"
+                  strokeWidth="2.5"
+                  strokeOpacity="0.5"
+                  strokeLinecap="round"
+                />
+              </g>
             ))}
           </svg>
 
@@ -177,49 +185,36 @@ export function ConstructionScreen() {
                 const isEmpty = !roomId;
                 const isTappedPlaced = roomId === tappedPlacedRoom;
 
+                const rarityClass = roomDef?.rarity ? `grid-cell-${roomDef.rarity}` : '';
                 const cellClasses = [
                   'grid-cell',
-                  isTappedPlaced ? 'grid-cell-selected' : '',
+                  isTappedPlaced ? 'grid-cell-selected' : rarityClass,
+                  isValid && !roomDef ? 'grid-cell-valid' : '',
                 ].filter(Boolean).join(' ');
 
                 return (
                   <div
                     key={`${row}-${col}`}
-                    className={roomDef || isValid ? cellClasses : ''}
+                    className={roomDef || isValid ? cellClasses : 'grid-cell-empty'}
                     onClick={() => handleCellTap(row, col)}
                     style={{
                       width: cellSize,
                       height: cellSize,
-                      background: isTappedPlaced
-                        ? 'rgba(228, 180, 76, 0.15)'
-                        : roomDef
-                          ? 'var(--bg-card)'
-                          : isValid
-                            ? 'rgba(228, 180, 76, 0.06)'
-                            : 'var(--bg-surface)',
-                      border: isTappedPlaced
-                        ? undefined
-                        : roomDef
-                          ? '1px solid var(--border-medium)'
-                          : isValid
-                            ? '1px dashed var(--border-accent)'
-                            : '1px solid var(--border-subtle)',
-                      borderRadius: 6,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      ...(!roomDef && !isValid ? {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      } : {}),
                       cursor: (isEmpty && selectedRoom) || roomDef ? 'pointer' : 'default',
-                      position: 'relative',
-                      overflow: 'hidden',
                     }}
                   >
                     {roomDef ? (
                       <>
-                        <RoomCellIcon roomId={roomId!} size={cellSize} />
+                        <RoomCellIcon roomId={roomId!} size={cellSize} rarity={roomDef.rarity} />
                         <DoorEdges doors={roomDef.doors} size={cellSize} />
                       </>
                     ) : isValid ? (
-                      <span style={{ fontSize: 18, color: 'var(--border-accent)', fontWeight: 300 }}>+</span>
+                      <span style={{ fontSize: 18, color: 'var(--text-accent)', fontWeight: 300 }}>+</span>
                     ) : null}
                   </div>
                 );
@@ -315,26 +310,35 @@ export function ConstructionScreen() {
               const def = getRoomDefinition(roomId);
               if (!def) return null;
               const isSelected = selectedRoom === roomId;
+              const cardIconPath = getRoomIcon(roomId);
+              const rarityColor = `var(--color-${def.rarity})`;
               return (
                 <button
                   key={roomId}
                   className={`draft-card${isSelected ? ' draft-card-selected' : ''}`}
                   onClick={() => handleSelectCard(roomId)}
-                  style={{ flex: '1 1 0', maxWidth: 120 }}
+                  style={{
+                    flex: '1 1 0', maxWidth: 120,
+                    borderTopColor: isSelected ? rarityColor : undefined,
+                  }}
                 >
                   <span className="badge" style={{
-                    color: `var(--color-${def.rarity})`,
+                    color: rarityColor,
                     background: 'transparent',
                     padding: 0,
                     fontSize: 9,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
+                    fontWeight: 700,
                   }}>
                     {def.rarity}
                   </span>
+                  <svg width={28} height={28} viewBox="0 0 16 16">
+                    <path d={cardIconPath} fill={rarityColor} fillOpacity="0.2" stroke={rarityColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                   <span style={{
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: 'var(--text-primary)',
                     textAlign: 'center',
                     lineHeight: 1.2,
@@ -424,20 +428,22 @@ function DoorEdges({ doors, size }: { doors: { N: boolean; S: boolean; E: boolea
   );
 }
 
-function RoomCellIcon({ roomId, size }: { roomId: string; size: number }) {
+function RoomCellIcon({ roomId, size, rarity }: { roomId: string; size: number; rarity?: string }) {
   const def = getRoomDefinition(roomId);
   if (!def) return null;
-  const iconSize = Math.max(12, size * 0.45);
+  const iconSize = Math.max(16, size * 0.55);
   const path = getRoomIcon(roomId);
+  const iconColor = rarity ? `var(--color-${rarity})` : 'var(--text-secondary)';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, zIndex: 1 }}>
-      <svg width={iconSize} height={iconSize} viewBox="0 0 16 16" fill="none">
-        <path d={path} stroke="var(--text-secondary)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width={iconSize} height={iconSize} viewBox="0 0 16 16">
+        <path d={path} fill={iconColor} fillOpacity="0.2" stroke={iconColor} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span style={{
-        fontSize: Math.max(7, size * 0.14),
-        color: 'var(--text-muted)',
+        fontSize: Math.max(7, size * 0.15),
+        color: 'var(--text-secondary)',
+        fontWeight: 500,
         lineHeight: 1,
         maxWidth: size - 6,
         overflow: 'hidden',
