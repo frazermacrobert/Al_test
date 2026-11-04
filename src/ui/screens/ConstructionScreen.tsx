@@ -31,7 +31,6 @@ export function ConstructionScreen() {
     [currentHand, grid, placedRooms]
   );
 
-  // Auto-detect dead ends and show feedback
   useEffect(() => {
     if (draftsRemaining > 0 && currentHand.length > 0 && !canPlaceAny) {
       setFeedback('No valid placements — skip to draw a new hand.');
@@ -97,7 +96,6 @@ export function ConstructionScreen() {
       ? getRoomDefinition(tappedPlacedRoom)
       : null;
 
-  // Door connections for SVG overlay (between placed rooms)
   const connections: { x1: number; y1: number; x2: number; y2: number }[] = [];
   for (const pr of placedRooms) {
     const def = getRoomDefinition(pr.roomId);
@@ -120,12 +118,14 @@ export function ConstructionScreen() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen bg-atmospheric">
       <ResourceBar />
 
-      <div style={styles.header}>
-        <h2 style={styles.title}>Build the Mansion</h2>
-        <p style={styles.subtitle}>
+      <div className="screen-header">
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 600 }}>
+          Build the Mansion
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
           {draftsRemaining > 0
             ? `${draftsRemaining} room${draftsRemaining !== 1 ? 's' : ''} to place`
             : 'Construction complete'}
@@ -133,9 +133,15 @@ export function ConstructionScreen() {
       </div>
 
       {/* Grid */}
-      <div style={styles.gridContainer}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px 16px',
+        minHeight: 0,
+      }}>
         <div style={{ position: 'relative', width: gridPx, height: gridPx }}>
-          {/* Door connection lines */}
           <svg
             width={gridPx}
             height={gridPx}
@@ -147,7 +153,7 @@ export function ConstructionScreen() {
                 x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
                 stroke="var(--text-accent)"
                 strokeWidth="2"
-                strokeOpacity="0.4"
+                strokeOpacity="0.35"
                 strokeDasharray="4 2"
               />
             ))}
@@ -171,36 +177,40 @@ export function ConstructionScreen() {
                 const isEmpty = !roomId;
                 const isTappedPlaced = roomId === tappedPlacedRoom;
 
+                const cellClasses = [
+                  'grid-cell',
+                  isTappedPlaced ? 'grid-cell-selected' : '',
+                ].filter(Boolean).join(' ');
+
                 return (
                   <div
                     key={`${row}-${col}`}
+                    className={roomDef || isValid ? cellClasses : ''}
                     onClick={() => handleCellTap(row, col)}
                     style={{
                       width: cellSize,
                       height: cellSize,
                       background: isTappedPlaced
-                        ? 'var(--bg-card-hover)'
+                        ? 'rgba(228, 180, 76, 0.15)'
                         : roomDef
                           ? 'var(--bg-card)'
                           : isValid
-                            ? 'rgba(139, 115, 64, 0.15)'
+                            ? 'rgba(228, 180, 76, 0.06)'
                             : 'var(--bg-surface)',
                       border: isTappedPlaced
-                        ? '2px solid var(--text-accent)'
+                        ? undefined
                         : roomDef
                           ? '1px solid var(--border-medium)'
                           : isValid
                             ? '1px dashed var(--border-accent)'
                             : '1px solid var(--border-subtle)',
-                      borderRadius: 4,
+                      borderRadius: 6,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: (isEmpty && selectedRoom) || roomDef ? 'pointer' : 'default',
-                      transition: 'background 0.15s, border-color 0.15s',
                       position: 'relative',
                       overflow: 'hidden',
-                      boxShadow: roomDef ? 'inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 3px rgba(0,0,0,0.3)' : 'none',
                     }}
                   >
                     {roomDef ? (
@@ -221,38 +231,51 @@ export function ConstructionScreen() {
 
       {/* Synergy notice */}
       {synergyNotice && (
-        <div style={styles.synergyNotice} className="fade-in">
-          <span style={styles.synergyIcon}>&#x2726;</span> {synergyNotice}
+        <div className="game-card fade-in" style={{
+          textAlign: 'center',
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'var(--color-success)',
+          padding: '10px 16px',
+          margin: '0 16px',
+          flexShrink: 0,
+          borderColor: 'rgba(92, 184, 92, 0.25)',
+        }}>
+          <span style={{ fontSize: 14 }}>&#x2726;</span> {synergyNotice}
         </div>
       )}
 
       {/* Room preview panel */}
       {previewRoom && (
-        <div style={styles.previewPanel} className="slide-up">
+        <div className="info-panel slide-up">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div style={{ flex: 1 }}>
-              <span style={{
-                fontSize: 10,
-                fontWeight: 600,
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.1em',
-                color: `var(--color-${previewRoom.rarity})`,
-              }}>
+              <span className="badge badge-accent" style={{ color: `var(--color-${previewRoom.rarity})` }}>
                 {previewRoom.rarity} · {previewRoom.category}
               </span>
-              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 18, marginTop: 2 }}>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 18, marginTop: 4 }}>
                 {previewRoom.name}
               </h3>
             </div>
             <DoorIndicator doors={previewRoom.doors} />
           </div>
-          <p style={styles.previewFlavour}>{previewRoom.flavour}</p>
-          <div style={styles.previewMeta}>
-            <span>{previewRoom.interactions.length} interaction{previewRoom.interactions.length !== 1 ? 's' : ''}</span>
-            <span style={{ color: 'var(--text-muted)' }}>
-              {previewRoom.interactions.filter(i => i.type === 'inspect').length > 0 && 'Free inspect'}
-              {previewRoom.interactions.filter(i => i.type === 'search').length > 0 && ' + Searchable'}
+          <p style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: 'var(--text-secondary)',
+            marginTop: 6,
+            lineHeight: 1.5,
+          }}>
+            {previewRoom.flavour}
+          </p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <span className="badge badge-accent">
+              {previewRoom.interactions.length} interaction{previewRoom.interactions.length !== 1 ? 's' : ''}
             </span>
+            {previewRoom.interactions.filter(i => i.type === 'inspect').length > 0 && (
+              <span className="badge badge-success">Free inspect</span>
+            )}
           </div>
         </div>
       )}
@@ -260,17 +283,34 @@ export function ConstructionScreen() {
       {/* Feedback */}
       {feedback && !previewRoom && (
         <div style={{
-          ...styles.feedback,
+          textAlign: 'center',
+          fontSize: 13,
+          fontWeight: 500,
           color: !canPlaceAny && draftsRemaining > 0
             ? 'var(--color-danger)'
             : 'var(--color-warning)',
+          padding: '6px 16px',
+          flexShrink: 0,
         }}>{feedback}</div>
       )}
 
       {/* Draft hand */}
       {draftsRemaining > 0 && currentHand.length > 0 ? (
-        <div style={styles.handContainer}>
-          <div style={styles.hand}>
+        <div style={{
+          padding: '10px 16px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
+          flexShrink: 0,
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: 8,
+            justifyContent: 'center',
+            width: '100%',
+            maxWidth: 400,
+          }}>
             {currentHand.map(roomId => {
               const def = getRoomDefinition(roomId);
               if (!def) return null;
@@ -278,45 +318,68 @@ export function ConstructionScreen() {
               return (
                 <button
                   key={roomId}
+                  className={`draft-card${isSelected ? ' draft-card-selected' : ''}`}
                   onClick={() => handleSelectCard(roomId)}
-                  style={{
-                    ...styles.card,
-                    borderColor: isSelected ? 'var(--text-accent)' : 'var(--border-medium)',
-                    background: isSelected ? 'var(--bg-card-hover)' : 'var(--bg-card)',
-                    transform: isSelected ? 'translateY(-4px)' : 'none',
-                    boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.4)' : 'var(--shadow-card)',
-                  }}
+                  style={{ flex: '1 1 0', maxWidth: 120 }}
                 >
-                  <span style={{
-                    ...styles.cardRarity,
+                  <span className="badge" style={{
                     color: `var(--color-${def.rarity})`,
+                    background: 'transparent',
+                    padding: 0,
+                    fontSize: 9,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
                   }}>
                     {def.rarity}
                   </span>
-                  <span style={styles.cardName}>{def.name}</span>
-                  <span style={styles.cardCategory}>{def.category}</span>
+                  <span style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    textAlign: 'center',
+                    lineHeight: 1.2,
+                  }}>
+                    {def.name}
+                  </span>
+                  <span style={{
+                    fontSize: 9,
+                    color: 'var(--text-muted)',
+                    textTransform: 'capitalize',
+                  }}>
+                    {def.category}
+                  </span>
                   <DoorIndicator doors={def.doors} size={20} />
                 </button>
               );
             })}
           </div>
 
-          {/* Skip button */}
           <button
             onClick={handleSkip}
+            className={`btn ${!canPlaceAny ? 'btn-secondary' : 'btn-ghost'}`}
             style={{
-              ...styles.skipButton,
-              background: !canPlaceAny ? 'rgba(200, 80, 80, 0.15)' : 'transparent',
-              borderColor: !canPlaceAny ? 'var(--color-danger)' : 'var(--border-subtle)',
-              color: !canPlaceAny ? 'var(--color-danger)' : 'var(--text-muted)',
-              animation: !canPlaceAny ? 'subtlePulse 2s ease-in-out infinite' : 'none',
+              fontSize: 12,
+              padding: '8px 20px',
+              minHeight: 36,
+              ...((!canPlaceAny) ? {
+                borderColor: 'var(--color-danger)',
+                color: 'var(--color-danger)',
+                animation: 'subtlePulse 2s ease-in-out infinite',
+              } : {}),
             }}
           >
             {!canPlaceAny ? 'No valid spots — Skip hand' : skipConfirm ? 'Tap to confirm skip' : 'Skip hand'}
           </button>
         </div>
       ) : (
-        <div style={styles.handContainer}>
+        <div style={{
+          padding: '10px 16px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 8,
+          flexShrink: 0,
+        }}>
           <button className="btn btn-primary" style={{ width: '100%', maxWidth: 300 }} onClick={finishConstruction}>
             Explore the Mansion
           </button>
@@ -326,7 +389,6 @@ export function ConstructionScreen() {
   );
 }
 
-/** Small door marks on the edges of placed room cells */
 function DoorEdges({ doors, size }: { doors: { N: boolean; S: boolean; E: boolean; W: boolean }; size: number }) {
   const markLen = Math.max(6, size * 0.22);
   const markThick = 3;
@@ -393,142 +455,14 @@ function DoorIndicator({ doors, size = 24 }: { doors: { N: boolean; S: boolean; 
   const inner = s * 0.5;
   const offset = (s - inner) / 2;
   const mid = s / 2;
-  const gap = inner * 0.33;
+  const g = inner * 0.33;
   return (
     <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ flexShrink: 0 }}>
       <rect x={offset} y={offset} width={inner} height={inner} fill="none" stroke="var(--border-subtle)" strokeWidth="1" rx="2" />
-      {doors.N && <line x1={mid - gap} y1={offset} x2={mid + gap} y2={offset} stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.S && <line x1={mid - gap} y1={offset + inner} x2={mid + gap} y2={offset + inner} stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.W && <line x1={offset} y1={mid - gap} x2={offset} y2={mid + gap} stroke="var(--text-accent)" strokeWidth="2" />}
-      {doors.E && <line x1={offset + inner} y1={mid - gap} x2={offset + inner} y2={mid + gap} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.N && <line x1={mid - g} y1={offset} x2={mid + g} y2={offset} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.S && <line x1={mid - g} y1={offset + inner} x2={mid + g} y2={offset + inner} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.W && <line x1={offset} y1={mid - g} x2={offset} y2={mid + g} stroke="var(--text-accent)" strokeWidth="2" />}
+      {doors.E && <line x1={offset + inner} y1={mid - g} x2={offset + inner} y2={mid + g} stroke="var(--text-accent)" strokeWidth="2" />}
     </svg>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  header: {
-    padding: '12px 16px 8px',
-    textAlign: 'center',
-    flexShrink: 0,
-  },
-  title: {
-    fontFamily: 'var(--font-serif)',
-    fontSize: 22,
-    fontWeight: 600,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: 'var(--text-secondary)',
-    marginTop: 4,
-  },
-  gridContainer: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '8px 16px',
-    minHeight: 0,
-  },
-  feedback: {
-    textAlign: 'center',
-    fontSize: 13,
-    color: 'var(--color-warning)',
-    padding: '4px 16px',
-    flexShrink: 0,
-  },
-  synergyNotice: {
-    textAlign: 'center',
-    fontSize: 13,
-    fontWeight: 500,
-    color: 'var(--color-success)',
-    padding: '8px 16px',
-    background: 'rgba(110, 168, 110, 0.1)',
-    border: '1px solid rgba(110, 168, 110, 0.2)',
-    borderRadius: 'var(--radius-sm)',
-    margin: '0 16px',
-    flexShrink: 0,
-  },
-  synergyIcon: {
-    fontSize: 14,
-  },
-  previewPanel: {
-    padding: '12px 16px',
-    background: 'var(--bg-card)',
-    borderTop: '1px solid var(--border-medium)',
-    flexShrink: 0,
-  },
-  previewFlavour: {
-    fontFamily: 'var(--font-serif)',
-    fontSize: 13,
-    fontStyle: 'italic',
-    color: 'var(--text-secondary)',
-    marginTop: 4,
-    lineHeight: 1.5,
-  },
-  previewMeta: {
-    display: 'flex',
-    gap: 8,
-    marginTop: 6,
-    fontSize: 11,
-    color: 'var(--text-accent)',
-  },
-  handContainer: {
-    padding: '10px 16px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
-    flexShrink: 0,
-  },
-  hand: {
-    display: 'flex',
-    gap: 8,
-    justifyContent: 'center',
-    width: '100%',
-    maxWidth: 400,
-  },
-  card: {
-    flex: '1 1 0',
-    maxWidth: 120,
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-medium)',
-    borderRadius: 'var(--radius-md)',
-    padding: '10px 8px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4,
-    transition: 'transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s',
-    cursor: 'pointer',
-    boxShadow: 'var(--shadow-card)',
-  },
-  cardRarity: {
-    fontSize: 9,
-    fontWeight: 600,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
-  },
-  cardName: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: 'var(--text-primary)',
-    textAlign: 'center',
-    lineHeight: 1.2,
-  },
-  cardCategory: {
-    fontSize: 9,
-    color: 'var(--text-muted)',
-    textTransform: 'capitalize' as const,
-  },
-  skipButton: {
-    padding: '8px 20px',
-    borderRadius: 'var(--radius-sm)',
-    fontSize: 12,
-    fontWeight: 500,
-    border: '1px solid var(--border-subtle)',
-    background: 'transparent',
-    color: 'var(--text-muted)',
-    transition: 'all 0.15s',
-    cursor: 'pointer',
-  },
-};
