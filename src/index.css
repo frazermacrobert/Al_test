@@ -8,14 +8,14 @@
   --bg-surface: #131210;
   --bg-elevated: #282618;
 
-  --rarity-common-bg: rgba(168, 152, 120, 0.22);
-  --rarity-common-border: rgba(168, 152, 120, 0.45);
-  --rarity-uncommon-bg: rgba(72, 200, 72, 0.18);
-  --rarity-uncommon-border: rgba(72, 200, 72, 0.4);
-  --rarity-rare-bg: rgba(80, 140, 230, 0.2);
-  --rarity-rare-border: rgba(80, 140, 230, 0.45);
-  --rarity-exceptional-bg: rgba(210, 100, 210, 0.2);
-  --rarity-exceptional-border: rgba(210, 100, 210, 0.45);
+  --rarity-common-bg: rgba(185, 165, 120, 0.38);
+  --rarity-common-border: rgba(185, 165, 120, 0.6);
+  --rarity-uncommon-bg: rgba(72, 220, 72, 0.32);
+  --rarity-uncommon-border: rgba(72, 220, 72, 0.55);
+  --rarity-rare-bg: rgba(80, 150, 255, 0.35);
+  --rarity-rare-border: rgba(80, 150, 255, 0.6);
+  --rarity-exceptional-bg: rgba(220, 100, 230, 0.35);
+  --rarity-exceptional-border: rgba(220, 100, 230, 0.6);
 
   --text-primary: #ede4d3;
   --text-secondary: #c4b698;
@@ -47,10 +47,10 @@
   --radius-md: 12px;
   --radius-lg: 20px;
 
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 235, 180, 0.06);
-  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 235, 180, 0.08);
-  --shadow-glow: 0 0 20px rgba(228, 180, 76, 0.2), 0 0 6px rgba(228, 180, 76, 0.4);
-  --shadow-tile: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2);
+  --shadow-card: 0 3px 10px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 235, 180, 0.08);
+  --shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 235, 180, 0.1);
+  --shadow-glow: 0 0 24px rgba(228, 180, 76, 0.25), 0 0 8px rgba(228, 180, 76, 0.5);
+  --shadow-tile: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.25);
 
   --font-serif: 'Crimson Text', Georgia, serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -156,17 +156,40 @@ button {
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #daa840 0%, #c08a28 45%, #9a6818 100%);
+  background: linear-gradient(180deg, #e8c050 0%, #d4a030 30%, #b88020 60%, #9a6818 100%);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(192, 144, 48, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0,0,0,0.15);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255, 210, 100, 0.35);
-  animation: none;
+  box-shadow: 0 4px 20px rgba(192, 144, 48, 0.4), 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0,0,0,0.2);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 220, 120, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: skewX(-20deg);
+  animation: btnShimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes btnShimmer {
+  0%, 100% { left: -100%; }
+  50% { left: 150%; }
 }
 
 .btn-primary:active {
-  background: linear-gradient(180deg, #e8b848 0%, #c89830 100%);
-  box-shadow: 0 1px 4px rgba(192, 144, 48, 0.4), inset 0 2px 4px rgba(0,0,0,0.2);
+  background: linear-gradient(180deg, #f0c858 0%, #d09830 100%);
+  box-shadow: 0 1px 4px rgba(192, 144, 48, 0.5), inset 0 2px 6px rgba(0,0,0,0.3);
+  transform: scale(0.95);
+}
+
+.btn-primary:active::after {
   animation: none;
 }
 
@@ -195,48 +218,30 @@ button {
 
 .resource-bar {
   display: flex;
-  gap: 14px;
-  padding: 10px 16px;
-  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #1e1c14 0%, #151310 50%, #0f0e0a 100%);
   border-bottom: 1px solid var(--border-medium);
   font-size: 13px;
   font-weight: 600;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,235,180,0.04);
 }
 
 .resource-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
-.resource-icon {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 4px currentColor;
-}
-
-.resource-silver {
-  background: var(--color-silver);
-  box-shadow: 0 0 4px rgba(208, 208, 208, 0.4);
-}
-
-.resource-candle {
-  background: var(--color-candle);
-  box-shadow: 0 0 6px rgba(240, 184, 48, 0.5);
-}
-
-.resource-key {
-  background: var(--color-key);
-  box-shadow: 0 0 4px rgba(212, 152, 88, 0.4);
-}
-
-.resource-action {
-  background: var(--color-action);
-  box-shadow: 0 0 4px rgba(104, 200, 104, 0.4);
+.resource-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 5px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ═══ Cards ═══ */
@@ -325,7 +330,7 @@ button {
 /* ═══ Room Grid Cells ═══ */
 
 .grid-cell {
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -334,28 +339,37 @@ button {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--border-medium);
+  border: 1.5px solid var(--border-medium);
   box-shadow: var(--shadow-tile);
   background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
+}
+
+.grid-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 30%, transparent 50%);
+  pointer-events: none;
+  z-index: 3;
 }
 
 .grid-cell::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%, rgba(0,0,0,0.1) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%, rgba(0,0,0,0.15) 100%);
   pointer-events: none;
 }
 
 .grid-cell-current {
   border: 2px solid var(--text-glow) !important;
-  box-shadow: 0 0 24px rgba(228, 180, 76, 0.4), 0 0 48px rgba(228, 180, 76, 0.15), inset 0 0 12px rgba(228, 180, 76, 0.15);
-  animation: pulseGlow 3s ease-in-out infinite;
-  background: linear-gradient(180deg, rgba(228, 180, 76, 0.15) 0%, rgba(228, 180, 76, 0.05) 100%) !important;
+  box-shadow: 0 0 20px rgba(228, 180, 76, 0.5), 0 0 40px rgba(228, 180, 76, 0.2), 0 0 60px rgba(228, 180, 76, 0.08), inset 0 0 16px rgba(228, 180, 76, 0.2);
+  animation: pulseGlow 2.5s ease-in-out infinite;
+  background: linear-gradient(180deg, rgba(228, 180, 76, 0.22) 0%, rgba(228, 180, 76, 0.08) 100%) !important;
 }
 
 .grid-cell-current::after {
-  background: radial-gradient(circle at 50% 20%, rgba(228, 180, 76, 0.2) 0%, transparent 60%);
+  background: radial-gradient(circle at 50% 20%, rgba(228, 180, 76, 0.25) 0%, transparent 60%);
 }
 
 .grid-cell-selected {
@@ -368,26 +382,26 @@ button {
   filter: saturate(0.3);
 }
 
-/* Rarity cell tints — strong colored tiles */
+/* Rarity cell tints — vivid colored tiles */
 .grid-cell-common {
-  background: linear-gradient(180deg, rgba(168,152,120,0.25) 0%, rgba(168,152,120,0.12) 100%) !important;
+  background: linear-gradient(180deg, rgba(185,165,120,0.4) 0%, rgba(165,145,100,0.18) 100%) !important;
   border-color: var(--rarity-common-border) !important;
-  box-shadow: var(--shadow-tile), inset 0 0 10px rgba(168,152,120,0.08);
+  box-shadow: var(--shadow-tile), inset 0 0 14px rgba(185,165,120,0.12), 0 0 6px rgba(185,165,120,0.08);
 }
 .grid-cell-uncommon {
-  background: linear-gradient(180deg, rgba(72,200,72,0.22) 0%, rgba(72,200,72,0.08) 100%) !important;
+  background: linear-gradient(180deg, rgba(72,220,72,0.35) 0%, rgba(72,200,72,0.12) 100%) !important;
   border-color: var(--rarity-uncommon-border) !important;
-  box-shadow: var(--shadow-tile), inset 0 0 10px rgba(72,200,72,0.08);
+  box-shadow: var(--shadow-tile), inset 0 0 14px rgba(72,220,72,0.1), 0 0 8px rgba(72,220,72,0.1);
 }
 .grid-cell-rare {
-  background: linear-gradient(180deg, rgba(80,140,230,0.24) 0%, rgba(80,140,230,0.1) 100%) !important;
+  background: linear-gradient(180deg, rgba(80,150,255,0.38) 0%, rgba(80,140,230,0.14) 100%) !important;
   border-color: var(--rarity-rare-border) !important;
-  box-shadow: var(--shadow-tile), inset 0 0 10px rgba(80,140,230,0.08);
+  box-shadow: var(--shadow-tile), inset 0 0 14px rgba(80,150,255,0.1), 0 0 8px rgba(80,150,255,0.12);
 }
 .grid-cell-exceptional {
-  background: linear-gradient(180deg, rgba(210,100,210,0.24) 0%, rgba(210,100,210,0.1) 100%) !important;
+  background: linear-gradient(180deg, rgba(220,100,230,0.38) 0%, rgba(210,100,210,0.14) 100%) !important;
   border-color: var(--rarity-exceptional-border) !important;
-  box-shadow: var(--shadow-tile), inset 0 0 10px rgba(210,100,210,0.1);
+  box-shadow: var(--shadow-tile), inset 0 0 16px rgba(220,100,230,0.12), 0 0 10px rgba(220,100,230,0.15);
 }
 
 /* Valid placement cell */
@@ -440,7 +454,7 @@ button {
 
 .draft-card {
   background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-card) 50%, var(--bg-surface) 100%);
-  border: 1px solid var(--border-medium);
+  border: 1.5px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 10px 8px;
   display: flex;
@@ -449,7 +463,7 @@ button {
   gap: 4px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
   position: relative;
   overflow: hidden;
 }
@@ -462,20 +476,31 @@ button {
   right: 0;
   height: 3px;
   background: var(--text-accent);
-  opacity: 0.4;
-  transition: opacity 0.2s;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.draft-card::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 .draft-card-selected {
   border-color: var(--text-glow);
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 0 24px rgba(228,180,76,0.3), 0 12px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 0 28px rgba(228,180,76,0.35), 0 14px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .draft-card-selected::before {
   opacity: 1;
   background: linear-gradient(90deg, var(--text-accent), var(--text-glow), var(--text-accent));
-  height: 3px;
+  height: 4px;
 }
 
 /* ═══ Interaction Cards ═══ */
@@ -588,23 +613,26 @@ button {
 
 .bg-atmospheric {
   background:
-    radial-gradient(ellipse at 50% 20%, rgba(228, 180, 76, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 20% 80%, rgba(90, 70, 40, 0.06) 0%, transparent 40%),
-    var(--bg-deep);
+    radial-gradient(ellipse at 50% 15%, rgba(228, 180, 76, 0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 20% 75%, rgba(120, 90, 40, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 85%, rgba(60, 40, 15, 0.12) 0%, transparent 35%),
+    linear-gradient(180deg, #0e0d08 0%, #0a0908 100%);
 }
 
 .bg-dawn {
   background:
-    radial-gradient(ellipse at 50% 40%, rgba(180, 140, 60, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 30% 70%, rgba(60, 50, 30, 0.1) 0%, transparent 50%),
-    var(--bg-deep);
+    radial-gradient(ellipse at 50% 30%, rgba(200, 160, 70, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 70%, rgba(80, 60, 30, 0.1) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 20%, rgba(160, 120, 50, 0.04) 0%, transparent 35%),
+    linear-gradient(180deg, #100e08 0%, #0a0908 100%);
 }
 
 .bg-title {
   background:
-    radial-gradient(ellipse at 50% 30%, rgba(228, 180, 76, 0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(40, 30, 10, 0.5) 0%, transparent 40%),
-    var(--bg-deep);
+    radial-gradient(ellipse at 50% 35%, rgba(228, 180, 76, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 70%, rgba(120, 90, 40, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(40, 30, 10, 0.4) 0%, transparent 40%),
+    linear-gradient(180deg, #0e0d08 0%, #080706 100%);
 }
 
 /* ═══ Badge Pills ═══ */

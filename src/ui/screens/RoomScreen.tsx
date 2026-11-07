@@ -6,10 +6,22 @@ import { getItemDefinition } from '../../data/items';
 import { getRoomIcon } from '../roomIcons';
 import { RoomInteraction, MysteryCompletionEvent, MAX_INVENTORY } from '../../engine/types';
 
-const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  inspect: { label: 'Free', color: 'var(--text-muted)' },
-  search: { label: 'Search', color: 'var(--color-candle)' },
-  special: { label: 'Special', color: 'var(--color-exceptional)' },
+const TYPE_ICONS: Record<string, { label: string; color: string; icon: string }> = {
+  inspect: {
+    label: 'Free',
+    color: 'var(--text-muted)',
+    icon: 'M8 3a5 5 0 014.5 7.07l2.7 2.7a.75.75 0 01-1.06 1.06l-2.7-2.7A5 5 0 118 3zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z',
+  },
+  search: {
+    label: 'Search',
+    color: 'var(--color-candle)',
+    icon: 'M8 2c0 0-2 2-2 4.5S8 11 8 11s2-2.5 2-4.5S8 2 8 2zM7 14h2M6 12.5h4',
+  },
+  special: {
+    label: 'Special',
+    color: 'var(--color-exceptional)',
+    icon: 'M8 2l1.5 4.5H14l-3.7 2.8 1.4 4.5L8 11l-3.7 2.8 1.4-4.5L2 6.5h4.5z',
+  },
 };
 
 type ResultKind = 'clue' | 'item' | 'narrative';
@@ -142,21 +154,35 @@ export function RoomScreen() {
 
           {/* Progress bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-              {completedCount}/{totalInteractions} discovered
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+              {completedCount}/{totalInteractions}
             </span>
             <div style={{
-              flex: 1, height: 4, background: 'var(--border-subtle)',
-              borderRadius: 2, overflow: 'hidden',
+              flex: 1, height: 6, background: 'rgba(255,235,180,0.06)',
+              borderRadius: 3, overflow: 'hidden',
+              border: '1px solid rgba(255,235,180,0.04)',
             }}>
               <div style={{
                 height: '100%',
-                background: completedCount === totalInteractions ? 'var(--color-success)' : 'var(--text-accent)',
-                borderRadius: 2,
+                background: completedCount === totalInteractions
+                  ? 'linear-gradient(90deg, #48b848, #68d868)'
+                  : 'linear-gradient(90deg, #c89830, #e4b44c)',
+                borderRadius: 3,
                 width: `${(completedCount / totalInteractions) * 100}%`,
-                transition: 'width 0.3s',
+                transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: completedCount > 0
+                  ? (completedCount === totalInteractions
+                    ? '0 0 8px rgba(72,184,72,0.4)'
+                    : '0 0 6px rgba(228,180,76,0.3)')
+                  : 'none',
               }} />
             </div>
+            {completedCount === totalInteractions && (
+              <svg width={14} height={14} viewBox="0 0 16 16" style={{ flexShrink: 0 }}>
+                <circle cx="8" cy="8" r="6" fill="var(--color-success)" fillOpacity="0.15" stroke="var(--color-success)" strokeWidth="1.5" />
+                <path d="M5.5 8l2 2 3.5-3.5" fill="none" stroke="var(--color-success)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
           </div>
         </div>
 
@@ -285,7 +311,7 @@ export function RoomScreen() {
               const completed = isCompleted(interaction.id);
               const affordable = canAfford(interaction);
               const disabled = (completed && !interaction.repeatable) || !affordable;
-              const typeInfo = TYPE_LABELS[interaction.type] ?? TYPE_LABELS.inspect;
+              const typeInfo = TYPE_ICONS[interaction.type] ?? TYPE_ICONS.inspect;
 
               const hasItemCond = interaction.condition?.type === 'hasItem'
                 ? interaction.condition.value as string
@@ -310,9 +336,14 @@ export function RoomScreen() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span className="uppercase" style={{ color: typeInfo.color }}>
-                      {typeInfo.label}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <svg width={12} height={12} viewBox="0 0 16 16">
+                        <path d={typeInfo.icon} fill={typeInfo.color} fillOpacity="0.3" stroke={typeInfo.color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="uppercase" style={{ color: typeInfo.color }}>
+                        {typeInfo.label}
+                      </span>
+                    </div>
                     {completed && !interaction.repeatable && (
                       <span className="badge badge-success">Done</span>
                     )}
@@ -331,25 +362,29 @@ export function RoomScreen() {
                   }}>{interaction.description}</span>
 
                   {/* Cost row */}
-                  <div style={{ display: 'flex', gap: 12, marginTop: 4, fontSize: 11, fontWeight: 500 }}>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 4, fontSize: 11, fontWeight: 600 }}>
                     {interaction.cost.actions ? (
-                      <span style={{ color: 'var(--color-action)' }}>
-                        {interaction.cost.actions} Action{interaction.cost.actions > 1 ? 's' : ''}
+                      <span style={{ color: 'var(--color-action)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <svg width={10} height={10} viewBox="0 0 16 16"><path d="M8 2l2 4h-1.5v3h-1V6H6l2-4zM5 12h6M4 14h8" fill="var(--color-action)" fillOpacity="0.2" stroke="var(--color-action)" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                        {interaction.cost.actions}
                       </span>
                     ) : null}
                     {interaction.cost.silver ? (
-                      <span style={{ color: 'var(--color-silver)' }}>
-                        {interaction.cost.silver} Silver
+                      <span style={{ color: 'var(--color-silver)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <svg width={10} height={10} viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="var(--color-silver)" fillOpacity="0.15" stroke="var(--color-silver)" strokeWidth="1.2" /></svg>
+                        {interaction.cost.silver}
                       </span>
                     ) : null}
                     {interaction.cost.candles ? (
-                      <span style={{ color: 'var(--color-candle)' }}>
-                        {interaction.cost.candles} Candle{interaction.cost.candles > 1 ? 's' : ''}
+                      <span style={{ color: 'var(--color-candle)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <svg width={10} height={10} viewBox="0 0 16 16"><rect x="6" y="7" width="4" height="6" rx="1" fill="var(--color-candle)" fillOpacity="0.2" stroke="var(--color-candle)" strokeWidth="1" /><path d="M8 7V4c-1-1.5 0-3 0-3s1 1.5 0 3" fill="var(--color-candle)" fillOpacity="0.3" stroke="var(--color-candle)" strokeWidth="0.6" strokeLinecap="round" /></svg>
+                        {interaction.cost.candles}
                       </span>
                     ) : null}
                     {interaction.cost.keys ? (
-                      <span style={{ color: 'var(--color-key)' }}>
-                        {interaction.cost.keys} Key{interaction.cost.keys > 1 ? 's' : ''}
+                      <span style={{ color: 'var(--color-key)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <svg width={10} height={10} viewBox="0 0 16 16"><circle cx="6" cy="6" r="3" fill="var(--color-key)" fillOpacity="0.15" stroke="var(--color-key)" strokeWidth="1.2" /><path d="M8.5 8.5L12 12" stroke="var(--color-key)" strokeWidth="1.2" strokeLinecap="round" /></svg>
+                        {interaction.cost.keys}
                       </span>
                     ) : null}
                   </div>
