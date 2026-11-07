@@ -4,190 +4,232 @@
 <style>
 :root {
   color-scheme: dark;
-  --bg:#060a14; --surface:#0d1120; --card:#151a2e; --card2:#1a2038;
-  --bdr:#252a44; --gold:#c9a84c; --gold-b:#e8d06a; --gold-d:#6a5a28;
-  --red:#b03040; --red-bg:#1e0a10; --blue:#4070d8; --blue-b:#6090f0;
-  --blue-bg:#0a1428; --purple:#8a58b0; --purple-bg:#140a20;
-  --green:#40a860; --green-bg:#0a1e10; --text:#cec8b8; --text-b:#e8e2d2;
-  --text-m:#605a4a; --text-d:#302e28; --warn:#e08828; --crit:#e03838;
-  --overlay:rgba(4,6,14,.94);
+  --bp:#0b1a2e; --bp2:#0e2038; --grid:#162a44; --chalk:#7aa0c0; --chalk-d:#4a6880;
+  --gold:#d4a43c; --gold-b:#eac050; --gold-d:#8a6a1c; --brass:#b8924a;
+  --parch:#f0e6d0; --parch2:#e8dcc0; --ink:#2a1a0a;
+  --red:#aa3344; --red-bg:#1a0810; --red-glow:rgba(170,51,68,.15);
+  --blue:#4488cc; --blue-b:#66aaee; --blue-bg:#081828; --blue-glow:rgba(68,136,204,.15);
+  --purple:#7744aa; --purple-bg:#100820; --green:#339966; --green-bg:#081a10;
+  --text:#dde4ec; --text-b:#f0f4fa; --text-m:#6a7a90; --text-d:#3a4a5a;
+  --overlay:rgba(6,14,26,.95); --surface:#0e1a2c;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Spectral',Georgia,serif;
+body{background:var(--bp);color:var(--text);font-family:'Spectral',Georgia,serif;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;
-  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23162a44' stroke-width='.5'/%3E%3C/svg%3E")}
 
 .scr{display:none;flex-direction:column;height:100%;width:100%;position:absolute;top:0;left:0;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px))}
 .scr.on{display:flex}
-.cin{font-family:'Cinzel',serif}
 
-/* Title */
-#title{align-items:center;justify-content:center;gap:20px;
-  background:radial-gradient(ellipse at 50% 38%,#0e1530,var(--bg) 72%)}
-#title::before{content:'';position:absolute;inset:0;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23fff' stroke-width='.3' opacity='.035'/%3E%3C/svg%3E");pointer-events:none}
-.t-crest{width:68px;height:68px;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:28px;transform:rotate(45deg)}
-.t-crest span{transform:rotate(-45deg);font-family:'Cinzel',serif;color:var(--gold)}
-.t-name{font-family:'Cinzel',serif;font-size:clamp(26px,7vw,36px);font-weight:900;color:var(--gold);letter-spacing:4px;text-transform:uppercase;text-align:center}
-.t-sub{color:var(--text-m);font-style:italic;font-size:13px;text-align:center;max-width:260px;line-height:1.6}
+/* ── Title ── */
+#title{align-items:center;justify-content:center;gap:16px;
+  background:radial-gradient(ellipse at 50% 55%,#0e2040 0%,var(--bp) 70%)}
+.manor-svg{width:200px;height:120px;filter:drop-shadow(0 0 20px rgba(212,164,60,.2))}
+.t-name{font-family:'Cinzel',serif;font-size:clamp(28px,8vw,40px);font-weight:900;
+  color:var(--gold);letter-spacing:6px;text-transform:uppercase;text-align:center;
+  text-shadow:0 0 30px rgba(212,164,60,.3)}
+.t-rule{width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
+.t-sub{color:var(--text-m);font-style:italic;font-size:13px;text-align:center;max-width:280px;line-height:1.7}
 .t-stats{color:var(--text-d);font-size:10px;font-family:'Cinzel',serif;letter-spacing:2px;text-transform:uppercase;text-align:center}
-.btn{font-family:'Cinzel',serif;font-size:14px;font-weight:700;padding:12px 32px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .2s}
-.btn:active{background:var(--gold);color:var(--bg);transform:scale(.97)}
-.btn-s{font-size:10px;padding:7px 14px;letter-spacing:1px}
-.btn-g{border-color:var(--bdr);color:var(--text-m)}
+.btn{font-family:'Cinzel',serif;font-size:13px;font-weight:700;padding:12px 36px;
+  border:1.5px solid var(--gold);background:linear-gradient(180deg,rgba(212,164,60,.08),transparent);
+  color:var(--gold);cursor:pointer;letter-spacing:3px;text-transform:uppercase;transition:all .2s;
+  position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(212,164,60,.15),transparent);opacity:0;transition:opacity .2s}
+.btn:active{transform:scale(.97)}.btn:active::after{opacity:1}
+.btn-s{font-size:10px;padding:8px 16px;letter-spacing:1px}
+.btn-g{border-color:var(--text-d);color:var(--text-m);background:none}
 
-/* HUD */
-.hud{display:flex;justify-content:space-between;align-items:center;padding:6px 0;flex-shrink:0;border-bottom:1px solid var(--bdr);gap:4px}
-.hud-res{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* ── HUD ── */
+.hud{display:flex;justify-content:space-between;align-items:center;padding:8px 0;flex-shrink:0;
+  border-bottom:1px solid var(--grid);gap:4px;
+  background:linear-gradient(180deg,rgba(11,26,46,.9),transparent)}
+.hud-res{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .hr{display:flex;align-items:center;gap:3px;font-size:13px;font-variant-numeric:tabular-nums}
-.hr-i{font-size:14px}.hr-v{font-family:'Cinzel',serif;font-weight:700}
-.hr-steps{color:var(--gold)}.hr-steps.w{color:var(--warn)}.hr-steps.c{color:var(--crit);animation:pulse .8s infinite}
-.hr-gems{color:#6ac0f0}.hr-coins{color:#f0c040}.hr-keys{color:#c0a0e0}
+.hr-i{font-size:12px}.hr-v{font-family:'Cinzel',serif;font-weight:700;font-size:14px}
+.hr-steps{color:var(--gold)}.hr-steps.w{color:#e0a030}.hr-steps.c{color:var(--red);animation:pulse .8s infinite}
+.hr-gems{color:var(--blue-b)}.hr-coins{color:#e0c050}.hr-keys{color:#b090d0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .hud-r{text-align:right;font-family:'Cinzel',serif}
-.hud-day{font-size:11px;color:var(--text-m)}.hud-rms{font-size:9px;color:var(--text-d);letter-spacing:1px;text-transform:uppercase}
-.hud-bl{display:flex;gap:2px;align-items:center}
-.bd{width:6px;height:6px;border-radius:50%;background:var(--bdr);transition:all .3s}
-.bd.on{background:var(--blue-b);box-shadow:0 0 5px var(--blue)}
-.hud-map{font-size:14px;color:var(--gold-d);cursor:pointer;background:none;border:none;padding:4px 6px}
+.hud-day{font-size:11px;color:var(--brass);letter-spacing:1px}.hud-rms{font-size:9px;color:var(--text-d);letter-spacing:1px;text-transform:uppercase}
+.hud-bl{display:flex;gap:3px;align-items:center}
+.bd{width:8px;height:8px;border-radius:50%;border:1px solid var(--grid);background:transparent;transition:all .3s}
+.bd.on{background:var(--blue-b);border-color:var(--blue-b);box-shadow:0 0 6px var(--blue)}
+.hud-map{font-size:18px;color:var(--brass);cursor:pointer;background:none;border:none;padding:4px 6px;opacity:.7;transition:opacity .2s}
+.hud-map:active{opacity:1}
 
-/* Room View */
-#game{padding-top:6px;padding-bottom:6px;gap:0;overflow:hidden}
-.rv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:6px;padding:4px 0}
-.rv{position:relative;width:min(280px,78vw);aspect-ratio:1;border-radius:10px;overflow:hidden}
-.rv-bg{position:absolute;inset:0;opacity:.25}
-.rv-floor{position:absolute;inset:24%;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;z-index:2}
-.rv-icon{font-size:36px}.rv-name{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--text-b);text-align:center}
-.rv-type{font-size:8px;color:var(--text-m);letter-spacing:1.5px;text-transform:uppercase;font-family:'Cinzel',serif}
+/* ── Room View (Blueprint Floor Plan) ── */
+#game{padding-top:4px;padding-bottom:6px;gap:0;overflow:hidden}
+.rv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:8px;padding:4px 0}
+.rv-canvas{position:relative;width:min(300px,82vw);aspect-ratio:1}
+.rv-svg{width:100%;height:100%}
+.rv-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;z-index:2}
+.rv-icon{font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
+.rv-name{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--text-b);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.rv-type{font-size:8px;color:var(--text-m);letter-spacing:2px;text-transform:uppercase;font-family:'Cinzel',serif}
 
-/* Doors on room edges */
-.dslot{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-family:'Cinzel',serif;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dslot.n{top:0;left:15%;right:15%;height:22%;border-radius:0 0 8px 8px}
-.dslot.s{bottom:0;left:15%;right:15%;height:22%;border-radius:8px 8px 0 0}
-.dslot.e{right:0;top:15%;bottom:15%;width:22%;border-radius:8px 0 0 8px}
-.dslot.w{left:0;top:15%;bottom:15%;width:22%;border-radius:0 8px 8px 0}
-.dslot.wall{background:var(--surface);border:1px solid var(--bdr);cursor:default;opacity:.3}
-.dslot.unexplored{background:rgba(201,168,76,.12);border:1.5px dashed var(--gold-d);color:var(--gold)}
-.dslot.unexplored:active{background:rgba(201,168,76,.25)}
-.dslot.explored{background:rgba(80,120,200,.1);border:1px solid rgba(80,120,200,.3);color:var(--text);font-size:9px}
-.dslot.explored:active{background:rgba(80,120,200,.2)}
-.dslot.blocked{background:var(--surface);border:1px solid var(--bdr);cursor:default;opacity:.4}
-.dslot.locked{background:rgba(140,90,180,.1);border:1.5px solid rgba(140,90,180,.4);color:var(--purple)}
+/* Door hit areas layered over SVG */
+.door-hit{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;transition:all .15s;border:none;background:none;color:var(--text)}
+.door-hit.n{top:0;left:20%;right:20%;height:18%}
+.door-hit.s{bottom:0;left:20%;right:20%;height:18%}
+.door-hit.e{right:0;top:20%;bottom:20%;width:18%}
+.door-hit.w{left:0;top:20%;bottom:20%;width:18%}
+.door-hit.unexplored{color:var(--gold);animation:doorPulse 2s ease-in-out infinite}
+.door-hit.unexplored:active{transform:scale(.95)}
+.door-hit.explored{color:var(--chalk);font-size:9px}
+.door-hit.explored:active{background:rgba(122,160,192,.08)}
+.door-hit.wall,.door-hit.blocked{cursor:default;pointer-events:none}
+@keyframes doorPulse{0%,100%{opacity:.7}50%{opacity:1}}
 
-/* Items in room */
-.rv-items{position:absolute;z-index:4;bottom:28%;left:50%;transform:translateX(-50%);display:flex;gap:8px}
-.rv-item{font-size:22px;cursor:pointer;transition:transform .15s;filter:drop-shadow(0 0 4px rgba(255,220,100,.4));animation:float 2s ease-in-out infinite}
-.rv-item:active{transform:scale(1.3)}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-
-/* Room info below */
-.rv-info{text-align:center;max-width:300px;display:flex;flex-direction:column;gap:4px;align-items:center}
-.rv-desc{font-size:12px;color:var(--text);line-height:1.5;font-style:italic;max-width:260px}
-.rv-fx{padding:5px 12px;border-radius:4px;font-size:11px;text-align:center}
+/* Room info panel below */
+.rv-info{text-align:center;max-width:320px;display:flex;flex-direction:column;gap:5px;align-items:center}
+.rv-desc{font-size:12px;color:var(--text);line-height:1.6;font-style:italic;max-width:280px}
+.rv-loot{font-size:12px;color:var(--gold);font-family:'Cinzel',serif}
+.rv-fx{padding:5px 14px;border-radius:3px;font-size:11px;text-align:center;font-weight:600}
 .rv-fx.p{background:var(--green-bg);color:var(--green);border:1px solid #1a3a2a}
 .rv-fx.n{background:var(--red-bg);color:var(--red);border:1px solid #3a1a1a}
 .rv-fx.i{background:var(--blue-bg);color:var(--blue-b);border:1px solid #1a2a4a}
 .rv-fx.sp{background:var(--purple-bg);color:var(--purple);border:1px solid #2a1a3a}
-.rv-act{padding:7px 16px;border:1px solid var(--purple);color:var(--purple);font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;background:transparent;cursor:pointer;text-transform:uppercase;transition:all .2s}
-.rv-act:active{background:var(--purple);color:var(--bg)}
+.rv-act{padding:8px 20px;border:1.5px solid var(--purple);color:var(--purple);font-family:'Cinzel',serif;
+  font-size:11px;letter-spacing:1.5px;background:rgba(119,68,170,.06);cursor:pointer;text-transform:uppercase;transition:all .2s}
+.rv-act:active{background:var(--purple);color:#fff}
 
-/* Draft */
-#draft{align-items:center;justify-content:center;gap:12px;background:var(--overlay);z-index:20}
-.dr-title{font-family:'Cinzel',serif;font-size:15px;color:var(--gold);letter-spacing:2px;text-transform:uppercase}
-.dr-cost-warn{font-size:11px;color:var(--red);text-align:center;max-width:200px}
-.dr-cards{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:100%;padding:0 2px}
-.dc{width:min(115px,30vw);padding:10px 8px;border:1.5px solid var(--bdr);background:var(--card);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:5px;align-items:center;text-align:center;position:relative;overflow:hidden;border-radius:6px}
-.dc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.dc.red::before{background:var(--red)}.dc.blue::before{background:var(--blue-b)}
+/* ── Draft (Blueprint Selection) ── */
+#draft{align-items:center;justify-content:center;gap:14px;
+  background:var(--overlay);z-index:20;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23162a44' stroke-width='.3'/%3E%3C/svg%3E")}
+.dr-title{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;
+  text-shadow:0 0 20px rgba(212,164,60,.3)}
+.dr-sub{font-size:10px;color:var(--text-m);font-style:italic}
+.dr-cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:100%;padding:0 4px}
+/* Parchment card */
+.dc{width:min(110px,29vw);padding:10px 6px 8px;background:linear-gradient(170deg,var(--parch),var(--parch2));
+  cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;
+  position:relative;overflow:hidden;border-radius:3px;border:none;
+  box-shadow:2px 3px 8px rgba(0,0,0,.4),inset 0 0 20px rgba(0,0,0,.05)}
+.dc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.dc.red::before{background:var(--red)}.dc.blue::before{background:var(--blue)}
 .dc.green::before{background:var(--green)}.dc.purple::before{background:var(--purple)}
-.dc.gold::before{background:var(--gold)}.dc.shop::before{background:#40c080}
-.dc:active{border-color:var(--gold);transform:scale(.96);background:var(--card2)}
-.dc.disabled{opacity:.35;pointer-events:none}
-.dc-i{font-size:22px}.dc-n{font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:var(--text-b)}
-.dc-t{font-size:8px;color:var(--text-m);letter-spacing:1px;text-transform:uppercase}
-.dc-cost{font-size:10px;color:#6ac0f0;font-weight:600}
-.dc-cost.free{color:var(--green)}
-.dc-doors{display:grid;grid-template-columns:repeat(3,10px);grid-template-rows:repeat(3,10px);gap:1px;margin:2px 0}
-.dc-dd{width:10px;height:10px;border-radius:2px;background:var(--surface)}
-.dc-dd.has{background:var(--gold-d)}.dc-dd.center{background:var(--card2);border:1px solid var(--bdr)}
-.dc-fx{font-size:9px;font-weight:600;margin-top:auto}
-.dc-fx.p{color:var(--green)}.dc-fx.n{color:var(--red)}.dc-fx.b{color:var(--blue-b)}.dc-fx.s{color:var(--purple)}
-.dc-items{font-size:9px;color:var(--text-m)}
-.dr-reroll{padding:6px 14px;border:1px solid var(--gold-d);color:var(--gold-d);font-family:'Cinzel',serif;font-size:10px;background:transparent;cursor:pointer;letter-spacing:1px;text-transform:uppercase}
-.dr-reroll.ok{border-color:var(--gold);color:var(--gold)}
-.dr-reroll.ok:active{background:var(--gold);color:var(--bg)}
+.dc.gold::before{background:var(--gold)}.dc.shop::before{background:var(--green)}
+.dc:active{transform:scale(.95);box-shadow:1px 1px 4px rgba(0,0,0,.6)}
+.dc.disabled{opacity:.3;pointer-events:none;filter:grayscale(.5)}
+.dc-i{font-size:24px;margin-top:2px}
+.dc-n{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--ink);line-height:1.2}
+.dc-t{font-size:7px;color:#6a5a40;letter-spacing:1px;text-transform:uppercase}
+.dc-cost{font-size:10px;font-weight:700;font-family:'Cinzel',serif}
+.dc-cost.free{color:var(--green)}.dc-cost.gem{color:#2266aa}
+/* Mini floor plan on card */
+.dc-plan{width:42px;height:42px;margin:2px 0;position:relative}
+.dc-plan svg{width:100%;height:100%}
+.dc-fx{font-size:8px;font-weight:600;padding:2px 6px;border-radius:2px;margin-top:auto}
+.dc-fx.p{color:#1a5a30;background:#d0f0d8}.dc-fx.n{color:#8a2030;background:#f0d0d4}
+.dc-fx.b{color:#2266aa;background:#d0e4f8}.dc-fx.s{color:#6030a0;background:#e4d0f0}
+.dc-items{font-size:9px;color:#6a5a40}
+.dr-reroll{padding:7px 18px;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cinzel',serif;
+  font-size:10px;background:rgba(212,164,60,.06);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.dr-reroll.ok{border-color:var(--gold);box-shadow:0 0 10px rgba(212,164,60,.15)}
+.dr-reroll.ok:active{background:var(--gold);color:var(--bp)}
+.dr-warn{font-size:11px;color:var(--red);text-align:center;max-width:220px}
 
-/* Event overlay */
-#ev{position:absolute;inset:0;background:var(--overlay);z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:max(16px,env(safe-area-inset-left,0px))}
+/* ── Event Overlay ── */
+#ev{position:absolute;inset:0;background:var(--overlay);z-index:30;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;padding:max(16px,env(safe-area-inset-left,0px))}
 #ev.on{display:flex}
-.ev-i{font-size:40px}.ev-t{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:2px;text-align:center}
-.ev-d{font-size:13px;color:var(--text);text-align:center;max-width:280px;line-height:1.6}
-.ev-r{font-size:12px;font-weight:600;text-align:center}
+.ev-i{font-size:48px;filter:drop-shadow(0 0 16px rgba(212,164,60,.4))}.ev-t{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:3px;text-align:center;text-shadow:0 0 20px rgba(212,164,60,.3)}
+.ev-d{font-size:13px;color:var(--text);text-align:center;max-width:300px;line-height:1.7}
+.ev-r{font-size:13px;font-weight:600;text-align:center;font-family:'Cinzel',serif}
+.ev-rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
 
-/* Minimap overlay */
-#mmap{position:absolute;inset:0;background:var(--overlay);z-index:15;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:max(16px,env(safe-area-inset-left,0px))}
+/* ── Minimap ── */
+#mmap{position:absolute;inset:0;background:var(--overlay);z-index:15;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;padding:max(16px,env(safe-area-inset-left,0px));
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23162a44' stroke-width='.3'/%3E%3C/svg%3E")}
 #mmap.on{display:flex}
-.mm-title{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);letter-spacing:2px}
-.mm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;width:min(240px,60vw)}
-.mc{aspect-ratio:1;border-radius:3px;background:var(--surface);border:1px solid transparent;font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--text-d);transition:all .2s}
-.mc.placed{border-color:var(--bdr);background:var(--card)}.mc.cur{border-color:var(--gold);background:var(--gold-d);box-shadow:0 0 6px rgba(201,168,76,.3)}
-.mc.red{border-color:var(--red)}.mc.blue{border-color:var(--blue)}.mc.disc{border-color:var(--purple)}.mc.shop{border-color:var(--green)}
+.mm-title{font-family:'Cinzel',serif;font-size:15px;color:var(--gold);letter-spacing:3px}
+.mm-canvas{width:min(320px,85vw);height:min(320px,85vw)}
 
-/* Run end */
-#rend{align-items:center;justify-content:center;gap:16px}
-.re-t{font-family:'Cinzel',serif;font-size:24px;letter-spacing:3px;text-transform:uppercase}
-.re-s{display:flex;flex-direction:column;gap:5px;align-items:center}
-.re-r{font-size:12px;color:var(--text)}.re-r b{color:var(--gold);font-family:'Cinzel',serif}
-
-/* Journal */
-#journal{padding-top:10px}
-.j-h{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--bdr);flex-shrink:0}
-.j-t{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:2px}
-.j-x{font-size:22px;color:var(--text-m);cursor:pointer;padding:4px 8px;background:none;border:none}
-.j-tabs{display:flex;flex-shrink:0;border-bottom:1px solid var(--bdr)}
-.jt{flex:1;padding:8px;text-align:center;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-m);cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .2s}
-.jt.on{color:var(--gold);border-bottom-color:var(--gold)}
-.j-b{flex:1;overflow-y:auto;padding:8px 0}
-.je{padding:8px 0;border-bottom:1px solid var(--bdr)}.je.lk{opacity:.3}
-.je-t{font-family:'Cinzel',serif;font-size:12px;color:var(--text-b);margin-bottom:2px}
-.je-d{font-size:11px;color:var(--text-m);line-height:1.4}
-
-/* Toast */
-.toast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--gold);padding:6px 16px;font-family:'Cinzel',serif;font-size:11px;color:var(--gold);z-index:50;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;max-width:240px;border-radius:4px}
-.toast.on{opacity:1}
-
-/* Shop overlay */
+/* ── Shop ── */
 #shop{position:absolute;inset:0;background:var(--overlay);z-index:25;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #shop.on{display:flex}
 .shop-t{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:2px}
-.shop-items{display:flex;flex-direction:column;gap:8px;max-width:240px;width:100%}
-.shop-i{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--bdr);background:var(--card);border-radius:6px;cursor:pointer}
-.shop-i:active{background:var(--card2);border-color:var(--gold)}
-.shop-i.cant{opacity:.4;cursor:default}
-.shop-il{display:flex;align-items:center;gap:8px;font-size:13px}
-.shop-ip{font-size:11px;color:var(--gold);font-family:'Cinzel',serif}
+.shop-items{display:flex;flex-direction:column;gap:8px;max-width:260px;width:100%}
+.shop-i{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--grid);
+  background:var(--surface);cursor:pointer;transition:all .15s}
+.shop-i:active{background:var(--bp2);border-color:var(--gold)}
+.shop-i.cant{opacity:.35;cursor:default}
+.shop-il{display:flex;align-items:center;gap:10px;font-size:14px}
+.shop-ip{font-size:12px;color:var(--gold);font-family:'Cinzel',serif;font-weight:700}
 
-@keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
-.anim{animation:slideUp .2s ease-out}
+/* ── Run End ── */
+#rend{align-items:center;justify-content:center;gap:16px;
+  background:radial-gradient(ellipse at 50% 40%,#0e2040,var(--bp) 70%)}
+.re-t{font-family:'Cinzel',serif;font-size:26px;letter-spacing:4px;text-transform:uppercase}
+.re-rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
+.re-s{display:flex;flex-direction:column;gap:6px;align-items:center}
+.re-r{font-size:13px;color:var(--text)}.re-r b{color:var(--gold);font-family:'Cinzel',serif}
+
+/* ── Journal ── */
+#journal{padding-top:10px}
+.j-h{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--grid);flex-shrink:0}
+.j-t{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:2px}
+.j-x{font-size:22px;color:var(--text-m);cursor:pointer;padding:4px 8px;background:none;border:none}
+.j-tabs{display:flex;flex-shrink:0;border-bottom:1px solid var(--grid)}
+.jt{flex:1;padding:8px;text-align:center;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--text-m);cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;transition:all .2s}
+.jt.on{color:var(--gold);border-bottom-color:var(--gold)}
+.j-b{flex:1;overflow-y:auto;padding:8px 0}
+.je{padding:10px 0;border-bottom:1px solid var(--grid)}.je.lk{opacity:.25}
+.je-t{font-family:'Cinzel',serif;font-size:12px;color:var(--text-b);margin-bottom:3px}
+.je-d{font-size:11px;color:var(--text-m);line-height:1.5}
+
+/* ── Toast ── */
+.toast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:var(--surface);
+  border:1px solid var(--gold);padding:8px 20px;font-family:'Cinzel',serif;font-size:12px;
+  color:var(--gold);z-index:50;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;
+  max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.toast.on{opacity:1}
+
+@keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.anim{animation:slideUp .25s ease-out}
+.anim-fade{animation:fadeIn .3s ease-out}
 </style>
 
+<!-- ── Title Screen ── -->
 <div id="title" class="scr on">
-  <div class="t-crest"><span>B</span></div>
+  <svg class="manor-svg" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="30" y="50" width="140" height="60" fill="#0a1220" stroke="#7aa0c0" stroke-width=".8"/>
+    <rect x="55" y="30" width="90" height="30" fill="#0a1220" stroke="#7aa0c0" stroke-width=".8"/>
+    <polygon points="55,30 100,8 145,30" fill="#0a1220" stroke="#7aa0c0" stroke-width=".8"/>
+    <rect x="85" y="80" width="30" height="30" fill="#0e1830" stroke="#7aa0c0" stroke-width=".6"/>
+    <rect x="89" y="84" width="22" height="22" rx="2" fill="rgba(212,164,60,.12)" stroke="rgba(212,164,60,.3)" stroke-width=".5"/>
+    <rect x="40" y="62" width="16" height="18" rx="1" fill="rgba(68,136,204,.08)" stroke="rgba(68,136,204,.25)" stroke-width=".5"/>
+    <rect x="145" y="62" width="16" height="18" rx="1" fill="rgba(68,136,204,.08)" stroke="rgba(68,136,204,.25)" stroke-width=".5"/>
+    <rect x="72" y="38" width="12" height="14" rx="1" fill="rgba(212,164,60,.1)" stroke="rgba(212,164,60,.25)" stroke-width=".4"/>
+    <rect x="116" y="38" width="12" height="14" rx="1" fill="rgba(212,164,60,.1)" stroke="rgba(212,164,60,.25)" stroke-width=".4"/>
+    <circle cx="100" cy="22" r="3" fill="none" stroke="rgba(212,164,60,.3)" stroke-width=".5"/>
+    <line x1="30" y1="110" x2="0" y2="110" stroke="#7aa0c0" stroke-width=".4"/>
+    <line x1="170" y1="110" x2="200" y2="110" stroke="#7aa0c0" stroke-width=".4"/>
+  </svg>
   <div class="t-name">Blue Manor</div>
-  <div class="t-sub">Each night the manor rearranges. Draft rooms, collect resources, plan routes. Find the hidden 46th room.</div>
+  <div class="t-rule"></div>
+  <div class="t-sub">Each night the manor rearranges. Draft rooms from blueprints, collect treasures, plan your route. Find the hidden 46th room.</div>
   <button class="btn" onclick="G.start()">Enter the Manor</button>
   <div class="t-stats" id="t-stats"></div>
   <button class="btn btn-s btn-g" onclick="G.journal()" style="margin-top:2px">Journal</button>
 </div>
 
+<!-- ── Game Screen ── -->
 <div id="game" class="scr">
   <div class="hud">
     <div class="hud-res">
-      <div class="hr"><span class="hr-i">🥾</span><span class="hr-v hr-steps" id="h-steps">50</span></div>
+      <div class="hr"><span class="hr-i">🥾</span><span class="hr-v hr-steps" id="h-steps">30</span></div>
       <div class="hr"><span class="hr-i">💎</span><span class="hr-v hr-gems" id="h-gems">0</span></div>
       <div class="hr"><span class="hr-i">🪙</span><span class="hr-v hr-coins" id="h-coins">0</span></div>
       <div class="hr"><span class="hr-i">🔑</span><span class="hr-v hr-keys" id="h-keys">0</span></div>
@@ -195,25 +237,29 @@ body{background:var(--bg);color:var(--text);font-family:'Spectral',Georgia,serif
     <div class="hud-bl" id="h-blue"></div>
     <div style="display:flex;align-items:center;gap:6px">
       <div class="hud-r"><div class="hud-day" id="h-day">Day 1</div><div class="hud-rms" id="h-rms">0 rooms</div></div>
-      <button class="hud-map" onclick="G.toggleMap()">🗺️</button>
+      <button class="hud-map" onclick="G.toggleMap()">🗺</button>
     </div>
   </div>
   <div class="rv-wrap" id="rv-wrap"></div>
 </div>
 
+<!-- ── Draft Screen ── -->
 <div id="draft" class="scr">
   <div class="dr-title">Choose a Blueprint</div>
-  <div class="dr-cost-warn" id="dr-warn"></div>
+  <div class="dr-sub" id="dr-sub">Select a room to place</div>
+  <div class="dr-warn" id="dr-warn"></div>
   <div class="dr-cards" id="dr-cards"></div>
   <button class="dr-reroll" id="dr-reroll" onclick="G.reroll()">Reroll (💎1)</button>
 </div>
 
-<div id="ev"><div class="ev-i" id="ev-i"></div><div class="ev-t" id="ev-t"></div><div class="ev-d" id="ev-d"></div><div class="ev-r" id="ev-r"></div><button class="btn btn-s" onclick="G.evOk()">Continue</button></div>
-<div id="mmap"><div class="mm-title">Manor Map</div><div class="mm-grid" id="mm-grid"></div><button class="btn btn-s" onclick="G.toggleMap()" style="margin-top:8px">Close</button></div>
+<!-- ── Overlays ── -->
+<div id="ev"><div class="ev-i" id="ev-i"></div><div class="ev-t" id="ev-t"></div><div class="ev-rule"></div><div class="ev-d" id="ev-d"></div><div class="ev-r" id="ev-r"></div><button class="btn btn-s" onclick="G.evOk()">Continue</button></div>
+<div id="mmap"><div class="mm-title">Manor Blueprint</div><canvas class="mm-canvas" id="mm-canvas"></canvas><button class="btn btn-s" onclick="G.toggleMap()" style="margin-top:8px">Close</button></div>
 <div id="shop"><div class="shop-t" id="shop-t">Shop</div><div class="shop-items" id="shop-items"></div><button class="btn btn-s btn-g" onclick="G.closeShop()" style="margin-top:8px">Leave</button></div>
 
 <div id="rend" class="scr">
   <div class="re-t" id="re-t">Nightfall</div>
+  <div class="re-rule"></div>
   <div class="re-s" id="re-s"></div>
   <button class="btn" onclick="G.start()">New Day</button>
   <button class="btn btn-s btn-g" onclick="G.scr('title')">Return</button>
@@ -226,71 +272,63 @@ body{background:var(--bg);color:var(--text);font-family:'Spectral',Georgia,serif
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// ROOM DATA — data-driven, all values configurable
-// Each room: n=name, i=icon, t=type, c=color-class, d=desc,
-// doors=NSEW array, cost=gem cost, items=[{t,n}],
-// fx=effect text, r=rarity, red/blue flags,
-// onDraft/onEnter/entryCost callbacks, dead=dead-end (door adapts)
-// ═══════════════════════════════════════════════════════════════
+// ═══ ROOM DATA ═══
 const R={
-// COMMON free rooms
+foyer:{n:'Foyer',i:'🚪',t:'standard',c:'gold',d:'The grand entrance. Marble floors echo. Four paths lead deeper into the manor.',doors:['N','S','E','W'],cost:0,items:[],r:'starter'},
+// COMMON — mostly multi-door
 den:{n:'Den',i:'🏠',t:'common',c:'gold',d:'A cozy room with worn armchairs. A gem glints on the mantle.',doors:['N','E','W'],cost:0,items:[{t:'gem',n:1}],r:'common'},
-spare:{n:'Spare Room',i:'🚪',t:'common',c:'gold',d:'Bare walls and dusty floors. Nothing here but doors.',doors:['N','S'],cost:0,items:[],r:'common'},
+spare:{n:'Spare Room',i:'🚪',t:'common',c:'gold',d:'Bare walls and dusty floors. Nothing here but doors.',doors:['N','S','E'],cost:0,items:[],r:'common'},
 hall_ns:{n:'Hallway',i:'🏛️',t:'common',c:'gold',d:'A long north-south corridor. Portraits watch you pass.',doors:['N','S'],cost:0,items:[],r:'common'},
 hall_ew:{n:'Passage',i:'🚶',t:'common',c:'gold',d:'An east-west passage. The wallpaper peels.',doors:['E','W'],cost:0,items:[],r:'common'},
-pantry:{n:'Pantry',i:'🍞',t:'common',c:'gold',d:'Shelves stocked with tins. Coins spill from a cracked jar.',doors:['N','W'],cost:0,items:[{t:'coin',n:4}],r:'common'},
+pantry:{n:'Pantry',i:'🍞',t:'common',c:'gold',d:'Shelves stocked with tins. Coins spill from a cracked jar.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:3}],r:'common'},
 mudroom:{n:'Mudroom',i:'🧥',t:'common',c:'gold',d:'Coats and boots by the door. Three ways out.',doors:['N','S','E'],cost:0,items:[],r:'common'},
+crossroads:{n:'Crossroads',i:'✦',t:'common',c:'gold',d:'Four arches meet. Every direction is possible.',doors:['N','S','E','W'],cost:0,items:[],r:'common'},
+gallery:{n:'Gallery',i:'🖼️',t:'common',c:'gold',d:'Dusty paintings line every wall. Three doors.',doors:['N','E','W'],cost:0,items:[{t:'coin',n:1}],r:'common'},
+vestibule:{n:'Vestibule',i:'🪞',t:'common',c:'gold',d:'Mirrors on both sides. Two clear exits.',doors:['N','S'],cost:0,items:[],r:'common'},
 nook:{n:'Nook',i:'📦',t:'common',c:'gold',d:'A tiny alcove. An old key hangs on a nail.',doors:[],cost:0,items:[{t:'key',n:1}],r:'common',dead:true},
-closet:{n:'Closet',i:'🗄️',t:'common',c:'gold',d:'A cramped closet. A single coin rolls on the floor.',doors:[],cost:0,items:[{t:'coin',n:1}],r:'common',dead:true},
-
+closet:{n:'Closet',i:'🗄️',t:'common',c:'gold',d:'A cramped closet. Coins on the floor.',doors:[],cost:0,items:[{t:'coin',n:2}],r:'common',dead:true},
 // UNCOMMON
-kitchen:{n:'Kitchen',i:'🍳',t:'uncommon',c:'green',d:'Copper pots hang from the ceiling. Smells of cinnamon.',doors:['N','W'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,3);rm._u=1;}}},
+kitchen:{n:'Kitchen',i:'🍳',t:'uncommon',c:'green',d:'Copper pots hang from the ceiling. Smells of cinnamon.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,3);rm._u=1;}}},
 bedroom:{n:'Bedroom',i:'🛏️',t:'uncommon',c:'green',d:'A four-poster bed with threadbare curtains.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',
   onDraft(s){s.beds++;addS(s,3);if(s.nursery){addS(s,5);toast('Nursery + Bedroom: +5!');P.syn.add('nursery_bed');saveP();}}},
 parlor:{n:'Parlor',i:'🪑',t:'uncommon',c:'gold',d:'Tattered velvet. A room of faded elegance.',doors:['N','E','W'],cost:0,items:[],r:'uncommon'},
 study:{n:'Study',i:'📖',t:'uncommon',c:'gold',d:'Papers everywhere. Knowledge hides in the clutter.',doors:['N','E'],cost:0,items:[],fx:'Reveals slot 3',r:'uncommon',onDraft(s){s.studyRev=true;P.syn.add('study_reveal');saveP();}},
-sitting:{n:'Sitting Room',i:'🛋️',t:'uncommon',c:'green',d:'Overstuffed chairs by a dying fire.',doors:['N','S'],cost:0,items:[],fx:'+5 steps (first visit)',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,5);rm._u=1;}}},
+sitting:{n:'Sitting Room',i:'🛋️',t:'uncommon',c:'green',d:'Overstuffed chairs by a dying fire.',doors:['N','S','E'],cost:0,items:[],fx:'+5 steps (first visit)',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,5);rm._u=1;}}},
 garage:{n:'Garage',i:'🚗',t:'uncommon',c:'gold',d:'Rusted tools and a car that will never run again.',doors:['E','W'],cost:1,items:[{t:'gem',n:2}],r:'uncommon'},
-
-// RED ROOMS
-chapel:{n:'Chapel',i:'⛪',t:'red',c:'red',d:'Stained glass casts eerie light. Entry costs a coin.',doors:['N','S','W'],cost:0,items:[{t:'key',n:1}],fx:'-1 coin per entry',r:'uncommon',red:true,
-  entryCost:{t:'coin',n:1},
-  interact:{label:'Study Stained Glass',sec:'chapel_glass',txt:'The glass panels shift as you touch them. A pattern emerges — and with it, a new understanding of the manor.',rew:'Puzzle solved! +1 starting key forever.'}},
-archives:{n:'Archives',i:'📜',t:'red',c:'red',d:'Shelves of records. But something here obscures your vision.',doors:['N','S','E'],cost:0,items:[{t:'coin',n:1}],fx:'Hides 1 draft option',r:'uncommon',red:true,
-  onDraft(s){s.archHide=true;toast('Archives: 1 option hidden per draft!');}},
+// RED
+chapel:{n:'Chapel',i:'⛪',t:'red',c:'red',d:'Stained glass casts eerie light. Entry costs a coin.',doors:['N','S','W'],cost:0,items:[{t:'key',n:1}],fx:'-1🪙 per entry',r:'uncommon',red:true,
+  entryCost:{t:'coin',n:1},interact:{label:'Study Stained Glass',sec:'chapel_glass',txt:'The glass panels shift as you touch them. A pattern emerges — and with it, a new understanding of the manor.',rew:'Puzzle solved! +1 starting key forever.'}},
+archives:{n:'Archives',i:'📜',t:'red',c:'red',d:'Shelves of records. Something here obscures your vision.',doors:['N','S','E'],cost:0,items:[{t:'coin',n:1}],fx:'Hides 1 draft option',r:'uncommon',red:true,
+  onDraft(s){s.archHide=true;toast('Archives: 1 option hidden!');}},
 gymnasium:{n:'Gymnasium',i:'🏋️',t:'red',c:'red',d:'Rusted equipment. The air is thick and exhausting.',doors:['N','E'],cost:0,items:[],fx:'-2 steps per entry',r:'common',red:true,
-  onEnter(s,rm){if(!s.redOff&&s.shield<=0)addS(s,-2);else if(s.shield>0){s.shield--;toast('Shelter!');}}},
+  onEnter(s,rm){if(!s.redOff&&s.shield<=0)addS(s,-2);else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}}},
 darkroom:{n:'Darkroom',i:'🌑',t:'red',c:'red',d:'Total darkness. A gem glows faintly within.',doors:['N','S','W'],cost:0,items:[{t:'gem',n:1}],fx:'Hides 1 draft option',r:'common',red:true,
   onDraft(s){s.archHide=true;}},
-cellar:{n:'Cellar',i:'🕳️',t:'red',c:'red',d:'Damp stairs. Coins scattered among the cobwebs.',doors:[],cost:0,items:[{t:'coin',n:2}],fx:'-3 steps',r:'common',red:true,dead:true,
-  onDraft(s){if(!s.redOff&&s.shield<=0)addS(s,-3);else if(s.shield>0){s.shield--;toast('Shelter!');}}},
+cellar:{n:'Cellar',i:'🕳️',t:'red',c:'red',d:'Damp stairs. Coins scattered among the cobwebs.',doors:[],cost:0,items:[{t:'coin',n:3}],fx:'-3 steps',r:'common',red:true,dead:true,
+  onDraft(s){if(!s.redOff&&s.shield<=0)addS(s,-3);else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}}},
 weight_room:{n:'Weight Room',i:'💪',t:'red',c:'red',d:'Iron weights crash. Devastating.',doors:['N','S'],cost:0,items:[],fx:'Lose half steps',r:'uncommon',red:true,
-  onDraft(s){if(!s.redOff&&s.shield<=0){const l=Math.floor(s.steps/2);addS(s,-l);}else if(s.shield>0){s.shield--;toast('Shelter!');}}},
-
-// BLUE ROOMS
-blue_parlor:{n:'Blue Parlor',i:'💎',t:'blue',c:'blue',d:'Sapphire shimmer on every surface.',doors:['N','E'],cost:0,items:[{t:'gem',n:1}],fx:'Blue +1',r:'common',blue:true},
+  onDraft(s){if(!s.redOff&&s.shield<=0){addS(s,-Math.floor(s.steps/2));}else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}}},
+// BLUE
+blue_parlor:{n:'Blue Parlor',i:'💎',t:'blue',c:'blue',d:'Sapphire shimmer on every surface.',doors:['N','E','S'],cost:0,items:[{t:'gem',n:1}],fx:'Blue +1',r:'common',blue:true},
 azure_gallery:{n:'Azure Gallery',i:'🎨',t:'blue',c:'blue',d:'Paintings in every shade of blue.',doors:['N','S','W'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true},
-sapphire_hall:{n:'Sapphire Hall',i:'🔷',t:'blue',c:'blue',d:'Sapphire dust makes the walls glow.',doors:['N','E'],cost:1,items:[],fx:'Blue +1, +2 steps',r:'uncommon',blue:true,onDraft(s){addS(s,2);}},
 cobalt_chamber:{n:'Cobalt Chamber',i:'🧊',t:'blue',c:'blue',d:'Cold and clear as deep ocean.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'Blue +1',r:'common',blue:true},
 indigo_library:{n:'Indigo Library',i:'📘',t:'blue',c:'blue',d:'Indigo-bound books. Ink still wet.',doors:['N','E'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true},
+sapphire_hall:{n:'Sapphire Hall',i:'🔷',t:'blue',c:'blue',d:'Sapphire dust makes the walls glow.',doors:['N','E','S'],cost:1,items:[],fx:'Blue +1, +2 steps',r:'uncommon',blue:true,onDraft(s){addS(s,2);}},
 cerulean:{n:'Cerulean Room',i:'🦋',t:'blue',c:'blue',d:'Blue butterflies drift between crystal flowers.',doors:['N','S','E'],cost:1,items:[],fx:'Blue +1, +3 steps',r:'uncommon',blue:true,onDraft(s){addS(s,3);}},
 lapis:{n:'Lapis Lounge',i:'🪻',t:'blue',c:'blue',d:'Crushed lapis lazuli cushions. Peaceful.',doors:['N','S'],cost:2,items:[{t:'gem',n:1}],fx:'Blue +1, +4 steps',r:'rare',blue:true,onDraft(s){addS(s,4);}},
-
 // RARE
 library:{n:'Library',i:'📚',t:'rare',c:'gold',d:'Leather-bound volumes floor to ceiling.',doors:['N','S','E'],cost:1,items:[],fx:'+1 reroll die',r:'rare',onDraft(s){s.dice++;}},
 ballroom:{n:'Ballroom',i:'💃',t:'rare',c:'gold',d:'A vast dance floor. The chandelier still turns.',doors:['N','S','E','W'],cost:1,items:[],fx:'+2 per wide room',r:'rare',
-  onDraft(s){const b=Object.values(s.rooms).filter(r=>R[r.id].doors.length>=3||(R[r.id].dead&&0)).length*2;if(b>0)addS(s,b);P.syn.add('ballroom');saveP();}},
+  onDraft(s){const b=Object.values(s.rooms).filter(r=>{const rd=R[r.id];return rd&&rd.doors&&rd.doors.length>=3;}).length*2;if(b>0)addS(s,b);P.syn.add('ballroom');saveP();}},
 nursery:{n:'Nursery',i:'🧒',t:'rare',c:'green',d:'Tiny beds. A music box plays softly.',doors:['N','W'],cost:1,items:[],fx:'+5 per Bedroom after',r:'rare',
   onDraft(s){s.nursery=true;const b=s.beds*5;if(b>0)addS(s,b);}},
-store_room:{n:'Store Room',i:'💰',t:'rare',c:'gold',d:'Supplies hoarded for a day that never came.',doors:[],cost:0,items:[{t:'gem',n:3},{t:'coin',n:2}],r:'rare',dead:true},
+store_room:{n:'Store Room',i:'💰',t:'rare',c:'gold',d:'Supplies hoarded for a day that never came.',doors:[],cost:0,items:[{t:'gem',n:3},{t:'coin',n:3}],r:'rare',dead:true},
 conservatory:{n:'Conservatory',i:'🎵',t:'rare',c:'gold',d:'A piano plays itself in the corner.',doors:['N','E','W'],cost:1,items:[{t:'coin',n:1}],fx:'Next draft: 4 options',r:'rare',
   onDraft(s){s.bonus4=true;P.syn.add('conserv');saveP();}},
 shelter:{n:'Shelter',i:'🛡️',t:'rare',c:'gold',d:'Thick walls. Safety from the red rooms.',doors:['N','S'],cost:1,items:[],fx:'Negates 3 red rooms',r:'rare',
   onDraft(s){s.shield=3;toast('Shelter: 3 red rooms blocked!');P.syn.add('shelter');saveP();}},
-rumpus:{n:'Rumpus Room',i:'🎪',t:'rare',c:'shop',d:'Games and trinkets. 8 coins and a fortune.',doors:['N','E'],cost:1,items:[{t:'coin',n:8}],r:'rare'},
-
-// VERY RARE
+rumpus:{n:'Rumpus Room',i:'🎪',t:'rare',c:'shop',d:'Games and trinkets. 8 coins and a fortune.',doors:['N','E','S'],cost:1,items:[{t:'coin',n:8}],r:'rare'},
+// DISCOVERY
 wine_cellar:{n:'Wine Cellar',i:'🍷',t:'rare',c:'purple',d:'Dusty bottles. One rack swings outward...',doors:[],cost:0,items:[{t:'gem',n:3}],r:'rare',dead:true,
   interact:{label:'Push the Rack',sec:'wine_passage',txt:'The rack pivots on hidden hinges. A cool draft — another part of the manor.',rew:'Wine Cellar Passage!'}},
 telescope:{n:'Telescope Room',i:'🔭',t:'discovery',c:'purple',d:'A great brass telescope points at an impossible sky.',doors:[],cost:2,items:[],r:'rare',dead:true,
@@ -299,22 +337,18 @@ greenhouse:{n:'Greenhouse',i:'🌿',t:'discovery',c:'purple',d:'Overgrown plants
   interact:{label:'Break the Wall',sec:'greenhouse_wall',txt:'Plaster, not stone. Behind it: a hidden garden path deeper into the manor.',rew:'Greenhouse Passage!'}},
 fountain:{n:'Fountain Room',i:'⛲',t:'discovery',c:'purple',d:'Crystal water flows. Something hides below.',doors:['N','S'],cost:1,items:[],r:'rare',
   interact:{label:'Drain the Fountain',sec:'fountain_stairs',txt:'Stone steps emerge spiraling down. Hidden all along.',rew:'Fountain Stairs! +8 steps'}},
-tunnel:{n:'Tunnel',i:'🕳️',t:'discovery',c:'purple',d:'A narrow passage behind the walls.',doors:['N','S'],cost:2,items:[],fx:'Teleport to any room free',r:'rare',onEnter(s){s.tunnelOn=true;}},
+tunnel:{n:'Tunnel',i:'🕳️',t:'discovery',c:'purple',d:'A narrow passage behind the walls.',doors:['N','S'],cost:2,items:[],fx:'Teleport to any room',r:'rare',onEnter(s){s.tunnelOn=true;}},
 observatory:{n:'Observatory',i:'🌙',t:'discovery',c:'purple',d:'Constellations through the open dome.',doors:['N','E'],cost:2,items:[],fx:'Reveal full map',r:'rare',onDraft(s){s.obsUsed=true;}},
 drafting_studio:{n:'Drafting Studio',i:'📐',t:'discovery',c:'purple',d:'Architectural plans on every table.',doors:['N','W'],cost:2,items:[],fx:'Unlock new room',r:'rare',onDraft(s){unlockRm(s);}},
 attic:{n:'Attic',i:'🏚️',t:'discovery',c:'purple',d:'Dusty trunks and forgotten memories.',doors:[],cost:3,items:[],r:'rare',dead:true,
   interact:{label:'Search the Trunks',sec:'attic_key',txt:'Among moth-eaten clothes: a strange key, warm to the touch.',rew:'The Warm Key!'}},
-
-// UTILITY
 utility:{n:'Utility Closet',i:'🔧',t:'utility',c:'gold',d:'A breaker box hums. Power over the red rooms.',doors:[],cost:1,items:[],r:'rare',dead:true,
   interact:{label:'Flip Breakers',sec:null,txt:'Click. Click. Click. Red rooms lose their power this run.',rew:'Red rooms disabled!'},onInteract(s){s.redOff=true;}},
-
 // SHOP
-gift_shop:{n:'Gift Shop',i:'🎁',t:'shop',c:'shop',d:'Trinkets and treasures. Everything has a price.',doors:['N','E'],cost:1,items:[],fx:'Buy with coins',r:'rare',
+gift_shop:{n:'Gift Shop',i:'🎁',t:'shop',c:'shop',d:'Trinkets and treasures. Everything has a price.',doors:['N','E','S'],cost:1,items:[],fx:'Buy with coins',r:'rare',
   isShop:true,shop:[{n:'Gem',i:'💎',cost:6,give:{t:'gem',n:1}},{n:'Key',i:'🔑',cost:4,give:{t:'key',n:1}},{n:'Steps ×5',i:'🥾',cost:8,give:{t:'steps',n:5}}]},
 locksmith:{n:'Locksmith',i:'🔐',t:'shop',c:'shop',d:'Keys for every lock. At a price.',doors:['N','S'],cost:1,items:[],fx:'Buy keys',r:'rare',
   isShop:true,shop:[{n:'Key',i:'🔑',cost:3,give:{t:'key',n:1}},{n:'Key ×2',i:'🔑🔑',cost:5,give:{t:'key',n:2}}]},
-
 // SPECIAL
 trophy_room:{n:'Trophy Room',i:'🏆',t:'special',c:'gold',d:'Your accomplishments on the walls.',doors:['N','S'],cost:5,items:[],fx:'+1 step per secret',r:'legendary',
   onDraft(s){addS(s,P.disc.size);P.syn.add('trophy');saveP();}},
@@ -329,7 +363,7 @@ hidden_room:{n:'The Hidden Room',i:'✨',t:'special',c:'gold',d:'Room 46. It sho
 };
 
 const SECRETS={
-chapel_glass:{t:'Stained Glass',d:'The chapel glass conceals a pattern. Solved once, its blessing is permanent.'},
+chapel_glass:{t:'Stained Glass',d:'The chapel glass conceals a pattern.'},
 wine_passage:{t:'Sommelier\'s Exit',d:'Behind the finest vintage — rooms that should not connect.'},
 telescope_bp:{t:'Stargazer\'s Blueprint',d:'A room visible only through the telescope.'},
 greenhouse_wall:{t:'Garden Path',d:'Behind the greenhouse wall, impossible flowers.'},
@@ -340,9 +374,9 @@ seal_unlocked:{t:'The Blue Seal',d:'Eight blue rooms. The throne ascends.'},
 room46:{t:'Room 46',d:'Outside the floorplan. The manor is yours.'},
 dungeon_wall:{t:'Dungeon Passage',d:'Loose stones behind the chains.'},
 };
-const SYNS={nursery_bed:{t:'Nursery + Beds',d:'+5 steps per bedroom after nursery.'},ballroom:{t:'Ballroom + Wide',d:'+2 per 3-door room.'},shelter:{t:'Shelter vs Red',d:'Negates 3 red penalties.'},study_reveal:{t:'Study Insight',d:'Reveals the gem-cost card.'},conserv:{t:'Conservatory',d:'Next draft: 4 options.'},trophy:{t:'Trophy + Secrets',d:'+1 step per discovery.'}};
+const SYNS={nursery_bed:{t:'Nursery + Beds',d:'+5 steps per bedroom after nursery.'},ballroom:{t:'Ballroom + Wide',d:'+2 per 3+ door room.'},shelter:{t:'Shelter vs Red',d:'Negates 3 red penalties.'},study_reveal:{t:'Study Insight',d:'Reveals the gem-cost card.'},conserv:{t:'Conservatory',d:'Next draft: 4 options.'},trophy:{t:'Trophy + Secrets',d:'+1 step per discovery.'}};
 
-const DECK_BASE=['den','den','spare','spare','hall_ns','hall_ew','pantry','mudroom','nook','nook','closet',
+const DECK_BASE=['den','den','spare','spare','hall_ns','hall_ew','pantry','mudroom','crossroads','gallery','vestibule','nook','closet',
 'kitchen','bedroom','bedroom','parlor','study','sitting','garage',
 'chapel','archives','gymnasium','darkroom','cellar',
 'blue_parlor','azure_gallery','cobalt_chamber','indigo_library',
@@ -351,16 +385,17 @@ const T1=['telescope','greenhouse','tunnel','drafting_studio','wine_cellar'];
 const T2=['fountain','observatory','throne_room','rumpus','gift_shop','locksmith'];
 const T3=['attic','trophy_room','vault','master_bed','sapphire_hall','cerulean','lapis'];
 
-const W=5,H=7;
+const GW=5,GH=5;
 const OPP={N:'S',S:'N',E:'W',W:'E'};
 const DIR={N:{dx:0,dy:1},S:{dx:0,dy:-1},E:{dx:1,dy:0},W:{dx:-1,dy:0}};
+const DIRS=['N','S','E','W'];
 
 // ═══ Persist ═══
 let P=loadP();
 function loadP(){try{const d=JSON.parse(localStorage.getItem('bm2'));if(d)return{disc:new Set(d.disc||[]),syn:new Set(d.syn||[]),unlocked:new Set(d.unlocked||[]),puzzles:new Set(d.puzzles||[]),
-runs:d.runs||0,bestR:d.bestR||0,totalR:d.totalR||0,saunaB:d.saunaB||false,vaultO:d.vaultO||false,sealU:d.sealU||false,found46:d.found46||false,
+runs:d.runs||0,bestR:d.bestR||0,totalR:d.totalR||0,vaultO:d.vaultO||false,sealU:d.sealU||false,found46:d.found46||false,
 allow:{gems:d.allow?.gems||0,coins:d.allow?.coins||0,keys:d.allow?.keys||0}};}catch(e){}
-return{disc:new Set,syn:new Set,unlocked:new Set,puzzles:new Set,runs:0,bestR:0,totalR:0,saunaB:false,vaultO:false,sealU:false,found46:false,allow:{gems:0,coins:0,keys:0}};}
+return{disc:new Set,syn:new Set,unlocked:new Set,puzzles:new Set,runs:0,bestR:0,totalR:0,vaultO:false,sealU:false,found46:false,allow:{gems:0,coins:0,keys:0}};}
 function saveP(){try{localStorage.setItem('bm2',JSON.stringify({...P,disc:[...P.disc],syn:[...P.syn],unlocked:[...P.unlocked],puzzles:[...P.puzzles]}));}catch(e){}}
 
 // ═══ State ═══
@@ -383,22 +418,38 @@ function buildDeck(){
 function draw(ct,entrySide){
   const dk=buildDeck(),placed=new Set(Object.values(S.rooms).map(r=>r.id));
   let av=dk.filter(id=>{const rm=R[id];if(!rm)return false;
-    if((rm.r==='legendary')&&placed.has(id))return false;
+    if(rm.r==='legendary'&&placed.has(id))return false;
     if(rm.dead)return true;
     return rm.doors.includes(entrySide);});
-  // Slot weighting: slot1=common, slot2=mixed, slot3=gem rooms
-  const common=av.filter(id=>R[id].cost===0&&R[id].r==='common');
-  const mid=av.filter(id=>R[id].r!=='legendary');
-  const prem=av.filter(id=>R[id].cost>0||R[id].r==='rare'||R[id].r==='legendary');
-  const pick=(arr)=>{if(arr.length===0)return av[Math.floor(S.rng()*av.length)];return arr[Math.floor(S.rng()*arr.length)];};
-  const res=[pick(common.length?common:av)];
-  const used=new Set([res[0]]);
-  for(let i=1;i<ct;i++){
-    const pool=i===ct-1&&prem.length?prem:mid;
-    let p=pick(pool);let att=0;while(used.has(p)&&att<20){p=pick(pool);att++;}
+  if(av.length===0)av=dk.filter(id=>R[id]&&!R[id].dead&&R[id].r!=='legendary');
+  const multiDoor=av.filter(id=>{const rm=R[id];if(rm.dead)return false;const exits=rm.doors.filter(d=>d!==entrySide);return exits.length>=1;});
+  const deadEnds=av.filter(id=>R[id].dead);
+  const nonDead=av.filter(id=>!R[id].dead);
+  const pick=(arr)=>{if(!arr.length)return av[Math.floor(S.rng()*av.length)];return arr[Math.floor(S.rng()*arr.length)];};
+  const common=nonDead.filter(id=>R[id].cost===0&&(R[id].r==='common'||R[id].r==='uncommon'));
+  const prem=nonDead.filter(id=>R[id].cost>0||R[id].r==='rare'||R[id].r==='legendary');
+  const res=[];const used=new Set();
+  // Slot 1: common non-dead
+  let s1=pick(common.length?common:nonDead);res.push(s1);used.add(s1);
+  // Slot 2: mixed non-dead, guarantee at least one multi-door
+  let s2=pick(nonDead);let att=0;while((used.has(s2)||s2===s1)&&att<30){s2=pick(nonDead);att++;}
+  res.push(s2);used.add(s2);
+  // Check if we have a multi-door room yet
+  const hasMulti=res.some(id=>{const rm=R[id];return!rm.dead&&rm.doors.filter(d=>d!==entrySide).length>=1;});
+  // Slot 3: premium or fill. If no multi-door yet, force one
+  if(!hasMulti&&multiDoor.length>0){
+    let s3=pick(multiDoor);att=0;while(used.has(s3)&&att<30){s3=pick(multiDoor);att++;}
+    res.push(s3);
+  } else {
+    let s3=pick(prem.length?prem:nonDead);att=0;while(used.has(s3)&&att<30){s3=pick(prem.length?prem:nonDead);att++;}
+    res.push(s3);
+  }
+  // Extra slot if bonus4
+  for(let i=res.length;i<ct;i++){
+    let p=pick(av);att=0;while(used.has(p)&&att<20){p=pick(av);att++;}
     res.push(p);used.add(p);
   }
-  return res;
+  return res.slice(0,ct);
 }
 
 function unlockRm(s){
@@ -407,33 +458,43 @@ function unlockRm(s){
   if(cand.length>0){const p=cand[Math.floor(s.rng()*cand.length)];P.unlocked.add(p);saveP();toast(R[p].n+' added to deck!');}
 }
 
-function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2400);}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2200);}
+function collectAll(rm){
+  if(!rm.items||!rm.items.length)return;
+  let msg=[];
+  rm.items.forEach((item,i)=>{
+    if(rm._collected?.[i])return;
+    if(!rm._collected)rm._collected={};rm._collected[i]=true;
+    if(item.t==='gem'){S.gems+=item.n;msg.push('+'+item.n+'💎');}
+    else if(item.t==='coin'){S.coins+=item.n;msg.push('+'+item.n+'🪙');}
+    else if(item.t==='key'){S.keys+=item.n;msg.push('+'+item.n+'🔑');}
+  });
+  if(msg.length)toast(msg.join(' '));
+}
 
 // ═══ Screens ═══
 const G={
 scr(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');},
 
 start(){
-  const base=50+(P.saunaB?15:0);P.saunaB=false;P.runs++;saveP();
-  S={steps:base,gems:P.allow.gems,coins:P.allow.coins,keys:P.allow.keys,
+  P.runs++;saveP();
+  S={steps:30,gems:P.allow.gems,coins:P.allow.coins,keys:P.allow.keys,
     pos:{x:2,y:0},rooms:{},blueStreak:0,dice:1,
     nursery:false,beds:0,shield:0,redOff:false,archHide:false,
-    studyRev:false,bonus4:false,tunnelOn:false,obsUsed:false,saunaB:false,
+    studyRev:false,bonus4:false,tunnelOn:false,obsUsed:false,
     draftPos:null,draftEntry:null,draftOpts:[],
     roomsPlaced:0,secsRun:0,rng:rng32(daySeed()+P.runs)};
   const fk=pk(S.pos);
-  S.rooms[fk]={id:'foyer',items:[],_vis:true,_int:false};S.roomsPlaced=1;
-  // Add foyer to room defs if not present (it's special)
-  if(!R.foyer)R.foyer={n:'Foyer',i:'🚪',t:'standard',c:'gold',d:'The grand entrance. Marble floors echo with each step. Three paths lead deeper into the manor.',doors:['N','E','W'],cost:0,items:[],r:'starter'};
+  S.rooms[fk]={id:'foyer',items:[],_vis:true,_int:false,_collected:{},actualDoors:['N','S','E','W']};S.roomsPlaced=1;
   G.scr('game');render();
 },
 
-reroll(){if(!S||S.gems<1)return;S.gems--;S.dice--;
+reroll(){if(!S||S.gems<1||S.dice<=0)return;S.gems--;S.dice--;
   S.draftOpts=draw(S.draftOpts.length,S.draftEntry);draftUI();hud();},
 
 evOk(){document.getElementById('ev').classList.remove('on');render();},
 
-toggleMap(){const m=document.getElementById('mmap');if(m.classList.contains('on')){m.classList.remove('on');}else{renderMap();m.classList.add('on');}},
+toggleMap(){const m=document.getElementById('mmap');if(m.classList.contains('on')){m.classList.remove('on');}else{m.classList.add('on');renderMap();}},
 
 closeShop(){document.getElementById('shop').classList.remove('on');},
 
@@ -444,8 +505,8 @@ jTab(tab,btn){document.querySelectorAll('.jt').forEach(t=>t.classList.remove('on
   if(tab==='secrets'){let h='';for(const[id,s]of Object.entries(SECRETS)){const f=P.disc.has(id);h+=`<div class="je ${f?'':'lk'}"><div class="je-t">${f?s.t:'???'}</div><div class="je-d">${f?s.d:'Not yet discovered.'}</div></div>`;}el.innerHTML=h;}
   else if(tab==='combos'){let h='';for(const[id,s]of Object.entries(SYNS)){const f=P.syn.has(id);h+=`<div class="je ${f?'':'lk'}"><div class="je-t">${f?s.t:'???'}</div><div class="je-d">${f?s.d:'Not yet discovered.'}</div></div>`;}el.innerHTML=h;}
   else{el.innerHTML=`<div class="je"><div class="je-t">Days Survived</div><div class="je-d" style="color:var(--gold);font-size:16px;font-family:'Cinzel',serif">${P.runs}</div></div>
-  <div class="je"><div class="je-t">Secrets</div><div class="je-d" style="color:var(--purple);font-size:16px;font-family:'Cinzel',serif">${P.disc.size}/${Object.keys(SECRETS).length}</div></div>
-  <div class="je"><div class="je-t">Best Rooms</div><div class="je-d" style="color:var(--gold);font-size:16px;font-family:'Cinzel',serif">${P.bestR}</div></div>
+  <div class="je"><div class="je-t">Secrets Found</div><div class="je-d" style="color:var(--purple);font-size:16px;font-family:'Cinzel',serif">${P.disc.size}/${Object.keys(SECRETS).length}</div></div>
+  <div class="je"><div class="je-t">Best Rooms in a Day</div><div class="je-d" style="color:var(--gold);font-size:16px;font-family:'Cinzel',serif">${P.bestR}</div></div>
   <div class="je"><div class="je-t">Starting Allowance</div><div class="je-d" style="font-size:13px">💎${P.allow.gems} 🪙${P.allow.coins} 🔑${P.allow.keys}</div></div>
   <div class="je"><div class="je-t">Room 46</div><div class="je-d" style="color:${P.found46?'var(--gold)':'var(--text-d)'};font-family:'Cinzel',serif">${P.found46?'Found.':'Not yet.'}</div></div>`;}
 },
@@ -464,34 +525,34 @@ function hud(){if(!S)return;
   document.getElementById('h-blue').innerHTML=dots;
 }
 
-// ═══ Render ═══
-function render(){
-  if(!S)return;
-  if(S.steps<=0){endRun();return;}
-  hud();renderRoom();
-}
-
-function roomBg(t){
-  const bgs={common:'linear-gradient(135deg,#12162a,#181e34)',uncommon:'linear-gradient(135deg,#101a20,#162028)',
-  red:'linear-gradient(135deg,#1e0a10,#2a1018)',blue:'linear-gradient(135deg,#0a1428,#101e3a)',
-  discovery:'linear-gradient(135deg,#140a22,#1e1030)',utility:'linear-gradient(135deg,#14180a,#1e2414)',
-  rare:'linear-gradient(135deg,#181420,#201a2a)',special:'linear-gradient(135deg,#1a1608,#24200e)',
-  shop:'linear-gradient(135deg,#0a1a10,#102818)',standard:'linear-gradient(135deg,#12162a,#181e34)'};
-  return bgs[t]||bgs.common;
+// ═══ SVG Room Rendering ═══
+function typeColor(t,blue,red){
+  if(blue)return{fill:'rgba(68,136,204,.08)',stroke:'#4488cc',glow:'rgba(68,136,204,.2)'};
+  if(red)return{fill:'rgba(170,51,68,.06)',stroke:'#aa3344',glow:'rgba(170,51,68,.2)'};
+  const m={common:{fill:'rgba(212,164,60,.04)',stroke:'#7aa0c0',glow:'none'},
+    uncommon:{fill:'rgba(51,153,102,.05)',stroke:'#7aa0c0',glow:'none'},
+    rare:{fill:'rgba(212,164,60,.06)',stroke:'#b8924a',glow:'rgba(212,164,60,.1)'},
+    discovery:{fill:'rgba(119,68,170,.06)',stroke:'#7744aa',glow:'rgba(119,68,170,.15)'},
+    utility:{fill:'rgba(212,164,60,.04)',stroke:'#7aa0c0',glow:'none'},
+    shop:{fill:'rgba(51,153,102,.06)',stroke:'#339966',glow:'rgba(51,153,102,.15)'},
+    special:{fill:'rgba(212,164,60,.08)',stroke:'#d4a43c',glow:'rgba(212,164,60,.2)'},
+    standard:{fill:'rgba(212,164,60,.04)',stroke:'#7aa0c0',glow:'none'}};
+  return m[t]||m.common;
 }
 
 function renderRoom(){
   const k=pk(S.pos),rm=S.rooms[k];if(!rm)return;
   const d=R[rm.id],wrap=document.getElementById('rv-wrap');
+  const col=typeColor(d.t,d.blue,d.red);
+  const actualDoors=rm.actualDoors||d.doors;
   const fc=d.t==='uncommon'||d.t==='rare'||d.t==='utility'?'p':d.red?'n':d.blue?'i':d.t==='discovery'||d.t==='special'?'sp':'';
 
-  // Determine each wall state
+  // Build wall state for each direction
   const walls={};
-  const actualDoors=rm.actualDoors||d.doors;
-  for(const dir of['N','S','E','W']){
+  for(const dir of DIRS){
     const {dx,dy}=DIR[dir];const nx=S.pos.x+dx,ny=S.pos.y+dy;
     if(!actualDoors.includes(dir)){walls[dir]={type:'wall'};continue;}
-    if(nx<0||nx>=W||ny<0||ny>=H){walls[dir]={type:'blocked'};continue;}
+    if(nx<0||nx>=GW||ny<0||ny>=GH){walls[dir]={type:'blocked'};continue;}
     const nk=pk({x:nx,y:ny}),nr=S.rooms[nk];
     if(!nr){walls[dir]={type:'unexplored',x:nx,y:ny};continue;}
     const nd=R[nr.id],nDoors=nr.actualDoors||nd.doors;
@@ -499,48 +560,96 @@ function renderRoom(){
     else{walls[dir]={type:'blocked'};}
   }
 
-  // Tunnel: show teleport option
-  const tunnelMsg=S.tunnelOn&&rm.id==='tunnel'?'<div style="font-size:10px;color:var(--purple);margin-top:2px">Open map 🗺️ to teleport free</div>':'';
+  // SVG floor plan
+  const S2=300,M=12,gapW=60;
+  const wallColor=col.stroke,fillColor=col.fill;
+  let svg=`<svg class="rv-svg" viewBox="0 0 ${S2} ${S2}" xmlns="http://www.w3.org/2000/svg">`;
+  // Background fill
+  svg+=`<rect x="${M}" y="${M}" width="${S2-M*2}" height="${S2-M*2}" fill="${fillColor}" rx="4"/>`;
+  // Glow
+  if(col.glow!=='none')svg+=`<rect x="${M}" y="${M}" width="${S2-M*2}" height="${S2-M*2}" fill="none" stroke="${col.stroke}" stroke-width="1" rx="4" filter="url(#glow)"/>`;
+  // Defs
+  svg+=`<defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
 
-  // Items
-  const uncollected=rm.items.filter((_,i)=>!rm._collected?.[i]);
-  let itemsHtml='';
-  if(uncollected.length>0){
-    itemsHtml='<div class="rv-items">';
-    rm.items.forEach((item,i)=>{if(!rm._collected?.[i]){
-      const ic=item.t==='gem'?'💎':item.t==='coin'?'🪙':item.t==='key'?'🔑':'❓';
-      itemsHtml+=`<div class="rv-item" onclick="collectItem(${i})" title="${item.t} ×${item.n}">${ic}</div>`;
-    }});
-    itemsHtml+='</div>';
+  // Draw walls with gaps for doors
+  const gapStart=(S2-gapW)/2, gapEnd=(S2+gapW)/2;
+  // Top (N)
+  if(walls.N.type==='wall'){svg+=`<line x1="${M}" y1="${M}" x2="${S2-M}" y2="${M}" stroke="${wallColor}" stroke-width="2"/>`;}
+  else{svg+=`<line x1="${M}" y1="${M}" x2="${gapStart}" y2="${M}" stroke="${wallColor}" stroke-width="2"/>`;
+    svg+=`<line x1="${gapEnd}" y1="${M}" x2="${S2-M}" y2="${M}" stroke="${wallColor}" stroke-width="2"/>`;
+    if(walls.N.type==='unexplored')svg+=`<line x1="${gapStart+4}" y1="${M}" x2="${gapEnd-4}" y2="${M}" stroke="${'#d4a43c'}" stroke-width="2" stroke-dasharray="4 3" opacity=".6"/>`;
+    else if(walls.N.type==='blocked')svg+=`<line x1="${gapStart+10}" y1="${M-4}" x2="${gapEnd-10}" y2="${M+4}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/><line x1="${gapStart+10}" y1="${M+4}" x2="${gapEnd-10}" y2="${M-4}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/>`;}
+  // Bottom (S)
+  if(walls.S.type==='wall'){svg+=`<line x1="${M}" y1="${S2-M}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;}
+  else{svg+=`<line x1="${M}" y1="${S2-M}" x2="${gapStart}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;
+    svg+=`<line x1="${gapEnd}" y1="${S2-M}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;
+    if(walls.S.type==='unexplored')svg+=`<line x1="${gapStart+4}" y1="${S2-M}" x2="${gapEnd-4}" y2="${S2-M}" stroke="#d4a43c" stroke-width="2" stroke-dasharray="4 3" opacity=".6"/>`;
+    else if(walls.S.type==='blocked')svg+=`<line x1="${gapStart+10}" y1="${S2-M-4}" x2="${gapEnd-10}" y2="${S2-M+4}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/><line x1="${gapStart+10}" y1="${S2-M+4}" x2="${gapEnd-10}" y2="${S2-M-4}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/>`;}
+  // Left (W)
+  if(walls.W.type==='wall'){svg+=`<line x1="${M}" y1="${M}" x2="${M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;}
+  else{svg+=`<line x1="${M}" y1="${M}" x2="${M}" y2="${gapStart}" stroke="${wallColor}" stroke-width="2"/>`;
+    svg+=`<line x1="${M}" y1="${gapEnd}" x2="${M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;
+    if(walls.W.type==='unexplored')svg+=`<line x1="${M}" y1="${gapStart+4}" x2="${M}" y2="${gapEnd-4}" stroke="#d4a43c" stroke-width="2" stroke-dasharray="4 3" opacity=".6"/>`;
+    else if(walls.W.type==='blocked')svg+=`<line x1="${M-4}" y1="${gapStart+10}" x2="${M+4}" y2="${gapEnd-10}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/><line x1="${M+4}" y1="${gapStart+10}" x2="${M-4}" y2="${gapEnd-10}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/>`;}
+  // Right (E)
+  if(walls.E.type==='wall'){svg+=`<line x1="${S2-M}" y1="${M}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;}
+  else{svg+=`<line x1="${S2-M}" y1="${M}" x2="${S2-M}" y2="${gapStart}" stroke="${wallColor}" stroke-width="2"/>`;
+    svg+=`<line x1="${S2-M}" y1="${gapEnd}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2"/>`;
+    if(walls.E.type==='unexplored')svg+=`<line x1="${S2-M}" y1="${gapStart+4}" x2="${S2-M}" y2="${gapEnd-4}" stroke="#d4a43c" stroke-width="2" stroke-dasharray="4 3" opacity=".6"/>`;
+    else if(walls.E.type==='blocked')svg+=`<line x1="${S2-M-4}" y1="${gapStart+10}" x2="${S2-M+4}" y2="${gapEnd-10}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/><line x1="${S2-M+4}" y1="${gapStart+10}" x2="${S2-M-4}" y2="${gapEnd-10}" stroke="${wallColor}" stroke-width="1.5" opacity=".4"/>`;}
+  // Corner marks
+  const cm=6;
+  svg+=`<line x1="${M}" y1="${M+cm}" x2="${M}" y2="${M}" stroke="${wallColor}" stroke-width="2.5"/><line x1="${M}" y1="${M}" x2="${M+cm}" y2="${M}" stroke="${wallColor}" stroke-width="2.5"/>`;
+  svg+=`<line x1="${S2-M-cm}" y1="${M}" x2="${S2-M}" y2="${M}" stroke="${wallColor}" stroke-width="2.5"/><line x1="${S2-M}" y1="${M}" x2="${S2-M}" y2="${M+cm}" stroke="${wallColor}" stroke-width="2.5"/>`;
+  svg+=`<line x1="${M}" y1="${S2-M-cm}" x2="${M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2.5"/><line x1="${M}" y1="${S2-M}" x2="${M+cm}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2.5"/>`;
+  svg+=`<line x1="${S2-M-cm}" y1="${S2-M}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2.5"/><line x1="${S2-M}" y1="${S2-M-cm}" x2="${S2-M}" y2="${S2-M}" stroke="${wallColor}" stroke-width="2.5"/>`;
+  // Interior decoration marks
+  const cx=S2/2,cy=S2/2,iM=M+20;
+  if(d.t==='uncommon'||d.t==='rare'){
+    svg+=`<rect x="${iM}" y="${iM}" width="16" height="10" fill="none" stroke="${wallColor}" stroke-width=".7" opacity=".3" rx="1"/>`;
+    svg+=`<rect x="${S2-iM-16}" y="${S2-iM-10}" width="16" height="10" fill="none" stroke="${wallColor}" stroke-width=".7" opacity=".3" rx="1"/>`;
+  }
+  if(d.blue){
+    svg+=`<circle cx="${iM+6}" cy="${S2-iM-6}" r="4" fill="none" stroke="${wallColor}" stroke-width=".6" opacity=".25"/>`;
+    svg+=`<circle cx="${S2-iM-6}" cy="${iM+6}" r="4" fill="none" stroke="${wallColor}" stroke-width=".6" opacity=".25"/>`;
+  }
+  if(d.red){
+    svg+=`<line x1="${iM}" y1="${iM}" x2="${iM+12}" y2="${iM+12}" stroke="${wallColor}" stroke-width=".6" opacity=".2"/>`;
+    svg+=`<line x1="${iM+12}" y1="${iM}" x2="${iM}" y2="${iM+12}" stroke="${wallColor}" stroke-width=".6" opacity=".2"/>`;
+  }
+  svg+=`<line x1="${cx-8}" y1="${cy}" x2="${cx-3}" y2="${cy}" stroke="${wallColor}" stroke-width=".5" opacity=".15"/>`;
+  svg+=`<line x1="${cx+3}" y1="${cy}" x2="${cx+8}" y2="${cy}" stroke="${wallColor}" stroke-width=".5" opacity=".15"/>`;
+  svg+=`<line x1="${cx}" y1="${cy-8}" x2="${cx}" y2="${cy-3}" stroke="${wallColor}" stroke-width=".5" opacity=".15"/>`;
+  svg+=`<line x1="${cx}" y1="${cy+3}" x2="${cx}" y2="${cy+8}" stroke="${wallColor}" stroke-width=".5" opacity=".15"/>`;
+  svg+=`</svg>`;
+
+  // Door hit areas
+  let doorHits='';
+  for(const dir of DIRS){
+    const w=walls[dir],cls=dir.toLowerCase();
+    if(w.type==='wall')doorHits+=`<div class="door-hit ${cls} wall"></div>`;
+    else if(w.type==='blocked')doorHits+=`<div class="door-hit ${cls} blocked" style="color:var(--text-d);font-size:9px">✕</div>`;
+    else if(w.type==='unexplored')doorHits+=`<div class="door-hit ${cls} unexplored" onclick="openDoor('${dir}',${w.x},${w.y})">?</div>`;
+    else if(w.type==='explored')doorHits+=`<div class="door-hit ${cls} explored" onclick="moveTo(${w.x},${w.y})">${w.icon} ${w.name}</div>`;
   }
 
-  // Interaction
+  // Interaction button
   let interHtml='';
   if(!rm._int){
     let inter=d.interact;if(d.interact_fn)inter=d.interact_fn(P);
     if(inter)interHtml=`<button class="rv-act" onclick="doInteract()">${inter.label}</button>`;
   }
-  // Shop
   if(d.isShop&&!rm._shopped){
     interHtml=`<button class="rv-act" onclick="openShop()" style="border-color:var(--green);color:var(--green)">Browse Wares</button>`;
   }
 
-  // Build door slots
-  let doorSlots='';
-  for(const dir of['N','S','E','W']){
-    const w=walls[dir];const cls=dir.toLowerCase();
-    if(w.type==='wall')doorSlots+=`<div class="dslot ${cls} wall">🧱</div>`;
-    else if(w.type==='blocked')doorSlots+=`<div class="dslot ${cls} blocked">✕</div>`;
-    else if(w.type==='unexplored')doorSlots+=`<div class="dslot ${cls} unexplored" onclick="openDoor('${dir}',${w.x},${w.y})">🚪 ???</div>`;
-    else if(w.type==='explored')doorSlots+=`<div class="dslot ${cls} explored" onclick="moveTo(${w.x},${w.y})">${w.icon} ${w.name}</div>`;
-  }
+  const tunnelMsg=S.tunnelOn&&rm.id==='tunnel'?'<div style="font-size:10px;color:var(--purple);margin-top:2px">Open map 🗺 to teleport free</div>':'';
 
   wrap.innerHTML=`
-  <div class="rv anim" style="border:2px solid var(--bdr)">
-    <div class="rv-bg" style="background:${roomBg(d.t)}"></div>
-    ${doorSlots}
-    <div class="rv-floor"><div class="rv-icon">${d.i}</div><div class="rv-name">${d.n}</div><div class="rv-type">${d.t}${d.red?' · red':''}${d.blue?' · blue':''}</div></div>
-    ${itemsHtml}
+  <div class="rv-canvas anim">
+    ${svg}
+    <div class="rv-center"><div class="rv-icon">${d.i}</div><div class="rv-name">${d.n}</div><div class="rv-type">${d.t}${d.red?' · red':''}${d.blue?' · blue':''}</div></div>
+    ${doorHits}
   </div>
   <div class="rv-info">
     <div class="rv-desc">${d.d}</div>
@@ -550,33 +659,22 @@ function renderRoom(){
   </div>`;
 }
 
-// ═══ Item Collection ═══
-window.collectItem=function(idx){
-  const k=pk(S.pos),rm=S.rooms[k];if(!rm)return;
-  if(!rm._collected)rm._collected={};
-  if(rm._collected[idx])return;
-  rm._collected[idx]=true;
-  const item=rm.items[idx];if(!item)return;
-  if(item.t==='gem')S.gems+=item.n;
-  else if(item.t==='coin')S.coins+=item.n;
-  else if(item.t==='key')S.keys+=item.n;
-  toast(`+${item.n} ${item.t==='gem'?'💎':item.t==='coin'?'🪙':'🔑'}`);
-  render();
-};
+function render(){
+  if(!S)return;
+  if(S.steps<=0){endRun();return;}
+  hud();renderRoom();
+}
 
-// ═══ Movement ═══
+// ═══ Movement (FREE between explored rooms) ═══
 window.moveTo=function(x,y){
   if(!S)return;const k=x+','+y;if(!S.rooms[k])return;
   const rm=S.rooms[k],d=R[rm.id];
-  // Check entry cost
   if(d.entryCost){
     if(d.entryCost.t==='coin'&&S.coins>=d.entryCost.n){S.coins-=d.entryCost.n;toast(`-${d.entryCost.n} 🪙`);}
     else if(d.entryCost.t==='coin'){toast('Need '+d.entryCost.n+' 🪙');return;}
   }
-  // Tunnel free teleport
-  const isTunnel=S.tunnelOn;
-  if(!isTunnel){addS(S,-1);}else{S.tunnelOn=false;}
-  S.pos={x,y};rm._vis=true;
+  if(S.tunnelOn){S.tunnelOn=false;}
+  addS(S,-1);S.pos={x,y};rm._vis=true;
   if(d.onEnter)d.onEnter(S,rm);
   if(S.steps<=0){endRun();return;}
   render();
@@ -591,44 +689,56 @@ window.openDoor=function(dir,x,y){
   draftUI();
 };
 
+function miniPlanSvg(doors,entry,dark){
+  const s=42,m=3,gw=10;const gs=(s-gw)/2,ge=(s+gw)/2;
+  const sc=dark?'#6a5a40':'#7aa0c0',dc=dark?'#2266aa':'#d4a43c';
+  let svg=`<svg viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">`;
+  svg+=`<rect x="${m}" y="${m}" width="${s-m*2}" height="${s-m*2}" fill="${dark?'rgba(0,0,0,.06)':'rgba(122,160,192,.06)'}" rx="2"/>`;
+  for(const[dir,y1s,y1e,x1s,x1e]of[['N',m,m,null,null],['S',s-m,s-m,null,null],['W',null,null,m,m],['E',null,null,s-m,s-m]]){
+    const hasDoor=doors.includes(dir);const isEntry=dir===entry;
+    if(y1s!==null){
+      if(hasDoor){
+        svg+=`<line x1="${m}" y1="${y1s}" x2="${gs}" y2="${y1e}" stroke="${sc}" stroke-width="1.2"/>`;
+        svg+=`<line x1="${ge}" y1="${y1s}" x2="${s-m}" y2="${y1e}" stroke="${sc}" stroke-width="1.2"/>`;
+        svg+=`<line x1="${gs+2}" y1="${y1s}" x2="${ge-2}" y2="${y1e}" stroke="${isEntry?'#d4a43c':dc}" stroke-width="1.5" stroke-dasharray="${isEntry?'':'3 2'}" opacity=".7"/>`;
+      } else svg+=`<line x1="${m}" y1="${y1s}" x2="${s-m}" y2="${y1e}" stroke="${sc}" stroke-width="1.2"/>`;
+    } else {
+      if(hasDoor){
+        svg+=`<line x1="${x1s}" y1="${m}" x2="${x1e}" y2="${gs}" stroke="${sc}" stroke-width="1.2"/>`;
+        svg+=`<line x1="${x1s}" y1="${ge}" x2="${x1e}" y2="${s-m}" stroke="${sc}" stroke-width="1.2"/>`;
+        svg+=`<line x1="${x1s}" y1="${gs+2}" x2="${x1e}" y2="${ge-2}" stroke="${isEntry?'#d4a43c':dc}" stroke-width="1.5" stroke-dasharray="${isEntry?'':'3 2'}" opacity=".7"/>`;
+      } else svg+=`<line x1="${x1s}" y1="${m}" x2="${x1e}" y2="${s-m}" stroke="${sc}" stroke-width="1.2"/>`;
+    }
+  }
+  svg+=`</svg>`;return svg;
+}
+
 function draftUI(){
   const el=document.getElementById('dr-cards'),hide=S.archHide;let h='';
   const hideIdx=hide?Math.floor(S.rng()*S.draftOpts.length):-1;
+  document.getElementById('dr-sub').textContent=`Entering from the ${S.draftEntry==='N'?'north':S.draftEntry==='S'?'south':S.draftEntry==='E'?'east':'west'}`;
   for(let i=0;i<S.draftOpts.length;i++){
     const id=S.draftOpts[i],d=R[id];
     const hidden=i===hideIdx;const reveal=S.studyRev&&i===S.draftOpts.length-1;
     const show=!hidden||reveal;
     const canAfford=d.cost<=S.gems;
-    // Door layout mini
     const doors=d.dead?[S.draftEntry]:d.doors;
-    let dg='';for(const[r,c,dir]of[[0,1,'N'],[1,0,'W'],[1,2,'E'],[2,1,'S'],[1,1,'C']]){
-      if(dir==='C')dg+=`<div class="dc-dd center"></div>`;
-      else dg+=`<div class="dc-dd${doors.includes(dir)?' has':''}"></div>`;
-    }
-    // Fill remaining cells
-    const miniDoors=`<div class="dc-doors">${[[0,0],[0,1,'N'],[0,2],[1,0,'W'],[1,1,'C'],[1,2,'E'],[2,0],[2,1,'S'],[2,2]].map(([r,c,dir])=>{
-      if(dir==='C')return'<div class="dc-dd center"></div>';
-      if(dir)return`<div class="dc-dd${doors.includes(dir)?' has':''}"></div>`;
-      return'<div class="dc-dd"></div>';
-    }).join('')}</div>`;
-
     const itemTxt=d.items?.length?d.items.map(it=>(it.t==='gem'?'💎':it.t==='coin'?'🪙':'🔑')+'×'+it.n).join(' '):'';
     const fxCls=d.red?'n':d.blue?'b':d.t==='discovery'?'s':'p';
 
     h+=`<div class="dc ${d.c}${!canAfford?' disabled':''}" onclick="${canAfford?`selectDraft(${i})`:''}">
     <div class="dc-i">${show?d.i:'❓'}</div>
     <div class="dc-n">${show?d.n:'???'}</div>
-    <div class="dc-t">${show?d.t:'???'}</div>
-    ${show?`<div class="dc-cost ${d.cost===0?'free':''}">${d.cost===0?'Free':'💎'+d.cost}</div>`:''}
-    ${show?miniDoors:''}
+    <div class="dc-t">${show?d.t:'hidden'}</div>
+    ${show?`<div class="dc-cost ${d.cost===0?'free':'gem'}">${d.cost===0?'Free':'💎'+d.cost}</div>`:''}
+    ${show?`<div class="dc-plan">${miniPlanSvg(doors,S.draftEntry,true)}</div>`:''}
     ${show&&d.fx?`<div class="dc-fx ${fxCls}">${d.fx}</div>`:''}
     ${show&&itemTxt?`<div class="dc-items">${itemTxt}</div>`:''}
     </div>`;
   }
   el.innerHTML=h;
   const warn=document.getElementById('dr-warn');
-  const anyAfford=S.draftOpts.some(id=>R[id].cost<=S.gems);
-  warn.textContent=anyAfford?'':'Not enough 💎 for any room! Reroll?';
+  warn.textContent=S.draftOpts.some(id=>R[id].cost<=S.gems)?'':'Not enough 💎 for any room! Reroll?';
   const rb=document.getElementById('dr-reroll');
   rb.textContent=`Reroll (💎1) · ${S.dice} left`;
   rb.className='dr-reroll'+(S.gems>=1&&S.dice>0?' ok':'');
@@ -639,27 +749,21 @@ window.selectDraft=function(idx){
   if(!S)return;const id=S.draftOpts[idx],pos=S.draftPos,k=pk(pos),d=R[id];
   if(d.cost>S.gems)return;
   S.gems-=d.cost;
-
-  // Determine actual doors
-  let actualDoors;
-  if(d.dead){actualDoors=[S.draftEntry];}
-  else{actualDoors=[...d.doors];}
-
-  // Clone items for this instance
+  let actualDoors=d.dead?[S.draftEntry]:[...d.doors];
   const items=d.items?d.items.map(it=>({...it})):[];
+  S.rooms[k]={id,actualDoors,items,_vis:true,_int:false,_collected:{}};S.roomsPlaced++;
 
-  S.rooms[k]={id,actualDoors,items,_vis:false,_int:false,_collected:{}};S.roomsPlaced++;
-
-  // Blue streak
   if(d.blue){S.blueStreak++;if(S.blueStreak>=8&&!P.sealU)triggerSeal(S);}
   else S.blueStreak=0;
 
-  // Effects
   if(S.studyRev)S.studyRev=false;
   if(d.onDraft)d.onDraft(S);
 
-  // Move in (-1 step)
-  addS(S,-1);S.pos={...pos};S.rooms[k]._vis=true;
+  // Auto-collect items
+  collectAll(S.rooms[k]);
+
+  // Cost 1 step to place and enter
+  addS(S,-1);S.pos={...pos};
   if(d.onEnter)d.onEnter(S,S.rooms[k]);
 
   if(id==='hidden_room'){triggerVictory();return;}
@@ -711,45 +815,85 @@ function showEv(icon,title,desc,rew,col){
   document.getElementById('ev-d').textContent=desc;const r=document.getElementById('ev-r');r.textContent=rew||'';r.style.color=col||'var(--gold)';
   document.getElementById('ev').classList.add('on');
 }
-
 function triggerSeal(s){P.sealU=true;P.disc.add('seal_unlocked');saveP();
-  showEv('👑','Seal Unlocked','Eight blue rooms in a row. The throne ascends. "The Prince returns."','Blue Seal broken!','var(--blue-b)');}
-
+  showEv('👑','The Blue Seal','Eight blue rooms in a row. The throne ascends. The Prince returns.','Blue Seal broken!','var(--blue-b)');}
 function triggerVictory(){P.found46=true;P.disc.add('room46');P.totalR+=S.roomsPlaced;saveP();
-  G.scr('rend');document.getElementById('re-t').textContent='Room 46 Found';document.getElementById('re-t').style.color='var(--gold)';
+  G.scr('rend');const t=document.getElementById('re-t');t.textContent='Room 46';t.style.color='var(--gold)';
   document.getElementById('re-s').innerHTML=`<div class="re-r" style="font-size:15px;color:var(--gold);font-family:'Cinzel',serif;margin-bottom:8px">You have inherited Blue Manor.</div>
-  <div class="re-r">It took <b>${P.runs}</b> days</div><div class="re-r"><b>${P.disc.size}</b> secrets</div>
-  <div class="re-r" style="margin-top:8px;font-style:italic;color:var(--text-m)">The manor still rearranges. More to find.</div>`;}
-
+  <div class="re-r">It took <b>${P.runs}</b> days</div><div class="re-r"><b>${P.disc.size}</b> secrets discovered</div>`;}
 function endRun(){
-  P.totalR+=S.roomsPlaced;if(S.roomsPlaced>P.bestR)P.bestR=S.roomsPlaced;
-  if(S.saunaB)P.saunaB=true;saveP();
-  G.scr('rend');document.getElementById('re-t').textContent='Nightfall';document.getElementById('re-t').style.color='var(--text-m)';
-  document.getElementById('re-s').innerHTML=`<div class="re-r">Rooms: <b>${S.roomsPlaced}</b></div>
-  <div class="re-r">Secrets: <b>${S.secsRun}</b></div><div class="re-r">Blue streak: <b>${S.blueStreak}</b></div>
-  <div class="re-r">💎${S.gems} 🪙${S.coins} 🔑${S.keys}</div>
-  <div class="re-r">Discoveries: <b>${P.disc.size}</b></div>`;
+  P.totalR+=S.roomsPlaced;if(S.roomsPlaced>P.bestR)P.bestR=S.roomsPlaced;saveP();
+  G.scr('rend');const t=document.getElementById('re-t');t.textContent='Nightfall';t.style.color='var(--text-m)';
+  document.getElementById('re-s').innerHTML=`<div class="re-r">Rooms explored: <b>${S.roomsPlaced}</b></div>
+  <div class="re-r">Secrets found: <b>${S.secsRun}</b></div><div class="re-r">Blue streak: <b>${S.blueStreak}</b></div>
+  <div class="re-r" style="margin-top:4px">💎${S.gems} 🪙${S.coins} 🔑${S.keys}</div>
+  <div class="re-r" style="margin-top:6px;color:var(--text-m);font-size:11px">Total discoveries: ${P.disc.size}/${Object.keys(SECRETS).length}</div>`;
 }
 
-// ═══ Minimap ═══
+// ═══ Canvas Minimap ═══
 function renderMap(){
-  const el=document.getElementById('mm-grid');let h='';
-  for(let y=H-1;y>=0;y--)for(let x=0;x<W;x++){
-    const k=x+','+y,rm=S.rooms[k],cur=S.pos.x===x&&S.pos.y===y;
-    let cls='mc';const d=rm?R[rm.id]:null;
-    if(cur)cls+=' cur';else if(rm){cls+=' placed';if(d?.red)cls+=' red';else if(d?.blue)cls+=' blue';else if(d?.t==='discovery')cls+=' disc';else if(d?.isShop)cls+=' shop';}
-    const ic=rm?d.i:'';
-    const click=rm&&!cur&&S.tunnelOn?` onclick="moveTo(${x},${y})" style="cursor:pointer"`:'';
-    h+=`<div class="${cls}"${click}>${ic}</div>`;
+  const canvas=document.getElementById('mm-canvas');
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*2;canvas.height=rect.height*2;
+  const ctx=canvas.getContext('2d');ctx.scale(2,2);
+  const cw=rect.width,ch=rect.height;
+  const cs=Math.min(cw,ch)/GW-4;const ox=(cw-cs*GW)/2,oy=(ch-cs*GH)/2;
+
+  ctx.fillStyle='#0e1e30';ctx.fillRect(0,0,cw,ch);
+  ctx.fillStyle='#1a3050';ctx.fillRect(ox-4,oy-4,GW*cs+8,GH*cs+8);
+  ctx.strokeStyle='#3a5a80';ctx.lineWidth=1.5;ctx.strokeRect(ox-4,oy-4,GW*cs+8,GH*cs+8);
+  // Grid lines
+  ctx.strokeStyle='#3a5a80';ctx.lineWidth=1;
+  for(let x=0;x<=GW;x++){ctx.beginPath();ctx.moveTo(ox+x*cs,oy);ctx.lineTo(ox+x*cs,oy+GH*cs);ctx.stroke();}
+  for(let y=0;y<=GH;y++){ctx.beginPath();ctx.moveTo(ox,oy+y*cs);ctx.lineTo(ox+GW*cs,oy+y*cs);ctx.stroke();}
+
+  // Draw rooms
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
+    const k=x+','+(GH-1-y),rm=S.rooms[k];if(!rm)continue;
+    const d=R[rm.id];const rx=ox+x*cs+2,ry=oy+y*cs+2,rw=cs-4,rh=cs-4;
+    const cur=S.pos.x===x&&S.pos.y===(GH-1-y);
+    // Fill
+    let fc='#2a4a6a';
+    if(d.blue)fc='#1a4a7a';else if(d.red)fc='#5a2030';
+    else if(d.t==='discovery')fc='#3a2060';else if(d.isShop)fc='#1a4a3a';
+    ctx.fillStyle=fc;ctx.fillRect(rx,ry,rw,rh);
+    // Border
+    ctx.strokeStyle=cur?'#d4a43c':d.blue?'#4488cc':d.red?'#aa3344':d.t==='discovery'?'#7744aa':'#4a6880';
+    ctx.lineWidth=cur?2.5:1.5;ctx.strokeRect(rx,ry,rw,rh);
+    if(cur){ctx.shadowColor='rgba(212,164,60,.4)';ctx.shadowBlur=8;ctx.strokeRect(rx,ry,rw,rh);ctx.shadowBlur=0;}
+    // Icon
+    ctx.font=`${cs*.35}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#dde4ec';ctx.fillText(d.i,rx+rw/2,ry+rh/2);
+    if(cs>30){ctx.font=`${Math.max(6,cs*.15)}px Cinzel,serif`;ctx.fillStyle='rgba(221,228,236,.6)';ctx.fillText(d.n.slice(0,8),rx+rw/2,ry+rh/2+cs*.22);}
+
+    // Draw door connections
+    const actualDoors=rm.actualDoors||d.doors;
+    ctx.strokeStyle=cur?'rgba(212,164,60,.7)':'rgba(122,160,192,.5)';ctx.lineWidth=2;
+    for(const dir of actualDoors){
+      const {dx,dy}=DIR[dir];const nx=x+dx,ny=(GH-1-y)+dy;const nk=pk({x:nx,y:ny});
+      if(S.rooms[nk]){
+        const nd=S.rooms[nk],ndoors=nd.actualDoors||R[nd.id].doors;
+        if(ndoors.includes(OPP[dir])){
+          const mx=rx+rw/2,my=ry+rh/2;
+          ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+dx*(cs/2+2),my-dy*(cs/2+2));ctx.stroke();
+        }
+      }
+    }
   }
-  el.innerHTML=h;
+  // Tunnel teleport
+  if(S.tunnelOn){
+    ctx.font='10px Cinzel,serif';ctx.fillStyle='#7744aa';ctx.textAlign='center';
+    ctx.fillText('Tap a room to teleport',cw/2,oy+GH*cs+16);
+    canvas.onclick=function(e){
+      const r=canvas.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);
+      const gx=Math.floor((mx-ox)/cs),gy=Math.floor((my-oy)/cs);
+      if(gx>=0&&gx<GW&&gy>=0&&gy<GH){const ty=GH-1-gy;const tk=gx+','+ty;if(S.rooms[tk]){moveTo(gx,ty);G.toggleMap();}}
+    };
+  } else canvas.onclick=null;
 }
 
 // ═══ Title ═══
 function updateTitle(){const el=document.getElementById('t-stats');
   el.textContent=P.runs>0?`Day ${P.runs} · ${P.disc.size} secrets · 💎${P.allow.gems} 🪙${P.allow.coins} 🔑${P.allow.keys} starting`:'';}
-
-// ═══ Init ═══
-R.foyer={n:'Foyer',i:'🚪',t:'standard',c:'gold',d:'The grand entrance. Marble floors echo. Three paths lead deeper.',doors:['N','E','W'],cost:0,items:[],r:'starter'};
 updateTitle();
 </script>
