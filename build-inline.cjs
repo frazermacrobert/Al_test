@@ -12,10 +12,10 @@ const css = fs.readFileSync(path.join(dist, 'assets', cssFile), 'utf8');
 const js = fs.readFileSync(path.join(dist, 'assets', jsFile), 'utf8');
 
 let out = html;
-// Replace CSS link with inline style
-out = out.replace(/<link rel="stylesheet"[^>]*>/, `<style>${css}</style>`);
-// Replace JS script with inline script
-out = out.replace(/<script type="module"[^>]*><\/script>/, `<script type="module">${js}</script>`);
+// Replace CSS link with inline style (use function to avoid $& expansion)
+out = out.replace(/<link rel="stylesheet"[^>]*>/, () => `<style>${css}</style>`);
+// Replace JS script with inline script (use function to avoid $& expansion in JS source)
+out = out.replace(/<script type="module"[^>]*><\/script>/, () => `<script type="module">${js}</script>`);
 
 const outPath = path.join(dist, 'standalone.html');
 fs.writeFileSync(outPath, out);
