@@ -1,5 +1,5 @@
 <title>Blue Manor</title>
-<!-- v4: AAA visual overhaul -->
+<!-- v5: gameplay overhaul — rooms are encounters, every room has choices -->
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
 <style>
@@ -40,9 +40,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
   radial-gradient(1px 1px at 60% 8%,#ffffff60,transparent),
   radial-gradient(1px 1px at 80% 25%,#ffffff50,transparent),
   radial-gradient(1px 1px at 35% 30%,#ffffff40,transparent),
-  radial-gradient(1px 1px at 15% 40%,#ffffff30,transparent),
-  radial-gradient(1px 1px at 90% 12%,#ffffff50,transparent),
-  radial-gradient(1px 1px at 45% 5%,#ffffff60,transparent)}
+  radial-gradient(1px 1px at 90% 12%,#ffffff50,transparent)}
 .manor-sil{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:220px;height:120px}
 .manor-sil svg{width:100%;height:100%;filter:drop-shadow(0 -4px 20px rgba(232,184,48,.08))}
 .fog{position:absolute;bottom:0;left:-20%;width:140%;height:40px;
@@ -50,13 +48,12 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
   animation:fogDrift 12s ease-in-out infinite alternate;opacity:.6}
 @keyframes fogDrift{0%{transform:translateX(-8%)}100%{transform:translateX(8%)}}
 .win{position:absolute;border-radius:1px;animation:flicker 3s ease-in-out infinite alternate}
-.win-1{width:12px;height:16px;bottom:34px;left:60px;background:rgba(232,184,48,.2);box-shadow:0 0 8px rgba(232,184,48,.15);animation-delay:0s}
+.win-1{width:12px;height:16px;bottom:34px;left:60px;background:rgba(232,184,48,.2);box-shadow:0 0 8px rgba(232,184,48,.15)}
 .win-2{width:12px;height:16px;bottom:34px;right:60px;background:rgba(68,153,221,.15);box-shadow:0 0 8px rgba(68,153,221,.1);animation-delay:1.2s}
 .win-3{width:10px;height:12px;bottom:64px;left:96px;background:rgba(232,184,48,.15);box-shadow:0 0 6px rgba(232,184,48,.1);animation-delay:.6s}
 .win-4{width:10px;height:12px;bottom:64px;right:96px;background:rgba(232,184,48,.12);box-shadow:0 0 6px rgba(232,184,48,.08);animation-delay:1.8s}
 .win-5{width:18px;height:22px;bottom:24px;left:50%;margin-left:-9px;background:rgba(232,184,48,.25);box-shadow:0 0 12px rgba(232,184,48,.15);border-radius:9px 9px 0 0;animation-delay:.3s}
 @keyframes flicker{0%{opacity:.6}30%{opacity:1}60%{opacity:.75}100%{opacity:.9}}
-
 .t-name{font-family:'Cinzel',serif;font-size:clamp(28px,8vw,42px);font-weight:900;
   color:var(--gold);letter-spacing:8px;text-transform:uppercase;text-align:center;
   text-shadow:0 0 40px rgba(232,184,48,.25),0 2px 4px rgba(0,0,0,.5)}
@@ -80,33 +77,29 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
 .intro-skip{animation:fadeUp .8s ease-out 1.6s both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── HUD ── */
-.hud{display:flex;justify-content:space-between;align-items:center;padding:10px 0 8px;flex-shrink:0;
-  border-bottom:1px solid var(--border);gap:6px}
-.hud-res{display:flex;gap:12px;align-items:center}
-.hr{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
-.hr-i{width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:11px}
+/* ── HUD (compact) ── */
+.hud{display:flex;justify-content:space-between;align-items:center;padding:8px 0 6px;flex-shrink:0;
+  border-bottom:1px solid var(--border);gap:4px}
+.hud-res{display:flex;gap:8px;align-items:center}
+.hr{display:flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.hr-i{width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:10px}
 .hr-i.steps{background:linear-gradient(135deg,#3a2810,#2a1a08);border:1px solid #5a3a18}
 .hr-i.gems{background:linear-gradient(135deg,#0a2040,#081830);border:1px solid #1a4070}
 .hr-i.coins{background:linear-gradient(135deg,#302008,#201408);border:1px solid #5a4020}
 .hr-i.keys{background:linear-gradient(135deg,#1a0830,#120620);border:1px solid #3a1860}
-.hr-v{font-family:'Cinzel',serif;font-weight:700;font-size:15px;min-width:16px;transition:all .2s}
+.hr-v{font-family:'Cinzel',serif;font-weight:700;font-size:14px;min-width:14px;transition:all .2s}
 .hr-steps{color:var(--gold)}.hr-steps.w{color:#e0a030}.hr-steps.c{color:var(--red);animation:pulse .6s infinite}
 .hr-gems{color:var(--blue-b)}.hr-coins{color:#e8c050}.hr-keys{color:#b898e0}
 .hr-v.bump{animation:numBump .3s ease-out}
 @keyframes numBump{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .hud-r{text-align:right;font-family:'Cinzel',serif}
-.hud-day{font-size:11px;color:var(--brass);letter-spacing:1px}
-.hud-rms{font-size:9px;color:var(--txt-d);letter-spacing:1px;text-transform:uppercase}
-.hud-bl{display:flex;gap:3px;align-items:center}
-.bd{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--border);background:transparent;transition:all .4s}
-.bd.on{background:var(--blue-b);border-color:var(--blue-b);box-shadow:0 0 8px var(--blue);animation:dotLight .4s ease-out}
-@keyframes dotLight{0%{transform:scale(0);opacity:0}60%{transform:scale(1.5)}100%{transform:scale(1);opacity:1}}
-.hud-map{font-size:10px;color:var(--brass);cursor:pointer;background:none;border:1px solid var(--border);
-  padding:4px 8px;border-radius:3px;font-family:'Cinzel',serif;letter-spacing:1px;transition:all .2s}
-.hud-map:active{background:var(--border);border-color:var(--brass)}
-.step-bar{height:3px;background:var(--border);border-radius:2px;width:100%;margin-top:2px;overflow:hidden;max-width:200px}
+.hud-day{font-size:10px;color:var(--brass);letter-spacing:1px}
+.hud-rms{font-size:8px;color:var(--txt-d);letter-spacing:1px;text-transform:uppercase}
+.hud-bl{display:flex;gap:2px;align-items:center}
+.bd{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--border);background:transparent;transition:all .4s}
+.bd.on{background:var(--blue-b);border-color:var(--blue-b);box-shadow:0 0 6px var(--blue)}
+.step-bar{height:3px;background:var(--border);border-radius:2px;width:100%;overflow:hidden}
 .step-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s ease;min-width:2px}
 .step-fill.w{background:#e0a030}.step-fill.c{background:var(--red)}
 
@@ -114,168 +107,201 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
 #game{padding-top:0;padding-bottom:0;gap:0;overflow:hidden}
 .rv-wrap{flex:1;display:flex;flex-direction:column;min-height:0;gap:0}
 .room-scene{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:0;overflow:hidden;transition:background .5s ease,box-shadow .5s ease;border-radius:0 0 8px 8px}
-.room-scene::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0}
-.room-scene::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;
-  background:linear-gradient(transparent,rgba(0,0,0,.3));pointer-events:none;z-index:0}
+  min-height:0;overflow:hidden;transition:background .5s ease;border-radius:0 0 8px 8px;
+  animation:roomSlide .35s ease-out}
+@keyframes roomSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.room-scene::after{content:'';position:absolute;bottom:0;left:0;right:0;height:30%;
+  background:linear-gradient(transparent,rgba(0,0,0,.25));pointer-events:none;z-index:0}
 .room-deco{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 .room-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:6px;padding:20px;text-align:center}
-.room-icon{font-size:52px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.5));margin-bottom:4px;
+  gap:4px;padding:16px;text-align:center}
+.room-icon{font-size:48px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5));margin-bottom:2px;
   animation:roomEnter .4s ease-out both}
-@keyframes roomEnter{from{transform:scale(.7) translateY(10px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-.room-name{font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--txt-b);
+@keyframes roomEnter{from{transform:scale(.7) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.room-name{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--txt-b);
   text-shadow:0 2px 8px rgba(0,0,0,.6);letter-spacing:2px}
-.room-type{font-size:9px;color:var(--txt-m);letter-spacing:3px;text-transform:uppercase;font-family:'Cinzel',serif}
+.room-type{font-size:8px;color:var(--txt-m);letter-spacing:3px;text-transform:uppercase;font-family:'Cinzel',serif}
 
 /* Door overlays */
 .door{position:absolute;z-index:5;display:flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:all .2s;border:none;background:none;gap:4px;font-family:'Cinzel',serif}
-.door.n{top:0;left:15%;right:15%;height:52px;flex-direction:column}
-.door.s{bottom:0;left:15%;right:15%;height:52px;flex-direction:column-reverse}
-.door.e{right:0;top:15%;bottom:15%;width:60px;flex-direction:row-reverse}
-.door.w{left:0;top:15%;bottom:15%;width:60px}
-.door-arch{font-size:11px;letter-spacing:1px}
+  transition:all .2s;border:none;background:none;gap:3px;font-family:'Cinzel',serif}
+.door.n{top:0;left:15%;right:15%;height:44px;flex-direction:column}
+.door.s{bottom:0;left:15%;right:15%;height:44px;flex-direction:column-reverse}
+.door.e{right:0;top:15%;bottom:15%;width:52px;flex-direction:row-reverse}
+.door.w{left:0;top:15%;bottom:15%;width:52px}
+.door-arch{font-size:10px;letter-spacing:1px}
 .door.unexplored{color:var(--gold)}
 .door.unexplored .door-arch{animation:archPulse 2.5s ease-in-out infinite}
 .door.unexplored:active{transform:scale(.94)}
-@keyframes archPulse{0%,100%{opacity:.5;text-shadow:none}50%{opacity:1;text-shadow:0 0 8px rgba(232,184,48,.4)}}
-.door.explored{color:var(--txt-m);font-size:10px}
+@keyframes archPulse{0%,100%{opacity:.5}50%{opacity:1;text-shadow:0 0 8px rgba(232,184,48,.4)}}
+.door.explored{color:var(--txt-m);font-size:9px}
 .door.explored:active{background:rgba(255,255,255,.03)}
-.door.wall,.door.blocked{cursor:default;pointer-events:none;opacity:.2}
-.door-label{font-size:9px;letter-spacing:1px;opacity:.7;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.door.wall,.door.blocked{cursor:default;pointer-events:none;opacity:.15}
+.door-label{font-size:8px;letter-spacing:1px;opacity:.7;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* Room info panel */
-.rv-info{padding:12px 16px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;
-  flex-shrink:0;background:var(--bg);border-top:1px solid var(--border)}
-.rv-desc{font-size:13px;color:var(--txt);line-height:1.7;font-style:italic;max-width:320px}
-.rv-fx{padding:6px 16px;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:.5px}
+/* Room info panel (compact) */
+.rv-info{padding:8px 12px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;
+  flex-shrink:0;background:var(--bg);border-top:1px solid var(--border);max-height:120px;overflow-y:auto}
+.rv-desc{font-size:12px;color:var(--txt);line-height:1.6;font-style:italic;max-width:320px}
+.rv-fx{padding:4px 12px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.5px}
 .rv-fx.p{background:var(--green-bg);color:var(--green);border:1px solid #1a3a28}
 .rv-fx.n{background:var(--red-bg);color:var(--red);border:1px solid #3a1a1a}
 .rv-fx.i{background:var(--blue-bg);color:var(--blue-b);border:1px solid #1a2e50}
 .rv-fx.sp{background:var(--purple-bg);color:var(--purple);border:1px solid #2a1840}
-.rv-act{padding:10px 24px;border:1.5px solid var(--purple);color:var(--purple);font-family:'Cinzel',serif;
-  font-size:11px;letter-spacing:2px;background:rgba(136,85,204,.06);cursor:pointer;text-transform:uppercase;
-  transition:all .2s;border-radius:3px}
-.rv-act:active{background:var(--purple);color:#fff}
+
+/* ── BOTTOM ACTION BAR ── */
+.bar{display:flex;justify-content:space-around;align-items:center;padding:6px 0 max(6px,env(safe-area-inset-bottom,0px));
+  flex-shrink:0;border-top:1px solid var(--border);background:var(--bg)}
+.bar-btn{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
+  padding:6px 14px;border:none;background:none;color:var(--txt-m);font-family:'Cinzel',serif;
+  font-size:8px;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.bar-btn:active{color:var(--gold);transform:scale(.92)}
+.bar-icon{font-size:18px}
+.bar-btn.rest{color:var(--green)}.bar-btn.rest .bar-icon{animation:restPulse 2s ease-in-out infinite}
+@keyframes restPulse{0%,100%{opacity:.7}50%{opacity:1;text-shadow:0 0 8px rgba(68,170,102,.4)}}
+
+/* ── EVENT OVERLAY WITH CHOICES ── */
+#ev{position:absolute;inset:0;background:var(--overlay);z-index:30;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;padding:24px max(16px,env(safe-area-inset-left,0px));
+  animation:fadeIn .3s ease;overflow-y:auto}
+#ev.on{display:flex}
+.ev-i{font-size:48px;filter:drop-shadow(0 0 16px rgba(232,184,48,.3));animation:roomEnter .5s ease-out}
+.ev-t{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:3px;text-align:center;
+  text-shadow:0 0 24px rgba(232,184,48,.2)}
+.ev-d{font-size:13px;color:var(--txt);text-align:center;max-width:300px;line-height:1.7}
+.ev-rule{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
+.ev-choices{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px}
+.ev-ch{padding:12px 16px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;
+  border-radius:6px;transition:all .2s;text-align:left;display:flex;flex-direction:column;gap:3px}
+.ev-ch:active{border-color:var(--gold);background:rgba(232,184,48,.06);transform:scale(.97)}
+.ev-ch-label{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--txt-b);letter-spacing:1px}
+.ev-ch-hint{font-size:11px;color:var(--txt-m);font-style:italic}
+.ev-ch.risky{border-color:rgba(204,51,68,.3)}.ev-ch.risky:active{border-color:var(--red)}
+.ev-ch.safe{border-color:rgba(68,170,102,.3)}.ev-ch.safe:active{border-color:var(--green)}
+.ev-r{font-size:13px;font-weight:600;text-align:center;font-family:'Cinzel',serif}
 
 /* ── DRAFT ── */
 #draft{align-items:center;justify-content:flex-start;gap:0;background:var(--overlay);z-index:20;
   padding-top:env(safe-area-inset-top,0px);overflow-y:auto}
-.dr-head{padding:20px 0 10px;text-align:center;flex-shrink:0}
-.dr-title{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:4px;text-transform:uppercase;
-  text-shadow:0 0 24px rgba(232,184,48,.2)}
-.dr-dir{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}
-.dr-arrow{font-size:16px;color:var(--gold);opacity:.6}
-.dr-from{font-size:11px;color:var(--txt-m);font-style:italic}
-.dr-warn{font-size:12px;color:var(--red);text-align:center;max-width:260px;padding:4px 0}
-.dr-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;padding:8px 12px;flex-shrink:0}
-.dc{padding:14px 16px;background:linear-gradient(135deg,var(--parch),var(--parch2));cursor:pointer;
-  transition:all .2s;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;
+.dr-head{padding:16px 0 8px;text-align:center;flex-shrink:0}
+.dr-title{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.dr-dir{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.dr-arrow{font-size:14px;color:var(--gold);opacity:.6}
+.dr-from{font-size:10px;color:var(--txt-m);font-style:italic}
+.dr-warn{font-size:11px;color:var(--red);text-align:center;max-width:260px;padding:4px 0}
+.dr-cards{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;padding:4px 12px;flex-shrink:0}
+.dc{padding:12px 14px;background:linear-gradient(135deg,var(--parch),var(--parch2));cursor:pointer;
+  transition:all .25s;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;
   border-radius:6px;border:2px solid transparent;
-  box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15)}
+  box-shadow:0 3px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15)}
 .dc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px}
 .dc.red::before{background:var(--red)}.dc.blue::before{background:var(--blue)}
 .dc.green::before{background:var(--green)}.dc.purple::before{background:var(--purple)}
 .dc.gold::before{background:var(--gold)}.dc.shop::before{background:var(--green)}
 .dc:active{transform:scale(.97);box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .dc.disabled{opacity:.3;pointer-events:none;filter:grayscale(.6)}
-.dc-icon{font-size:32px;flex-shrink:0;width:44px;text-align:center}
-.dc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.dc-n{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--ink);line-height:1.2}
-.dc-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.dc-t{font-size:8px;color:#7a6a50;letter-spacing:1.5px;text-transform:uppercase}
-.dc-cost{font-size:11px;font-weight:700;font-family:'Cinzel',serif;padding:1px 8px;border-radius:3px}
+.dc-icon{font-size:28px;flex-shrink:0;width:40px;text-align:center}
+.dc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dc-n{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+.dc-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dc-t{font-size:7px;color:#7a6a50;letter-spacing:1.5px;text-transform:uppercase}
+.dc-cost{font-size:10px;font-weight:700;font-family:'Cinzel',serif;padding:1px 6px;border-radius:3px}
 .dc-cost.free{color:#2a6a3a;background:#c8e8d0}.dc-cost.gem{color:#1a4a7a;background:#c0d8f0}
-.dc-doors{display:flex;gap:3px}
-.dc-door{width:8px;height:12px;border-radius:2px 2px 0 0;border:1px solid #8a7a60;background:#d8c8a8}
-.dc-door.lit{background:var(--gold);border-color:#a08040;box-shadow:0 0 4px rgba(232,184,48,.3)}
-.dc-fx{font-size:10px;font-weight:600;color:#5a4a30;line-height:1.3}
-.dc-items{font-size:10px;color:#7a6a50}
-.dc-right{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
-.dr-foot{padding:10px 0 20px;flex-shrink:0;text-align:center}
-.dr-reroll{padding:8px 20px;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cinzel',serif;
-  font-size:10px;background:rgba(232,184,48,.06);cursor:pointer;letter-spacing:1px;text-transform:uppercase;
+.dc-doors{display:flex;gap:2px}
+.dc-door{width:7px;height:10px;border-radius:2px 2px 0 0;border:1px solid #8a7a60;background:#d8c8a8}
+.dc-door.lit{background:var(--gold);border-color:#a08040;box-shadow:0 0 3px rgba(232,184,48,.3)}
+.dc-fx{font-size:9px;font-weight:600;color:#5a4a30;line-height:1.2}
+.dc-items{font-size:9px;color:#7a6a50}
+.dc-right{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
+.dr-foot{padding:8px 0 16px;flex-shrink:0;text-align:center}
+.dr-reroll{padding:6px 16px;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cinzel',serif;
+  font-size:9px;background:rgba(232,184,48,.06);cursor:pointer;letter-spacing:1px;text-transform:uppercase;
   transition:all .2s;border-radius:3px}
-.dr-reroll.ok{border-color:var(--gold);box-shadow:0 0 12px rgba(232,184,48,.12)}
 .dr-reroll.ok:active{background:var(--gold);color:var(--bg)}
 
-/* Tutorial hints */
-.hint{position:absolute;z-index:40;padding:10px 16px;background:rgba(232,184,48,.12);border:1px solid var(--gold);
-  border-radius:6px;font-size:12px;color:var(--gold);font-family:'Cinzel',serif;letter-spacing:.5px;
-  animation:hintPulse 2s ease-in-out infinite;pointer-events:none;max-width:220px;text-align:center;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-@keyframes hintPulse{0%,100%{opacity:.7;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
-
 /* ── OVERLAYS ── */
-#ev{position:absolute;inset:0;background:var(--overlay);z-index:30;display:none;flex-direction:column;
-  align-items:center;justify-content:center;gap:16px;padding:max(16px,env(safe-area-inset-left,0px));
-  animation:fadeIn .3s ease}
-#ev.on{display:flex}
-.ev-i{font-size:56px;filter:drop-shadow(0 0 20px rgba(232,184,48,.3));animation:roomEnter .5s ease-out}
-.ev-t{font-family:'Cinzel',serif;font-size:20px;color:var(--gold);letter-spacing:4px;text-align:center;
-  text-shadow:0 0 24px rgba(232,184,48,.2)}
-.ev-d{font-size:14px;color:var(--txt);text-align:center;max-width:300px;line-height:1.8}
-.ev-r{font-size:14px;font-weight:600;text-align:center;font-family:'Cinzel',serif}
-.ev-rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
-
 #mmap{position:absolute;inset:0;background:var(--overlay);z-index:15;display:none;flex-direction:column;
-  align-items:center;justify-content:center;gap:12px;padding:max(16px,env(safe-area-inset-left,0px))}
+  align-items:center;justify-content:center;gap:10px;padding:max(16px,env(safe-area-inset-left,0px))}
 #mmap.on{display:flex}
-.mm-title{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:4px}
-.mm-canvas{width:min(320px,85vw);height:min(320px,85vw);border-radius:4px}
+.mm-title{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);letter-spacing:3px}
+.mm-canvas{width:min(300px,80vw);height:min(300px,80vw);border-radius:4px}
 
 #shop{position:absolute;inset:0;background:var(--overlay);z-index:25;display:none;flex-direction:column;
-  align-items:center;justify-content:center;gap:14px}
+  align-items:center;justify-content:center;gap:12px}
 #shop.on{display:flex}
-.shop-t{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:3px}
-.shop-items{display:flex;flex-direction:column;gap:8px;max-width:280px;width:100%}
-.shop-i{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border:1px solid var(--border);
+.shop-t{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:3px}
+.shop-items{display:flex;flex-direction:column;gap:6px;max-width:280px;width:100%}
+.shop-i{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border:1px solid var(--border);
   background:var(--surface);cursor:pointer;transition:all .2s;border-radius:4px}
 .shop-i:active{background:var(--bg2);border-color:var(--gold)}
 .shop-i.cant{opacity:.3;cursor:default}
-.shop-il{display:flex;align-items:center;gap:12px;font-size:15px}
-.shop-ip{font-size:13px;color:var(--gold);font-family:'Cinzel',serif;font-weight:700}
+.shop-il{display:flex;align-items:center;gap:10px;font-size:14px}
+.shop-ip{font-size:12px;color:var(--gold);font-family:'Cinzel',serif;font-weight:700}
 
-#rend{align-items:center;justify-content:center;gap:20px;
+/* ── END DAY CONFIRM ── */
+#endday{position:absolute;inset:0;background:var(--overlay);z-index:28;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;padding:24px max(16px,env(safe-area-inset-left,0px))}
+#endday.on{display:flex}
+.ed-t{font-family:'Cinzel',serif;font-size:20px;color:var(--gold);letter-spacing:4px}
+.ed-d{font-size:13px;color:var(--txt);text-align:center;max-width:300px;line-height:1.8}
+.ed-stats{display:flex;flex-direction:column;gap:6px;align-items:center}
+.ed-r{font-size:13px;color:var(--txt)}.ed-r b{color:var(--gold);font-family:'Cinzel',serif}
+.ed-bonus{padding:8px 16px;border-radius:4px;background:var(--green-bg);border:1px solid #1a3a28;
+  color:var(--green);font-size:12px;font-weight:600;text-align:center}
+
+/* ── DAY SUMMARY / RUN END ── */
+#rend{align-items:center;justify-content:center;gap:14px;padding:20px;overflow-y:auto;
   background:radial-gradient(ellipse at 50% 35%,#0e2040,var(--bg) 70%)}
-.re-t{font-family:'Cinzel',serif;font-size:28px;letter-spacing:5px;text-transform:uppercase}
-.re-rule{width:100px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
-.re-narr{font-size:14px;color:var(--txt-m);font-style:italic;text-align:center;max-width:300px;line-height:1.8}
-.re-s{display:flex;flex-direction:column;gap:8px;align-items:center}
-.re-r{font-size:14px;color:var(--txt)}.re-r b{color:var(--gold);font-family:'Cinzel',serif}
+.re-t{font-family:'Cinzel',serif;font-size:24px;letter-spacing:4px;text-transform:uppercase}
+.re-rule{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent)}
+.re-narr{font-size:13px;color:var(--txt-m);font-style:italic;text-align:center;max-width:300px;line-height:1.7}
+.re-s{display:flex;flex-direction:column;gap:6px;align-items:center}
+.re-r{font-size:13px;color:var(--txt)}.re-r b{color:var(--gold);font-family:'Cinzel',serif}
+.re-unlock{padding:8px 16px;border-radius:4px;background:var(--purple-bg);border:1px solid #2a1840;
+  color:var(--purple);font-size:12px;font-weight:600;text-align:center;animation:fadeUp .5s ease-out .3s both}
+.re-prog{width:200px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.re-prog-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:3px;transition:width .8s ease}
 
+/* ── JOURNAL ── */
 #journal{padding-top:10px}
-.j-h{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);flex-shrink:0}
-.j-t{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);letter-spacing:3px}
+.j-h{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.j-t{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:3px}
 .j-x{font-size:24px;color:var(--txt-m);cursor:pointer;padding:4px 8px;background:none;border:none}
 .j-tabs{display:flex;flex-shrink:0;border-bottom:1px solid var(--border)}
-.jt{flex:1;padding:10px;text-align:center;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;
+.jt{flex:1;padding:8px;text-align:center;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;
   text-transform:uppercase;color:var(--txt-m);cursor:pointer;background:none;border:none;
   border-bottom:2px solid transparent;transition:all .2s}
 .jt.on{color:var(--gold);border-bottom-color:var(--gold)}
-.j-b{flex:1;overflow-y:auto;padding:10px 0}
-.je{padding:12px 0;border-bottom:1px solid var(--border)}.je.lk{opacity:.2}
-.je-t{font-family:'Cinzel',serif;font-size:13px;color:var(--txt-b);margin-bottom:4px}
-.je-d{font-size:12px;color:var(--txt-m);line-height:1.6}
+.j-b{flex:1;overflow-y:auto;padding:8px 0}
+.je{padding:10px 0;border-bottom:1px solid var(--border)}.je.lk{opacity:.2}
+.je-t{font-family:'Cinzel',serif;font-size:12px;color:var(--txt-b);margin-bottom:3px}
+.je-d{font-size:11px;color:var(--txt-m);line-height:1.5}
 
-.toast{position:fixed;top:54px;left:50%;transform:translateX(-50%) translateY(-8px);
+.toast{position:fixed;top:48px;left:50%;transform:translateX(-50%) translateY(-8px);
   background:linear-gradient(135deg,var(--surface),var(--bg2));
-  border:1px solid var(--gold);padding:10px 24px;font-family:'Cinzel',serif;font-size:12px;
+  border:1px solid var(--gold);padding:8px 20px;font-family:'Cinzel',serif;font-size:11px;
   color:var(--gold);z-index:50;opacity:0;transition:all .3s ease;pointer-events:none;text-align:center;
-  max-width:280px;box-shadow:0 4px 24px rgba(0,0,0,.5);border-radius:4px;letter-spacing:.5px}
+  max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,.5);border-radius:4px;letter-spacing:.5px}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* Floating resource particles */
+.float-num{position:fixed;pointer-events:none;z-index:60;font-family:'Cinzel',serif;font-weight:700;
+  font-size:16px;animation:floatUp 1s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+
+/* Tutorial hint */
+.hint{position:absolute;z-index:40;padding:8px 14px;background:rgba(232,184,48,.12);border:1px solid var(--gold);
+  border-radius:6px;font-size:11px;color:var(--gold);font-family:'Cinzel',serif;letter-spacing:.5px;
+  animation:hintPulse 2s ease-in-out infinite;pointer-events:none;max-width:200px;text-align:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+@keyframes hintPulse{0%,100%{opacity:.7;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
 
 <!-- TITLE -->
 <div id="title" class="scr on">
   <div class="manor-scene">
-    <div class="manor-sky">
-      <div class="stars"></div>
-      <div class="moon"></div>
-    </div>
+    <div class="manor-sky"><div class="stars"></div><div class="moon"></div></div>
     <div class="manor-sil">
       <svg viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="30" y="50" width="160" height="70" fill="#060e1a" stroke="#1a3050" stroke-width="1"/>
@@ -304,7 +330,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
 <div id="intro" class="scr">
   <div class="intro-txt">The door groans open. Cold air rushes past.</div>
   <div class="intro-txt">You step inside. Behind you, the entrance folds away — as if the manor has been waiting for you.</div>
-  <div class="intro-txt">Forty-five rooms shift in the darkness. One more hides beyond them all.</div>
+  <div class="intro-txt">Forty-five rooms shift in the darkness. One hides beyond them all.</div>
   <button class="btn btn-s intro-skip" onclick="G.start()">Begin Exploration</button>
 </div>
 
@@ -318,13 +344,15 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
       <div class="hr"><span class="hr-i keys">🔑</span><span class="hr-v hr-keys" id="h-keys">0</span></div>
     </div>
     <div class="hud-bl" id="h-blue"></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="hud-r"><div class="hud-day" id="h-day">Day 1</div><div class="hud-rms" id="h-rms">0 rooms</div></div>
-      <button class="hud-map" onclick="G.toggleMap()">MAP</button>
-    </div>
+    <div class="hud-r"><div class="hud-day" id="h-day">Day 1</div><div class="hud-rms" id="h-rms">0 rooms</div></div>
   </div>
   <div class="step-bar"><div class="step-fill" id="step-fill"></div></div>
   <div class="rv-wrap" id="rv-wrap"></div>
+  <div class="bar">
+    <button class="bar-btn" onclick="G.toggleMap()"><span class="bar-icon">🗺️</span>Map</button>
+    <button class="bar-btn rest" id="bar-rest" onclick="G.endDayConfirm()"><span class="bar-icon">🌙</span>Rest</button>
+    <button class="bar-btn" onclick="G.journal()"><span class="bar-icon">📖</span>Journal</button>
+  </div>
 </div>
 
 <!-- DRAFT -->
@@ -338,22 +366,50 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
   <div class="dr-foot"><button class="dr-reroll" id="dr-reroll" onclick="G.reroll()">Reroll (💎1)</button></div>
 </div>
 
-<!-- OVERLAYS -->
-<div id="ev"><div class="ev-i" id="ev-i"></div><div class="ev-t" id="ev-t"></div><div class="ev-rule"></div><div class="ev-d" id="ev-d"></div><div class="ev-r" id="ev-r"></div><button class="btn btn-s" onclick="G.evOk()">Continue</button></div>
-<div id="mmap"><div class="mm-title">Manor Blueprint</div><canvas class="mm-canvas" id="mm-canvas"></canvas><button class="btn btn-s" onclick="G.toggleMap()" style="margin-top:10px">Close</button></div>
-<div id="shop"><div class="shop-t" id="shop-t">Shop</div><div class="shop-items" id="shop-items"></div><button class="btn btn-s btn-g" onclick="G.closeShop()" style="margin-top:10px">Leave</button></div>
+<!-- EVENT WITH CHOICES -->
+<div id="ev">
+  <div class="ev-i" id="ev-i"></div>
+  <div class="ev-t" id="ev-t"></div>
+  <div class="ev-rule"></div>
+  <div class="ev-d" id="ev-d"></div>
+  <div class="ev-choices" id="ev-choices"></div>
+  <div class="ev-r" id="ev-r"></div>
+</div>
 
+<!-- MAP -->
+<div id="mmap"><div class="mm-title">Manor Blueprint</div><canvas class="mm-canvas" id="mm-canvas"></canvas><button class="btn btn-s" onclick="G.toggleMap()" style="margin-top:8px">Close</button></div>
+
+<!-- SHOP -->
+<div id="shop"><div class="shop-t" id="shop-t">Shop</div><div class="shop-items" id="shop-items"></div><button class="btn btn-s btn-g" onclick="G.closeShop()" style="margin-top:8px">Leave</button></div>
+
+<!-- END DAY CONFIRM -->
+<div id="endday">
+  <div class="ed-t">End the Day?</div>
+  <div class="ed-d" id="ed-d">You can keep exploring, or rest now and bank your gains.</div>
+  <div class="ed-stats" id="ed-stats"></div>
+  <div class="ed-bonus" id="ed-bonus"></div>
+  <button class="btn" onclick="G.endDayEarly()" style="border-color:var(--green);color:var(--green)">Rest Now</button>
+  <button class="btn btn-s btn-g" onclick="G.endDayCancel()">Keep Exploring</button>
+</div>
+
+<!-- DAY SUMMARY -->
 <div id="rend" class="scr">
   <div class="re-t" id="re-t">Nightfall</div>
   <div class="re-rule"></div>
   <div class="re-narr" id="re-narr"></div>
   <div class="re-s" id="re-s"></div>
   <button class="btn" onclick="G.start()">New Day</button>
-  <button class="btn btn-s btn-g" onclick="G.scr('title')">Return</button>
+  <button class="btn btn-s btn-g" onclick="G.scr('title')">Return to Title</button>
 </div>
+
+<!-- JOURNAL -->
 <div id="journal" class="scr">
   <div class="j-h"><div class="j-t">Journal</div><button class="j-x" onclick="G.jClose()">&times;</button></div>
-  <div class="j-tabs"><button class="jt on" data-j="secrets" onclick="G.jTab('secrets',this)">Secrets</button><button class="jt" data-j="combos" onclick="G.jTab('combos',this)">Synergies</button><button class="jt" data-j="stats" onclick="G.jTab('stats',this)">Stats</button></div>
+  <div class="j-tabs">
+    <button class="jt on" data-j="secrets" onclick="G.jTab('secrets',this)">Secrets</button>
+    <button class="jt" data-j="combos" onclick="G.jTab('combos',this)">Synergies</button>
+    <button class="jt" data-j="stats" onclick="G.jTab('stats',this)">Stats</button>
+  </div>
   <div class="j-b" id="j-b"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -361,142 +417,229 @@ body{background:var(--bg);color:var(--txt);font-family:'Spectral',Georgia,serif;
 <script>
 // ═══ ROOM DATA ═══
 const R={
-foyer:{n:'Foyer',i:'🚪',t:'standard',c:'gold',d:'You stand in the grand entrance hall. Marble floors stretch in every direction, veined with gold. The chandelier above holds no flame — yet the room glows faintly, as if remembering light.',doors:['N','S','E','W'],cost:0,items:[],r:'starter',
-  scene:{bg:'linear-gradient(180deg,#14202e 0%,#1a2840 40%,#161e2c 100%)',accent:'#c8a848',deco:'marble'}},
-den:{n:'Den',i:'🏠',t:'common',c:'gold',d:'You settle into worn leather. A fire crackles somewhere behind the walls. On the mantle, a gemstone catches impossible light.',doors:['N','E','W'],cost:0,items:[{t:'gem',n:1}],r:'common',
-  scene:{bg:'linear-gradient(180deg,#1a1810 0%,#20180e 50%,#161210 100%)',accent:'#c89848',deco:'fire'}},
-spare:{n:'Spare Room',i:'🚪',t:'common',c:'gold',d:'Nothing adorns these bare walls. Dust motes hang suspended in still air. Three doors wait — one of them was not here a moment ago.',doors:['N','S','E'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#12161e 0%,#161a22 50%,#0e1218 100%)',accent:'#808898',deco:'dust'}},
-hall_ns:{n:'Hallway',i:'🏛️',t:'common',c:'gold',d:'A long corridor stretches north and south. Portraits line both walls — their eyes follow you, and you cannot say they blink, only that they might.',doors:['N','S'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#14181e 0%,#1a1e28 50%,#10141c 100%)',accent:'#8a7860',deco:'portraits'}},
-hall_ew:{n:'Passage',i:'🚶',t:'common',c:'gold',d:'An east-west passage. The wallpaper peels in long strips, revealing older paper beneath — and older still beneath that.',doors:['E','W'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#161418 0%,#1c1820 50%,#121016 100%)',accent:'#907868',deco:'wallpaper'}},
-pantry:{n:'Pantry',i:'🍞',t:'common',c:'gold',d:'You push through a narrow door. Shelves sag with dusty tins and glass jars. Coins spill from a cracked preserves jar — someone\'s savings, long unclaimed.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:3}],r:'common',
-  scene:{bg:'linear-gradient(180deg,#18160e 0%,#1e1a10 50%,#14120c 100%)',accent:'#a09060',deco:'shelves'}},
-mudroom:{n:'Mudroom',i:'🧥',t:'common',c:'gold',d:'Coats hang from iron hooks, still damp. Boots stand in pairs by the door, mud from a garden that no longer exists.',doors:['N','S','E'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#141612 0%,#1a1c16 50%,#101210 100%)',accent:'#788068',deco:'hooks'}},
-crossroads:{n:'Crossroads',i:'✦',t:'common',c:'gold',d:'Four stone arches converge at a mosaic compass rose. Every direction feels equally promising — and equally uncertain.',doors:['N','S','E','W'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#141820 0%,#1a2030 50%,#101420 100%)',accent:'#a0a8b8',deco:'compass'}},
-gallery:{n:'Gallery',i:'🖼️',t:'common',c:'gold',d:'Gilt frames crowd every wall. The paintings shift when you turn away — landscapes rearranging, figures exchanging glances.',doors:['N','E','W'],cost:0,items:[{t:'coin',n:1}],r:'common',
-  scene:{bg:'linear-gradient(180deg,#1a1414 0%,#221a18 50%,#161010 100%)',accent:'#b89848',deco:'frames'}},
-vestibule:{n:'Vestibule',i:'🪞',t:'common',c:'gold',d:'Mirrors face each other on opposite walls, creating infinite reflections. In one of them — not quite the nearest — your reflection moves a beat late.',doors:['N','S'],cost:0,items:[],r:'common',
-  scene:{bg:'linear-gradient(180deg,#141620 0%,#181c28 50%,#101420 100%)',accent:'#90a0b0',deco:'mirrors'}},
-nook:{n:'Nook',i:'📦',t:'common',c:'gold',d:'A tiny alcove barely large enough to stand in. An old key hangs from a nail driven into the stone — still warm, as if just forged.',doors:[],cost:0,items:[{t:'key',n:1}],r:'common',dead:true,
-  scene:{bg:'linear-gradient(180deg,#181410 0%,#1e1814 50%,#14100e 100%)',accent:'#a89060',deco:'key'}},
-closet:{n:'Closet',i:'🗄️',t:'common',c:'gold',d:'You squeeze through a narrow door. Coins are scattered across the stone floor — too many, as if they multiplied in the dark.',doors:[],cost:0,items:[{t:'coin',n:2}],r:'common',dead:true,
-  scene:{bg:'linear-gradient(180deg,#141210 0%,#1a1614 50%,#100e0c 100%)',accent:'#908060',deco:'coins'}},
-kitchen:{n:'Kitchen',i:'🍳',t:'uncommon',c:'green',d:'You push open the heavy door. Copper pots hang from iron hooks overhead. The air tastes of cinnamon and something older — woodsmoke from a fire that went out decades ago, yet somehow still warms.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,3);rm._u=1;}},
-  scene:{bg:'linear-gradient(180deg,#201810 0%,#2a1e14 50%,#181208 100%)',accent:'#d08838',deco:'pots'}},
-bedroom:{n:'Bedroom',i:'🛏️',t:'uncommon',c:'green',d:'A four-poster bed draped in threadbare curtains. The pillows hold the impression of someone\'s head. The sheets are still warm.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',
+foyer:{n:'Foyer',i:'🚪',t:'standard',c:'gold',d:'The grand entrance hall. Marble floors vein with gold. The chandelier above holds no flame — yet the room glows.',doors:['N','S','E','W'],cost:0,items:[],r:'starter',
+  scene:{bg:'linear-gradient(180deg,#1a2838 0%,#243450 40%,#1c2838 100%)',accent:'#d4a840',deco:'marble'}},
+den:{n:'Den',i:'🏠',t:'common',c:'gold',d:'Worn leather and crackling warmth. A gemstone catches impossible light on the mantle.',doors:['N','E','W'],cost:0,items:[{t:'gem',n:1}],r:'common',
+  scene:{bg:'linear-gradient(180deg,#2a1e10 0%,#342818 50%,#201810 100%)',accent:'#d09848',deco:'fire'}},
+spare:{n:'Spare Room',i:'🚪',t:'common',c:'gold',d:'Bare walls, suspended dust. Three doors wait — one was not here a moment ago.',doors:['N','S','E'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1a1e28 0%,#202430 50%,#161a22 100%)',accent:'#889098',deco:'dust'}},
+hall_ns:{n:'Hallway',i:'🏛️',t:'common',c:'gold',d:'Portraits line both walls — their eyes follow you.',doors:['N','S'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1c2028 0%,#222834 50%,#181c24 100%)',accent:'#9a8868',deco:'portraits'}},
+hall_ew:{n:'Passage',i:'🚶',t:'common',c:'gold',d:'An east-west passage. Wallpaper peels in strips, revealing older paper beneath.',doors:['E','W'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1e1c20 0%,#262228 50%,#1a181c 100%)',accent:'#a08870',deco:'wallpaper'}},
+pantry:{n:'Pantry',i:'🍞',t:'common',c:'gold',d:'Shelves sag with dusty tins. Coins spill from a cracked preserves jar.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:3}],r:'common',
+  scene:{bg:'linear-gradient(180deg,#221e14 0%,#2a2418 50%,#1c1810 100%)',accent:'#b09868',deco:'shelves'}},
+mudroom:{n:'Mudroom',i:'🧥',t:'common',c:'gold',d:'Coats hang from iron hooks, still damp. Boots from a garden that no longer exists.',doors:['N','S','E'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1c1e1a 0%,#24261e 50%,#181a16 100%)',accent:'#889078',deco:'hooks'}},
+crossroads:{n:'Crossroads',i:'✦',t:'common',c:'gold',d:'Four stone arches converge at a mosaic compass rose.',doors:['N','S','E','W'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1c2028 0%,#222838 50%,#181c28 100%)',accent:'#a8b0c0',deco:'compass'}},
+gallery:{n:'Gallery',i:'🖼️',t:'common',c:'gold',d:'Gilt frames crowd every wall. The paintings shift when you turn away.',doors:['N','E','W'],cost:0,items:[{t:'coin',n:1}],r:'common',
+  scene:{bg:'linear-gradient(180deg,#221a1a 0%,#2c2220 50%,#1c1616 100%)',accent:'#c8a050',deco:'frames'}},
+vestibule:{n:'Vestibule',i:'🪞',t:'common',c:'gold',d:'Mirrors face each other. In one reflection, you move a beat late.',doors:['N','S'],cost:0,items:[],r:'common',
+  scene:{bg:'linear-gradient(180deg,#1a1e28 0%,#202430 50%,#161a24 100%)',accent:'#98a8b8',deco:'mirrors'}},
+nook:{n:'Nook',i:'📦',t:'common',c:'gold',d:'A tiny alcove. An old key hangs from a nail — still warm.',doors:[],cost:0,items:[{t:'key',n:1}],r:'common',dead:true,
+  scene:{bg:'linear-gradient(180deg,#201c18 0%,#282220 50%,#1c1814 100%)',accent:'#b89868',deco:'key'}},
+closet:{n:'Closet',i:'🗄️',t:'common',c:'gold',d:'Coins scattered across the stone floor — too many, as if they multiplied.',doors:[],cost:0,items:[{t:'coin',n:2}],r:'common',dead:true,
+  scene:{bg:'linear-gradient(180deg,#1c1a18 0%,#222020 50%,#181614 100%)',accent:'#988870',deco:'coins'}},
+kitchen:{n:'Kitchen',i:'🍳',t:'uncommon',c:'green',d:'Copper pots hang overhead. The air tastes of cinnamon and old woodsmoke.',doors:['N','S','W'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,3);rm._u=1;}},
+  scene:{bg:'linear-gradient(180deg,#2c2014 0%,#38281c 50%,#241810 100%)',accent:'#e09040',deco:'pots'}},
+bedroom:{n:'Bedroom',i:'🛏️',t:'uncommon',c:'green',d:'A four-poster bed. The pillows hold someone\'s impression. The sheets are warm.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'+3 steps',r:'uncommon',
   onDraft(s){s.beds++;addS(s,3);if(s.nursery){addS(s,5);toast('Nursery + Bedroom: +5!');P.syn.add('nursery_bed');saveP();}},
-  scene:{bg:'linear-gradient(180deg,#1a1618 0%,#221c20 50%,#141014 100%)',accent:'#907080',deco:'bed'}},
-parlor:{n:'Parlor',i:'🪑',t:'uncommon',c:'gold',d:'Velvet chairs circle a cold hearth. The fabric remembers the shapes of those who sat here, hollowed by years of waiting for guests who never returned.',doors:['N','E','W'],cost:0,items:[],r:'uncommon',
-  scene:{bg:'linear-gradient(180deg,#1a1418 0%,#201820 50%,#141018 100%)',accent:'#906870',deco:'chairs'}},
-study:{n:'Study',i:'📖',t:'uncommon',c:'gold',d:'Papers blanket every surface — equations, blueprints, maps of rooms that shouldn\'t exist. Knowledge hides here, if you can read between the margins.',doors:['N','E'],cost:0,items:[],fx:'Reveals slot 3',r:'uncommon',onDraft(s){s.studyRev=true;P.syn.add('study_reveal');saveP();},
-  scene:{bg:'linear-gradient(180deg,#161412 0%,#1e1a16 50%,#12100e 100%)',accent:'#a09070',deco:'papers'}},
-sitting:{n:'Sitting Room',i:'🛋️',t:'uncommon',c:'green',d:'Overstuffed chairs crowd around a fire that burns without fuel. You sit. Five minutes pass, but your legs feel rested for miles.',doors:['N','S','E'],cost:0,items:[],fx:'+5 steps (first visit)',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,5);rm._u=1;}},
-  scene:{bg:'linear-gradient(180deg,#1e1610 0%,#261e14 50%,#161008 100%)',accent:'#c88838',deco:'fire'}},
-garage:{n:'Garage',i:'🚗',t:'uncommon',c:'gold',d:'Rusted tools hang from pegboards. A car waits on blocks — it will never run again, but its glove box holds treasures.',doors:['E','W'],cost:1,items:[{t:'gem',n:2}],r:'uncommon',
-  scene:{bg:'linear-gradient(180deg,#121416 0%,#181c20 50%,#0e1014 100%)',accent:'#708090',deco:'tools'}},
-chapel:{n:'Chapel',i:'⛪',t:'red',c:'red',d:'Stained glass casts crimson and violet across empty pews. The beauty costs something — each time you enter, the collection plate takes its toll.',doors:['N','S','W'],cost:0,items:[{t:'key',n:1}],fx:'-1🪙 per entry',r:'uncommon',red:true,
-  entryCost:{t:'coin',n:1},interact:{label:'Study Stained Glass',sec:'chapel_glass',txt:'The glass panels shift as you touch them. A pattern emerges — and with it, a new understanding of the manor.',rew:'Puzzle solved! +1 starting key forever.'},
-  scene:{bg:'linear-gradient(180deg,#200818 0%,#2a1020 50%,#180610 100%)',accent:'#cc4466',deco:'glass'}},
-archives:{n:'Archives',i:'📜',t:'red',c:'red',d:'Floor-to-ceiling records in faded ink. Something in the dust stings your eyes — when you look at blueprints now, one option blurs and vanishes.',doors:['N','S','E'],cost:0,items:[{t:'coin',n:1}],fx:'Hides 1 draft option',r:'uncommon',red:true,
+  scene:{bg:'linear-gradient(180deg,#221e22 0%,#2c262c 50%,#1c181c 100%)',accent:'#a07888',deco:'bed'}},
+parlor:{n:'Parlor',i:'🪑',t:'uncommon',c:'gold',d:'Velvet chairs circle a cold hearth, hollowed by years of waiting.',doors:['N','E','W'],cost:0,items:[],r:'uncommon',
+  scene:{bg:'linear-gradient(180deg,#221c20 0%,#2c2428 50%,#1c1820 100%)',accent:'#a07080',deco:'chairs'}},
+study:{n:'Study',i:'📖',t:'uncommon',c:'gold',d:'Papers blanket every surface — equations, maps of rooms that shouldn\'t exist.',doors:['N','E'],cost:0,items:[],fx:'Reveals hidden draft',r:'uncommon',onDraft(s){s.studyRev=true;P.syn.add('study_reveal');saveP();},
+  scene:{bg:'linear-gradient(180deg,#1e1c1a 0%,#282420 50%,#181614 100%)',accent:'#b09878',deco:'papers'}},
+sitting:{n:'Sitting Room',i:'🛋️',t:'uncommon',c:'green',d:'A fire burns without fuel. Five minutes pass, but your legs feel rested for miles.',doors:['N','S','E'],cost:0,items:[],fx:'+5 steps (first visit)',r:'uncommon',onEnter(s,rm){if(!rm._u){addS(s,5);rm._u=1;}},
+  scene:{bg:'linear-gradient(180deg,#282014 0%,#342820 50%,#201810 100%)',accent:'#d09040',deco:'fire'}},
+garage:{n:'Garage',i:'🚗',t:'uncommon',c:'gold',d:'Rusted tools and a car on blocks. Its glove box holds treasures.',doors:['E','W'],cost:1,items:[{t:'gem',n:2}],r:'uncommon',
+  scene:{bg:'linear-gradient(180deg,#1a1c20 0%,#222428 50%,#161820 100%)',accent:'#7888a0',deco:'tools'}},
+chapel:{n:'Chapel',i:'⛪',t:'red',c:'red',d:'Stained glass casts crimson and violet across empty pews.',doors:['N','S','W'],cost:0,items:[{t:'key',n:1}],fx:'-1🪙 per entry',r:'uncommon',red:true,
+  entryCost:{t:'coin',n:1},
+  scene:{bg:'linear-gradient(180deg,#2c0e1c 0%,#381828 50%,#200c14 100%)',accent:'#dd4468',deco:'glass'}},
+archives:{n:'Archives',i:'📜',t:'red',c:'red',d:'Floor-to-ceiling records. Something in the dust stings your eyes — blueprints blur.',doors:['N','S','E'],cost:0,items:[{t:'coin',n:1}],fx:'Hides 1 draft option',r:'uncommon',red:true,
   onDraft(s){s.archHide=true;toast('Archives: 1 option hidden!');},
-  scene:{bg:'linear-gradient(180deg,#200c10 0%,#281418 50%,#180810 100%)',accent:'#aa4450',deco:'scrolls'}},
-gymnasium:{n:'Gymnasium',i:'🏋️',t:'red',c:'red',d:'Rusted barbells and frayed ropes. The air is thick and draining — just standing here exhausts you. Two fewer steps before you can leave.',doors:['N','E'],cost:0,items:[],fx:'-2 steps per entry',r:'common',red:true,
+  scene:{bg:'linear-gradient(180deg,#280e14 0%,#341820 50%,#200a10 100%)',accent:'#bb4458',deco:'scrolls'}},
+gymnasium:{n:'Gymnasium',i:'🏋️',t:'red',c:'red',d:'Rusted barbells and frayed ropes. The air drains you.',doors:['N','E'],cost:0,items:[],fx:'-2 steps per entry',r:'common',red:true,
   onEnter(s,rm){if(!s.redOff&&s.shield<=0)addS(s,-2);else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}},
-  scene:{bg:'linear-gradient(180deg,#1e0a0e 0%,#281014 50%,#160608 100%)',accent:'#cc3040',deco:'weights'}},
-darkroom:{n:'Darkroom',i:'🌑',t:'red',c:'red',d:'Total, absolute darkness. You feel along the walls — your hands find a gem, pulsing with faint warmth. But something in the dark clouds your judgment.',doors:['N','S','W'],cost:0,items:[{t:'gem',n:1}],fx:'Hides 1 draft option',r:'common',red:true,
+  scene:{bg:'linear-gradient(180deg,#260e12 0%,#321418 50%,#1e0a0c 100%)',accent:'#dd3848',deco:'weights'}},
+darkroom:{n:'Darkroom',i:'🌑',t:'red',c:'red',d:'Total darkness. Your hands find a gem. But something clouds your judgment.',doors:['N','S','W'],cost:0,items:[{t:'gem',n:1}],fx:'Hides 1 draft option',r:'common',red:true,
   onDraft(s){s.archHide=true;},
-  scene:{bg:'linear-gradient(180deg,#0a0408 0%,#100810 50%,#060206 100%)',accent:'#882040',deco:'dark'}},
-cellar:{n:'Cellar',i:'🕳️',t:'red',c:'red',d:'Damp stone steps spiral down. The air bites cold. Coins glint among cobwebs, but the descent costs you dearly — three steps lost to the climb back.',doors:[],cost:0,items:[{t:'coin',n:3}],fx:'-3 steps',r:'common',red:true,dead:true,
+  scene:{bg:'linear-gradient(180deg,#0e060c 0%,#180e14 50%,#0a040a 100%)',accent:'#993048',deco:'dark'}},
+cellar:{n:'Cellar',i:'🕳️',t:'red',c:'red',d:'Damp steps spiral down. Coins glint in cobwebs, but the climb back costs dearly.',doors:[],cost:0,items:[{t:'coin',n:3}],fx:'-3 steps',r:'common',red:true,dead:true,
   onDraft(s){if(!s.redOff&&s.shield<=0)addS(s,-3);else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}},
-  scene:{bg:'linear-gradient(180deg,#0e0808 0%,#180e10 50%,#0a0606 100%)',accent:'#993040',deco:'cobwebs'}},
-weight_room:{n:'Weight Room',i:'💪',t:'red',c:'red',d:'Iron crashes. The walls shake. Something in this room drains half your remaining strength in an instant.',doors:['N','S'],cost:0,items:[],fx:'Lose half steps',r:'uncommon',red:true,
+  scene:{bg:'linear-gradient(180deg,#140c0c 0%,#201418 50%,#100808 100%)',accent:'#aa3848',deco:'cobwebs'}},
+weight_room:{n:'Weight Room',i:'💪',t:'red',c:'red',d:'Iron crashes. Something drains half your remaining strength.',doors:['N','S'],cost:0,items:[],fx:'Lose half steps',r:'uncommon',red:true,
   onDraft(s){if(!s.redOff&&s.shield<=0){addS(s,-Math.floor(s.steps/2));}else if(s.shield>0){s.shield--;toast('Shelter blocked it!');}},
-  scene:{bg:'linear-gradient(180deg,#1a0808 0%,#240e10 50%,#120606 100%)',accent:'#cc2838',deco:'iron'}},
-blue_parlor:{n:'Blue Parlor',i:'💎',t:'blue',c:'blue',d:'Every surface shimmers sapphire. The air itself seems blue — cool, crystalline, electric. You breathe deeper here.',doors:['N','E','S'],cost:0,items:[{t:'gem',n:1}],fx:'Blue +1',r:'common',blue:true,
-  scene:{bg:'linear-gradient(180deg,#081828 0%,#0c2440 50%,#061420 100%)',accent:'#4488cc',deco:'crystal'}},
-azure_gallery:{n:'Azure Gallery',i:'🎨',t:'blue',c:'blue',d:'Paintings in every shade of blue — cerulean skies, cobalt seas, sapphire twilight. The frames themselves glow faintly.',doors:['N','S','W'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true,
-  scene:{bg:'linear-gradient(180deg,#0a1a2e 0%,#0e2240 50%,#081628 100%)',accent:'#5599dd',deco:'frames'}},
-cobalt_chamber:{n:'Cobalt Chamber',i:'🧊',t:'blue',c:'blue',d:'Cold radiates from the walls like deep ocean. Your breath mists blue. Beautiful and still, like standing inside a frozen wave.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'Blue +1',r:'common',blue:true,
-  scene:{bg:'linear-gradient(180deg,#061828 0%,#0a2038 50%,#041420 100%)',accent:'#3388cc',deco:'ice'}},
-indigo_library:{n:'Indigo Library',i:'📘',t:'blue',c:'blue',d:'Every book is bound in indigo leather. The ink inside is still wet — freshly written words in a language that shifts as you read.',doors:['N','E'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true,
-  scene:{bg:'linear-gradient(180deg,#0a1430 0%,#0e1c40 50%,#081028 100%)',accent:'#4466bb',deco:'books'}},
-sapphire_hall:{n:'Sapphire Hall',i:'🔷',t:'blue',c:'blue',d:'Sapphire dust coats every surface, turning your footsteps into small explosions of blue light. The glow renews you.',doors:['N','E','S'],cost:1,items:[],fx:'Blue +1, +2 steps',r:'uncommon',blue:true,onDraft(s){addS(s,2);},
-  scene:{bg:'linear-gradient(180deg,#0c1e38 0%,#102848 50%,#081a30 100%)',accent:'#5588dd',deco:'dust'}},
-cerulean:{n:'Cerulean Room',i:'🦋',t:'blue',c:'blue',d:'Blue butterflies drift between crystal flowers that grow from the walls. Their wings leave trails of light that linger in the air.',doors:['N','S','E'],cost:1,items:[],fx:'Blue +1, +3 steps',r:'uncommon',blue:true,onDraft(s){addS(s,3);},
-  scene:{bg:'linear-gradient(180deg,#0a2030 0%,#0e2a44 50%,#081a28 100%)',accent:'#44aadd',deco:'butterflies'}},
-lapis:{n:'Lapis Lounge',i:'🪻',t:'blue',c:'blue',d:'Crushed lapis lazuli fills the cushions. The deepest blue you have ever seen — peaceful, ancient, and restorative.',doors:['N','S'],cost:2,items:[{t:'gem',n:1}],fx:'Blue +1, +4 steps',r:'rare',blue:true,onDraft(s){addS(s,4);},
-  scene:{bg:'linear-gradient(180deg,#0c1838 0%,#10224c 50%,#081430 100%)',accent:'#3366bb',deco:'lapis'}},
-library:{n:'Library',i:'📚',t:'rare',c:'gold',d:'Leather-bound volumes rise floor to ceiling, their gold-stamped spines catching candlelight. Knowledge rewards the patient — you gain another chance to reroll.',doors:['N','S','E'],cost:1,items:[],fx:'+1 reroll die',r:'rare',onDraft(s){s.dice++;},
-  scene:{bg:'linear-gradient(180deg,#1e1410 0%,#281c14 50%,#16100a 100%)',accent:'#c89840',deco:'candles'}},
-ballroom:{n:'Ballroom',i:'💃',t:'rare',c:'gold',d:'A vast parquet floor stretches beneath a crystal chandelier that still turns, slowly, catching light from nowhere. The bigger your manor, the more it rewards you.',doors:['N','S','E','W'],cost:1,items:[],fx:'+2 per wide room',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#220c0c 0%,#2e1214 50%,#1a0808 100%)',accent:'#dd3040',deco:'iron'}},
+blue_parlor:{n:'Blue Parlor',i:'💎',t:'blue',c:'blue',d:'Every surface shimmers sapphire. You breathe deeper here.',doors:['N','E','S'],cost:0,items:[{t:'gem',n:1}],fx:'Blue +1',r:'common',blue:true,
+  scene:{bg:'linear-gradient(180deg,#0e2038 0%,#143050 50%,#0c1c30 100%)',accent:'#5098dd',deco:'crystal'}},
+azure_gallery:{n:'Azure Gallery',i:'🎨',t:'blue',c:'blue',d:'Paintings in every shade of blue — cerulean skies, cobalt seas.',doors:['N','S','W'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true,
+  scene:{bg:'linear-gradient(180deg,#102238 0%,#142c48 50%,#0c1c30 100%)',accent:'#60a0dd',deco:'frames'}},
+cobalt_chamber:{n:'Cobalt Chamber',i:'🧊',t:'blue',c:'blue',d:'Cold radiates like deep ocean. Your breath mists blue.',doors:['N','S'],cost:0,items:[{t:'coin',n:1}],fx:'Blue +1',r:'common',blue:true,
+  scene:{bg:'linear-gradient(180deg,#0c2038 0%,#102848 50%,#081c30 100%)',accent:'#4090cc',deco:'ice'}},
+indigo_library:{n:'Indigo Library',i:'📘',t:'blue',c:'blue',d:'Every book bound in indigo. The ink is still wet.',doors:['N','E'],cost:0,items:[],fx:'Blue +1',r:'common',blue:true,
+  scene:{bg:'linear-gradient(180deg,#101c38 0%,#142448 50%,#0c1830 100%)',accent:'#5070c0',deco:'books'}},
+sapphire_hall:{n:'Sapphire Hall',i:'🔷',t:'blue',c:'blue',d:'Sapphire dust turns footsteps into blue light explosions.',doors:['N','E','S'],cost:1,items:[],fx:'Blue +1, +2 steps',r:'uncommon',blue:true,onDraft(s){addS(s,2);},
+  scene:{bg:'linear-gradient(180deg,#122658 0%,#183068 50%,#0e2048 100%)',accent:'#6098ee',deco:'dust'}},
+cerulean:{n:'Cerulean Room',i:'🦋',t:'blue',c:'blue',d:'Blue butterflies drift between crystal flowers growing from the walls.',doors:['N','S','E'],cost:1,items:[],fx:'Blue +1, +3 steps',r:'uncommon',blue:true,onDraft(s){addS(s,3);},
+  scene:{bg:'linear-gradient(180deg,#102858 0%,#143268 50%,#0c2248 100%)',accent:'#50b0ee',deco:'butterflies'}},
+lapis:{n:'Lapis Lounge',i:'🪻',t:'blue',c:'blue',d:'Crushed lapis lazuli fills the cushions. Peaceful, ancient, restorative.',doors:['N','S'],cost:2,items:[{t:'gem',n:1}],fx:'Blue +1, +4 steps',r:'rare',blue:true,onDraft(s){addS(s,4);},
+  scene:{bg:'linear-gradient(180deg,#142050 0%,#182a68 50%,#101c48 100%)',accent:'#4070c0',deco:'lapis'}},
+library:{n:'Library',i:'📚',t:'rare',c:'gold',d:'Gold-stamped spines catch candlelight. Knowledge rewards the patient.',doors:['N','S','E'],cost:1,items:[],fx:'+1 reroll die',r:'rare',onDraft(s){s.dice++;},
+  scene:{bg:'linear-gradient(180deg,#281c14 0%,#342420 50%,#20180e 100%)',accent:'#d0a048',deco:'candles'}},
+ballroom:{n:'Ballroom',i:'💃',t:'rare',c:'gold',d:'A vast parquet floor beneath a turning crystal chandelier.',doors:['N','S','E','W'],cost:1,items:[],fx:'+2 per wide room',r:'rare',
   onDraft(s){const b=Object.values(s.rooms).filter(r=>{const rd=R[r.id];return rd&&rd.doors&&rd.doors.length>=3;}).length*2;if(b>0)addS(s,b);P.syn.add('ballroom');saveP();},
-  scene:{bg:'linear-gradient(180deg,#1a1618 0%,#241e20 50%,#141014 100%)',accent:'#d0a848',deco:'chandelier'}},
-nursery:{n:'Nursery',i:'🧒',t:'rare',c:'green',d:'Tiny beds line the walls. A music box plays a lullaby you almost remember. Every bedroom you find after this will feel like coming home.',doors:['N','W'],cost:1,items:[],fx:'+5 per Bedroom after',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#221e20 0%,#2e2828 50%,#1c1818 100%)',accent:'#d8b050',deco:'chandelier'}},
+nursery:{n:'Nursery',i:'🧒',t:'rare',c:'green',d:'Tiny beds and a music box playing a lullaby you almost remember.',doors:['N','W'],cost:1,items:[],fx:'+5 per Bedroom after',r:'rare',
   onDraft(s){s.nursery=true;const b=s.beds*5;if(b>0)addS(s,b);},
-  scene:{bg:'linear-gradient(180deg,#141a14 0%,#1c221c 50%,#101410 100%)',accent:'#60a870',deco:'musicbox'}},
-store_room:{n:'Store Room',i:'💰',t:'rare',c:'gold',d:'Supplies hoarded for a day that never came. Crates overflow with gems and coins — a small fortune, waiting patiently in the dark.',doors:[],cost:0,items:[{t:'gem',n:3},{t:'coin',n:3}],r:'rare',dead:true,
-  scene:{bg:'linear-gradient(180deg,#1a1610 0%,#221c14 50%,#14100c 100%)',accent:'#c8a040',deco:'crates'}},
-conservatory:{n:'Conservatory',i:'🎵',t:'rare',c:'gold',d:'A grand piano plays itself softly in the corner. The music shows you more possibilities — your next draft will offer four blueprints instead of three.',doors:['N','E','W'],cost:1,items:[{t:'coin',n:1}],fx:'Next draft: 4 options',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#1c2220 0%,#242c28 50%,#181e1c 100%)',accent:'#68b878',deco:'musicbox'}},
+store_room:{n:'Store Room',i:'💰',t:'rare',c:'gold',d:'Crates overflow with gems and coins — a fortune, waiting in the dark.',doors:[],cost:0,items:[{t:'gem',n:3},{t:'coin',n:3}],r:'rare',dead:true,
+  scene:{bg:'linear-gradient(180deg,#221e18 0%,#2c2820 50%,#1c1812 100%)',accent:'#d0a848',deco:'crates'}},
+conservatory:{n:'Conservatory',i:'🎵',t:'rare',c:'gold',d:'A grand piano plays itself softly. The music reveals more possibilities.',doors:['N','E','W'],cost:1,items:[{t:'coin',n:1}],fx:'Next draft: 4 options',r:'rare',
   onDraft(s){s.bonus4=true;P.syn.add('conserv');saveP();},
-  scene:{bg:'linear-gradient(180deg,#181418 0%,#201a20 50%,#121012 100%)',accent:'#a888b0',deco:'piano'}},
-shelter:{n:'Shelter',i:'🛡️',t:'rare',c:'gold',d:'Thick stone walls, reinforced doors. In this room you feel truly safe. The next three red rooms will not touch you.',doors:['N','S'],cost:1,items:[],fx:'Negates 3 red rooms',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#201c20 0%,#2a2428 50%,#1a1618 100%)',accent:'#b090b8',deco:'piano'}},
+shelter:{n:'Shelter',i:'🛡️',t:'rare',c:'gold',d:'Thick stone walls. In this room you feel truly safe.',doors:['N','S'],cost:1,items:[],fx:'Negates 3 red rooms',r:'rare',
   onDraft(s){s.shield=3;toast('Shelter: 3 red rooms blocked!');P.syn.add('shelter');saveP();},
-  scene:{bg:'linear-gradient(180deg,#141816 0%,#1c201e 50%,#101412 100%)',accent:'#88a090',deco:'stone'}},
-rumpus:{n:'Rumpus Room',i:'🎪',t:'rare',c:'shop',d:'Games and trinkets crowd every surface. Eight coins lie scattered among the toys — this room is pure reward.',doors:['N','E','S'],cost:1,items:[{t:'coin',n:8}],r:'rare',
-  scene:{bg:'linear-gradient(180deg,#1a1614 0%,#221e18 50%,#141010 100%)',accent:'#d0a840',deco:'toys'}},
-wine_cellar:{n:'Wine Cellar',i:'🍷',t:'rare',c:'purple',d:'Dusty bottles line stone alcoves. One rack looks different — newer. It shifts when you lean against it.',doors:[],cost:0,items:[{t:'gem',n:3}],r:'rare',dead:true,
-  interact:{label:'Push the Rack',sec:'wine_passage',txt:'The rack pivots on hidden hinges. A cool draft — another part of the manor.',rew:'Wine Cellar Passage!'},
-  scene:{bg:'linear-gradient(180deg,#180c18 0%,#201420 50%,#100810 100%)',accent:'#8844aa',deco:'bottles'}},
-telescope:{n:'Telescope Room',i:'🔭',t:'discovery',c:'purple',d:'A great brass telescope points through a gap in the ceiling at an impossible sky — constellations that form room shapes.',doors:[],cost:2,items:[],r:'rare',dead:true,
-  interact:{label:'Look Through Telescope',sec:'telescope_bp',txt:'Through the lens: not stars, but a blueprint. A room hidden in the light itself.',rew:'Hidden Blueprint!'},
-  scene:{bg:'linear-gradient(180deg,#0e0a1c 0%,#161028 50%,#0a0814 100%)',accent:'#7744bb',deco:'stars'}},
-greenhouse:{n:'Greenhouse',i:'🌿',t:'discovery',c:'purple',d:'Glass panels fog with condensation. Plants grow too fast here — you can see them move, reaching toward light that comes from the wrong direction.',doors:['N','E'],cost:0,items:[{t:'coin',n:1}],r:'uncommon',
-  interact:{label:'Break the Wall',sec:'greenhouse_wall',txt:'Plaster, not stone. Behind it: a hidden garden path deeper into the manor.',rew:'Greenhouse Passage!'},
-  scene:{bg:'linear-gradient(180deg,#0c160c 0%,#142014 50%,#081008 100%)',accent:'#44aa66',deco:'vines'}},
-fountain:{n:'Fountain Room',i:'⛲',t:'discovery',c:'purple',d:'Crystal water cascades over carved stone. The pool is deeper than it should be — deeper than the floor below. Something hides beneath.',doors:['N','S'],cost:1,items:[],r:'rare',
-  interact:{label:'Drain the Fountain',sec:'fountain_stairs',txt:'Stone steps emerge spiraling down. Hidden all along.',rew:'Fountain Stairs! +8 steps'},
-  scene:{bg:'linear-gradient(180deg,#0c1020 0%,#141830 50%,#080c18 100%)',accent:'#6688cc',deco:'water'}},
-tunnel:{n:'Tunnel',i:'🕳️',t:'discovery',c:'purple',d:'A narrow passage runs behind the walls themselves. From here, you can reach any room you\'ve already found.',doors:['N','S'],cost:2,items:[],fx:'Teleport to any room',r:'rare',onEnter(s){s.tunnelOn=true;},
-  scene:{bg:'linear-gradient(180deg,#0a0810 0%,#100e18 50%,#06040a 100%)',accent:'#6644aa',deco:'passage'}},
-observatory:{n:'Observatory',i:'🌙',t:'discovery',c:'purple',d:'An open dome reveals constellations that map the manor itself. From here, you can see every room you\'ve placed.',doors:['N','E'],cost:2,items:[],fx:'Reveal full map',r:'rare',onDraft(s){s.obsUsed=true;},
-  scene:{bg:'linear-gradient(180deg,#08081a 0%,#0e1028 50%,#040612 100%)',accent:'#8866cc',deco:'dome'}},
-drafting_studio:{n:'Drafting Studio',i:'📐',t:'discovery',c:'purple',d:'Architectural plans cover every table, wall, and floor. Among them — blueprints for rooms not yet in your collection.',doors:['N','W'],cost:2,items:[],fx:'Unlock new room',r:'rare',onDraft(s){unlockRm(s);},
-  scene:{bg:'linear-gradient(180deg,#12101a 0%,#1a1624 50%,#0e0c14 100%)',accent:'#7750b0',deco:'plans'}},
-attic:{n:'Attic',i:'🏚️',t:'discovery',c:'purple',d:'Dust and memories. Trunks overflow with moth-eaten clothes and forgotten treasures. Something here feels warm — impossibly warm.',doors:[],cost:3,items:[],r:'rare',dead:true,
-  interact:{label:'Search the Trunks',sec:'attic_key',txt:'Among moth-eaten clothes: a strange key, warm to the touch.',rew:'The Warm Key!'},
-  scene:{bg:'linear-gradient(180deg,#14100c 0%,#1c1614 50%,#0e0a08 100%)',accent:'#a08060',deco:'trunks'}},
-utility:{n:'Utility Closet',i:'🔧',t:'utility',c:'gold',d:'A breaker box hums with quiet authority. Each switch controls something deeper — power over the red rooms themselves.',doors:[],cost:1,items:[],r:'rare',dead:true,
-  interact:{label:'Flip Breakers',sec:null,txt:'Click. Click. Click. Red rooms lose their power this run.',rew:'Red rooms disabled!'},onInteract(s){s.redOff=true;},
-  scene:{bg:'linear-gradient(180deg,#141618 0%,#1a1e22 50%,#101214 100%)',accent:'#80a090',deco:'switches'}},
-gift_shop:{n:'Gift Shop',i:'🎁',t:'shop',c:'shop',d:'Glass cases display curious treasures. Everything has a price — and everything is worth it, if you can afford it.',doors:['N','E','S'],cost:1,items:[],fx:'Buy with coins',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#1c201e 0%,#242a28 50%,#181c1a 100%)',accent:'#90a898',deco:'stone'}},
+rumpus:{n:'Rumpus Room',i:'🎪',t:'rare',c:'shop',d:'Games and trinkets. Eight coins lie scattered among the toys.',doors:['N','E','S'],cost:1,items:[{t:'coin',n:8}],r:'rare',
+  scene:{bg:'linear-gradient(180deg,#221e18 0%,#2c2820 50%,#1c1614 100%)',accent:'#d8b048',deco:'toys'}},
+wine_cellar:{n:'Wine Cellar',i:'🍷',t:'rare',c:'purple',d:'Dusty bottles line stone alcoves. One rack looks newer — it shifts.',doors:[],cost:0,items:[{t:'gem',n:3}],r:'rare',dead:true,
+  scene:{bg:'linear-gradient(180deg,#200e20 0%,#2c1a2c 50%,#180c18 100%)',accent:'#9050b0',deco:'bottles'}},
+telescope:{n:'Telescope Room',i:'🔭',t:'discovery',c:'purple',d:'A brass telescope points at impossible constellations that form room shapes.',doors:[],cost:2,items:[],r:'rare',dead:true,
+  scene:{bg:'linear-gradient(180deg,#140e28 0%,#1c1438 50%,#100a20 100%)',accent:'#8050c0',deco:'stars'}},
+greenhouse:{n:'Greenhouse',i:'🌿',t:'discovery',c:'purple',d:'Glass panels fog. Plants grow too fast — reaching toward wrong-direction light.',doors:['N','E'],cost:0,items:[{t:'coin',n:1}],r:'uncommon',
+  scene:{bg:'linear-gradient(180deg,#141e14 0%,#1c281c 50%,#101810 100%)',accent:'#50b870',deco:'vines'}},
+fountain:{n:'Fountain Room',i:'⛲',t:'discovery',c:'purple',d:'Crystal water cascades. The pool is deeper than it should be.',doors:['N','S'],cost:1,items:[],r:'rare',
+  scene:{bg:'linear-gradient(180deg,#141828 0%,#1c2238 50%,#101420 100%)',accent:'#7098d0',deco:'water'}},
+tunnel:{n:'Tunnel',i:'🕳️',t:'discovery',c:'purple',d:'A passage behind the walls. From here, reach any room you\'ve found.',doors:['N','S'],cost:2,items:[],fx:'Teleport to any room',r:'rare',onEnter(s){s.tunnelOn=true;},
+  scene:{bg:'linear-gradient(180deg,#0e0c18 0%,#161220 50%,#0a080e 100%)',accent:'#7050b0',deco:'passage'}},
+observatory:{n:'Observatory',i:'🌙',t:'discovery',c:'purple',d:'An open dome reveals constellations mapping the manor itself.',doors:['N','E'],cost:2,items:[],fx:'Reveal full map',r:'rare',onDraft(s){s.obsUsed=true;},
+  scene:{bg:'linear-gradient(180deg,#0e0c22 0%,#141230 50%,#0a081a 100%)',accent:'#9070d0',deco:'dome'}},
+drafting_studio:{n:'Drafting Studio',i:'📐',t:'discovery',c:'purple',d:'Architectural plans everywhere — blueprints for rooms not yet in your collection.',doors:['N','W'],cost:2,items:[],fx:'Unlock new room',r:'rare',onDraft(s){unlockRm(s);},
+  scene:{bg:'linear-gradient(180deg,#181422 0%,#221e2c 50%,#141018 100%)',accent:'#8058b8',deco:'plans'}},
+attic:{n:'Attic',i:'🏚️',t:'discovery',c:'purple',d:'Dust and memories. Trunks overflow. Something here feels impossibly warm.',doors:[],cost:3,items:[],r:'rare',dead:true,
+  scene:{bg:'linear-gradient(180deg,#1c1810 0%,#262218 50%,#16120c 100%)',accent:'#a88868',deco:'trunks'}},
+utility:{n:'Utility Closet',i:'🔧',t:'utility',c:'gold',d:'A breaker box hums. Each switch controls the red rooms.',doors:[],cost:1,items:[],r:'rare',dead:true,
+  scene:{bg:'linear-gradient(180deg,#1c1e20 0%,#242628 50%,#181a1c 100%)',accent:'#88a898',deco:'switches'}},
+gift_shop:{n:'Gift Shop',i:'🎁',t:'shop',c:'shop',d:'Glass cases display curious treasures. Everything has a price.',doors:['N','E','S'],cost:1,items:[],fx:'Buy with coins',r:'rare',
   isShop:true,shop:[{n:'Gem',i:'💎',cost:6,give:{t:'gem',n:1}},{n:'Key',i:'🔑',cost:4,give:{t:'key',n:1}},{n:'Steps ×5',i:'🥾',cost:8,give:{t:'steps',n:5}}],
-  scene:{bg:'linear-gradient(180deg,#101a14 0%,#18241c 50%,#0c140e 100%)',accent:'#44aa66',deco:'cases'}},
-locksmith:{n:'Locksmith',i:'🔐',t:'shop',c:'shop',d:'A hunched figure works by candlelight, cutting keys from blanks. They don\'t look up, but they know exactly what you need.',doors:['N','S'],cost:1,items:[],fx:'Buy keys',r:'rare',
+  scene:{bg:'linear-gradient(180deg,#18221c 0%,#202c24 50%,#141c18 100%)',accent:'#50b870',deco:'cases'}},
+locksmith:{n:'Locksmith',i:'🔐',t:'shop',c:'shop',d:'A hunched figure works by candlelight, cutting keys from blanks.',doors:['N','S'],cost:1,items:[],fx:'Buy keys',r:'rare',
   isShop:true,shop:[{n:'Key',i:'🔑',cost:3,give:{t:'key',n:1}},{n:'Key ×2',i:'🔑🔑',cost:5,give:{t:'key',n:2}}],
-  scene:{bg:'linear-gradient(180deg,#141210 0%,#1c1816 50%,#0e0c0a 100%)',accent:'#b09060',deco:'candle'}},
-trophy_room:{n:'Trophy Room',i:'🏆',t:'special',c:'gold',d:'Your accomplishments hang on every wall — each secret you\'ve discovered grants you another step of endurance.',doors:['N','S'],cost:5,items:[],fx:'+1 step per secret',r:'legendary',
+  scene:{bg:'linear-gradient(180deg,#1c1a18 0%,#262220 50%,#161412 100%)',accent:'#b89868',deco:'candle'}},
+trophy_room:{n:'Trophy Room',i:'🏆',t:'special',c:'gold',d:'Your accomplishments on every wall — each secret grants more endurance.',doors:['N','S'],cost:5,items:[],fx:'+1 step per secret',r:'legendary',
   onDraft(s){addS(s,P.disc.size);P.syn.add('trophy');saveP();},
-  scene:{bg:'linear-gradient(180deg,#1a1810 0%,#242018 50%,#14120c 100%)',accent:'#d0a838',deco:'trophies'}},
-throne_room:{n:'Throne Room',i:'👑',t:'special',c:'gold',d:'A golden throne stands at the far end, empty and waiting. When eight blue rooms align, the seal will break and the throne will ascend.',doors:['N','S'],cost:3,items:[],fx:'Blue streak ≥8 = seal',r:'legendary',
+  scene:{bg:'linear-gradient(180deg,#222018 0%,#2c2820 50%,#1c1a12 100%)',accent:'#d8b040',deco:'trophies'}},
+throne_room:{n:'Throne Room',i:'👑',t:'special',c:'gold',d:'A golden throne stands empty. When eight blue rooms align, the seal breaks.',doors:['N','S'],cost:3,items:[],fx:'Blue streak ≥8 = seal',r:'legendary',
   onEnter(s){if(s.blueStreak>=8)triggerSeal(s);},
-  scene:{bg:'linear-gradient(180deg,#1a1610 0%,#282018 50%,#14100c 100%)',accent:'#e0b830',deco:'throne'}},
-vault:{n:'Vault',i:'🔐',t:'special',c:'gold',d:'Seven locks guard a door of black iron. Behind it — the final staircase. But only those who have uncovered enough secrets may enter.',doors:[],cost:3,items:[{t:'coin',n:40}],fx:'5+ secrets to open',r:'legendary',dead:true,
-  interact_fn(p){return p.disc.size>=5?{label:'Open the Vault',sec:'vault_opened',txt:'Locks click open. Inside: a staircase spiraling toward light.',rew:'Path to Room 46!'}
-  :{label:'Try the Door',sec:null,txt:`Seven locks. Keys for ${p.disc.size}. Need more secrets.`,rew:`${p.disc.size}/5 secrets`};},
-  scene:{bg:'linear-gradient(180deg,#100c08 0%,#1a1410 50%,#0c0806 100%)',accent:'#b89030',deco:'vault'}},
-master_bed:{n:'Master Bedroom',i:'👑',t:'special',c:'green',d:'The grandest chamber in the manor. A canopy of blue silk, a bed carved from ancient oak. Each room you\'ve found has led to this — and each one makes you stronger.',doors:['N','S'],cost:2,items:[],fx:'+1 step per room',r:'legendary',
+  scene:{bg:'linear-gradient(180deg,#222018 0%,#302820 50%,#1c1810 100%)',accent:'#e8c038',deco:'throne'}},
+vault:{n:'Vault',i:'🔐',t:'special',c:'gold',d:'Seven locks guard black iron. Behind it — the final staircase.',doors:[],cost:3,items:[{t:'coin',n:40}],fx:'5+ secrets to open',r:'legendary',dead:true,
+  scene:{bg:'linear-gradient(180deg,#181410 0%,#222018 50%,#14100c 100%)',accent:'#c09838',deco:'vault'}},
+master_bed:{n:'Master Bedroom',i:'👑',t:'special',c:'green',d:'The grandest chamber. A canopy of blue silk, a bed of ancient oak.',doors:['N','S'],cost:2,items:[],fx:'+1 step per room',r:'legendary',
   onDraft(s){s.beds++;addS(s,Object.keys(s.rooms).length);if(s.nursery){addS(s,5);toast('Nursery + Master!');}},
-  scene:{bg:'linear-gradient(180deg,#14181c 0%,#1c2228 50%,#0e1218 100%)',accent:'#5888a8',deco:'canopy'}},
-hidden_room:{n:'The Hidden Room',i:'✨',t:'special',c:'gold',d:'Room 46. It exists outside the floorplan. Light pours from everywhere and nowhere. The manor is yours.',doors:[],fx:'You inherited the manor.',r:'legendary',cost:0,items:[],dead:true,
-  scene:{bg:'linear-gradient(180deg,#1a1810 0%,#2a2418 50%,#1a1610 100%)',accent:'#e8c040',deco:'light'}},
+  scene:{bg:'linear-gradient(180deg,#1c2028 0%,#242a34 50%,#161a20 100%)',accent:'#6098b0',deco:'canopy'}},
+hidden_room:{n:'The Hidden Room',i:'✨',t:'special',c:'gold',d:'Room 46. Light pours from everywhere. The manor is yours.',doors:[],fx:'You inherited the manor.',r:'legendary',cost:0,items:[],dead:true,
+  scene:{bg:'linear-gradient(180deg,#222018 0%,#342c20 50%,#222018 100%)',accent:'#f0d048',deco:'light'}},
 };
 
-const SECRETS={chapel_glass:{t:'Stained Glass',d:'The chapel glass conceals a pattern.'},wine_passage:{t:"Sommelier's Exit",d:'Behind the finest vintage — rooms that should not connect.'},telescope_bp:{t:"Stargazer's Blueprint",d:'A room visible only through the telescope.'},greenhouse_wall:{t:'Garden Path',d:'Behind the greenhouse wall, impossible flowers.'},fountain_stairs:{t:'Fountain Stairs',d:'Steps beneath the water.'},attic_key:{t:'The Warm Key',d:'A key that remembers warmth.'},vault_opened:{t:'The Vault Opens',d:'Seven locks, seven secrets. The final staircase.'},seal_unlocked:{t:'The Blue Seal',d:'Eight blue rooms. The throne ascends.'},room46:{t:'Room 46',d:'Outside the floorplan. The manor is yours.'},dungeon_wall:{t:'Dungeon Passage',d:'Loose stones behind the chains.'}};
-const SYNS={nursery_bed:{t:'Nursery + Beds',d:'+5 steps per bedroom after nursery.'},ballroom:{t:'Ballroom + Wide',d:'+2 per 3+ door room.'},shelter:{t:'Shelter vs Red',d:'Negates 3 red penalties.'},study_reveal:{t:'Study Insight',d:'Reveals the gem-cost card.'},conserv:{t:'Conservatory',d:'Next draft: 4 options.'},trophy:{t:'Trophy + Secrets',d:'+1 step per discovery.'}};
+// ═══ ROOM EVENTS — every room can trigger a choice ═══
+const EV={
+common:[
+  {t:'Dust and Echoes',d:'Something glints under a loose floorboard.',ch:[
+    {l:'Pry it up',h:'+2🪙 but costs 1 step',cls:'risky',fx(s){s.coins+=2;addS(s,-1);return'+2🪙, -1🥾';}},
+    {l:'Leave it',h:'Safe — no cost',cls:'safe',fx(s){return'You move on carefully.';}}
+  ]},
+  {t:'Strange Sound',d:'A faint hum comes from behind the wall. It could be machinery — or something else.',ch:[
+    {l:'Investigate',h:'50% chance: find 1💎 or lose 2 steps',cls:'risky',fx(s){if(s.rng()>.5){s.gems++;return'Found a gem glinting in a crack! +1💎';}else{addS(s,-2);return'A dead end. You wasted time. -2🥾';}}},
+    {l:'Ignore it',h:'No risk',cls:'safe',fx(s){return'Better safe than sorry.';}}
+  ]},
+  {t:'Hidden Compartment',d:'Your hand brushes a panel that clicks. A secret compartment slides open.',ch:[
+    {l:'Reach inside',h:'+1🪙 or +1💎 (random)',cls:'',fx(s){if(s.rng()>.6){s.gems++;return'A gem! +1💎';}else{s.coins++;return'A coin. +1🪙';}}},
+    {l:'Close it carefully',h:'Gain 1 step from caution',cls:'safe',fx(s){addS(s,1);return'Your care is rewarded. +1🥾';}}
+  ]},
+  {t:'Flickering Light',d:'A candle sputters on a shelf. Its flame casts dancing shadows that seem to point somewhere.',ch:[
+    {l:'Follow the shadows',h:'Peek at next draft',cls:'',fx(s){s.peekNext=true;return'The shadows show you what lies ahead. Next draft reveals costs.';}},
+    {l:'Take the candle',h:'+1🪙',cls:'safe',fx(s){s.coins++;return'The brass candlestick is worth something. +1🪙';}}
+  ]},
+],
+blue:[
+  {t:'Azure Resonance',d:'The blue energy here pulses in time with your heartbeat. You could channel it.',ch:[
+    {l:'Channel the energy',h:'+2🥾 but costs 1💎',cls:'risky',fx(s){if(s.gems>0){s.gems--;addS(s,2);return'The energy flows through you. +2🥾';}else{return'No gems to channel. The energy fades.';}}},
+    {l:'Absorb slowly',h:'+1🥾 for free',cls:'safe',fx(s){addS(s,1);return'A gentle warmth. +1🥾';}}
+  ]},
+  {t:'Crystal Growth',d:'Blue crystals sprout from the walls, reaching toward you. They pulse with inner light.',ch:[
+    {l:'Harvest a crystal',h:'+1💎 but breaks blue streak',cls:'risky',fx(s){s.gems++;s.blueStreak=Math.max(0,s.blueStreak-1);return'The crystal snaps free. +1💎, but the blue resonance dims.';}},
+    {l:'Let them grow',h:'Blue streak +1 bonus',cls:'safe',fx(s){s.blueStreak=Math.min(8,s.blueStreak+1);return'The crystals hum louder. Your blue connection deepens.';}}
+  ]},
+],
+red:[
+  {t:'Shadows Move',d:'Something watches from the corner. You feel its presence — hostile but patient.',ch:[
+    {l:'Stand firm',h:'Costs nothing, keeps your dignity',cls:'safe',fx(s){return'It retreats into the dark. For now.';}},
+    {l:'Strike first',h:'-2🥾 but find 1🔑',cls:'risky',fx(s){addS(s,-2);s.keys++;return'You lash out and find a key in the wreckage. -2🥾, +1🔑';}}
+  ]},
+  {t:'The Price of Power',d:'A crimson glow pulses on a pedestal. Raw energy — dangerous but valuable.',ch:[
+    {l:'Take the power',h:'+4🪙 but -3🥾',cls:'risky',fx(s){s.coins+=4;addS(s,-3);return'Pain surges through you, but your pockets are heavier. +4🪙, -3🥾';}},
+    {l:'Destroy it',h:'+2🥾 from peace of mind',cls:'safe',fx(s){addS(s,2);return'The glow dies. You feel lighter. +2🥾';}}
+  ]},
+],
+discovery:[
+  {t:'Ancient Inscription',d:'Words carved deep into stone, in a language that shifts as you read. You almost understand.',ch:[
+    {l:'Study the inscription',h:'Reveal a secret about this room',cls:'',fx(s){return'The words rearrange: "The manor remembers those who listen." Your understanding deepens.';}},
+    {l:'Copy it down',h:'Journal entry + 1🪙',cls:'safe',fx(s){s.coins++;return'You sketch the symbols. They might be useful. +1🪙';}}
+  ]},
+],
+rare:[
+  {t:'Forgotten Cache',d:'Behind a loose stone, a leather pouch sits covered in dust. It\'s heavy.',ch:[
+    {l:'Open it greedily',h:'+3🪙 but alert the manor',cls:'risky',fx(s){s.coins+=3;s.archHide=true;return'+3🪙, but the manor noticed. Next draft hides an option.';}},
+    {l:'Open it carefully',h:'+1🪙 +1💎, safe',cls:'safe',fx(s){s.coins++;s.gems++;return'Patience pays. +1🪙, +1💎';}}
+  ]},
+],
+special:[
+  {t:'The Manor Speaks',d:'The walls hum. Portraits turn to face you. A voice whispers your name.',ch:[
+    {l:'Listen',h:'Story revelation',cls:'',fx(s){s.loreCount=(s.loreCount||0)+1;return'"You are not the first to walk these halls. But you may be the last who remembers."';}},
+    {l:'Answer back',h:'Bold — unknown outcome',cls:'risky',fx(s){if(s.rng()>.4){addS(s,3);return'"Brave." The manor rewards your courage. +3🥾';}else{addS(s,-2);return'"Foolish." The manor punishes your presumption. -2🥾';}}}
+  ]},
+],
+};
+// Room-specific events (override category)
+const EV_ROOM={
+chapel:{t:'Stained Glass Puzzle',d:'The glass panels shift as you touch them. A pattern emerges — solve it?',ch:[
+  {l:'Study the pattern',h:'Puzzle! +1 starting 🔑 forever',cls:'',fx(s){P.disc.add('chapel_glass');P.allow.keys++;P.puzzles.add('chapel');saveP();return'The pattern clicks. You understand the chapel\'s secret. +1🔑 starting forever!';}},
+  {l:'Pray instead',h:'+2🥾',cls:'safe',fx(s){addS(s,2);return'Peace fills you. +2🥾';}}
+]},
+wine_cellar:{t:'Push the Rack',d:'One wine rack looks newer. It shifts when you lean against it.',ch:[
+  {l:'Push it',h:'Discover a secret passage',cls:'',fx(s){P.disc.add('wine_passage');saveP();return'The rack pivots on hidden hinges. A cool draft — another part of the manor!';}},
+  {l:'Take a bottle instead',h:'+2🪙',cls:'safe',fx(s){s.coins+=2;return'A fine vintage. +2🪙';}}
+]},
+telescope:{t:'Look Through the Telescope',d:'The brass eyepiece is cold against your skin. Stars — no, blueprints.',ch:[
+  {l:'Study the blueprints',h:'Unlock a new room type',cls:'',fx(s){P.disc.add('telescope_bp');unlockRm(s);saveP();return'A hidden blueprint! New room added to your deck.';}},
+  {l:'Chart the stars',h:'+1💎',cls:'safe',fx(s){s.gems++;return'The star chart is valuable. +1💎';}}
+]},
+greenhouse:{t:'Break the Wall',d:'Behind the fog — plaster, not stone. Something lies beyond.',ch:[
+  {l:'Break through',h:'Discover a secret garden path',cls:'risky',fx(s){P.disc.add('greenhouse_wall');saveP();addS(s,-1);return'Plaster crumbles. A hidden path! -1🥾, but worth it.';}},
+  {l:'Tend the plants',h:'+1🪙',cls:'safe',fx(s){s.coins++;return'The plants yield a small harvest. +1🪙';}}
+]},
+fountain:{t:'Drain the Fountain',d:'The pool is impossibly deep. You see steps beneath the surface.',ch:[
+  {l:'Drain it',h:'+8🥾! Discover hidden stairs',cls:'',fx(s){P.disc.add('fountain_stairs');addS(s,8);saveP();return'Stone steps emerge spiraling down. Hidden all along! +8🥾';}},
+  {l:'Toss a coin in',h:'Wish for luck (better next draft)',cls:'safe',fx(s){s.coins--;s.bonus4=true;return'The water shimmers. Your next draft will show 4 options.';}}
+]},
+attic:{t:'Search the Trunks',d:'Moth-eaten clothes overflow from ancient trunks. Something warm hides within.',ch:[
+  {l:'Dig deep',h:'Find a mysterious warm key',cls:'',fx(s){P.disc.add('attic_key');s.keys++;saveP();return'Among the clothes: a key that pulses with warmth. +1🔑';}},
+  {l:'Take the clothes',h:'+1🪙',cls:'safe',fx(s){s.coins++;return'Some of these fabrics are still valuable. +1🪙';}}
+]},
+utility:{t:'Flip the Breakers',d:'The breaker box hums. Each switch controls something deeper in the manor.',ch:[
+  {l:'Flip them all',h:'Disable red room penalties this run!',cls:'',fx(s){s.redOff=true;return'Click. Click. Click. The red rooms lose their power.';}},
+  {l:'Flip one',h:'+1 shield (blocks 1 red room)',cls:'safe',fx(s){s.shield++;return'One breaker trips. Partial protection. +1 shield.';}}
+]},
+vault:{t:'The Seven Locks',d:'Seven locks guard a door of black iron. You have '+0+' secrets.',ch:[
+  {l:'Try the door',h:'Need 5+ secrets',cls:'',fx(s){if(P.disc.size>=5){P.disc.add('vault_opened');P.vaultO=true;saveP();return'Locks click open. Inside: a staircase spiraling toward light!';}return`${P.disc.size}/5 secrets. Not enough. The locks hold firm.`;}},
+  {l:'Search around it',h:'+2🪙',cls:'safe',fx(s){s.coins+=2;return'Coins scattered near the door. +2🪙';}}
+]},
+};
+
+const SECRETS={chapel_glass:{t:'Stained Glass',d:'The chapel glass conceals a pattern.'},wine_passage:{t:"Sommelier's Exit",d:'Behind the finest vintage — rooms that should not connect.'},telescope_bp:{t:"Stargazer's Blueprint",d:'A room visible only through the telescope.'},greenhouse_wall:{t:'Garden Path',d:'Behind the greenhouse wall, impossible flowers.'},fountain_stairs:{t:'Fountain Stairs',d:'Steps beneath the water.'},attic_key:{t:'The Warm Key',d:'A key that remembers warmth.'},vault_opened:{t:'The Vault Opens',d:'Seven locks, seven secrets. The final staircase.'},seal_unlocked:{t:'The Blue Seal',d:'Eight blue rooms. The throne ascends.'},room46:{t:'Room 46',d:'Outside the floorplan. The manor is yours.'}};
+const SYNS={nursery_bed:{t:'Nursery + Beds',d:'+5 steps per bedroom after nursery.'},ballroom:{t:'Ballroom + Wide',d:'+2 per 3+ door room.'},shelter:{t:'Shelter vs Red',d:'Negates 3 red penalties.'},study_reveal:{t:'Study Insight',d:'Reveals the hidden card.'},conserv:{t:'Conservatory',d:'Next draft: 4 options.'},trophy:{t:'Trophy + Secrets',d:'+1 step per discovery.'}};
 
 const DECK_BASE=['den','den','spare','spare','hall_ns','hall_ew','pantry','mudroom','crossroads','gallery','vestibule','nook','closet',
 'kitchen','bedroom','bedroom','parlor','study','sitting','garage',
@@ -517,8 +660,10 @@ const DIR_ARROW={N:'↑',S:'↓',E:'→',W:'←'};
 let P=loadP();
 function loadP(){try{const d=JSON.parse(localStorage.getItem('bm2'));if(d)return{disc:new Set(d.disc||[]),syn:new Set(d.syn||[]),unlocked:new Set(d.unlocked||[]),puzzles:new Set(d.puzzles||[]),
 runs:d.runs||0,bestR:d.bestR||0,totalR:d.totalR||0,vaultO:d.vaultO||false,sealU:d.sealU||false,found46:d.found46||false,
-allow:{gems:d.allow?.gems||0,coins:d.allow?.coins||0,keys:d.allow?.keys||0}};}catch(e){}
-return{disc:new Set,syn:new Set,unlocked:new Set,puzzles:new Set,runs:0,bestR:0,totalR:0,vaultO:false,sealU:false,found46:false,allow:{gems:0,coins:0,keys:0}};}
+savings:d.savings||0,
+allow:{gems:d.allow?.gems||0,coins:d.allow?.coins||0,keys:d.allow?.keys||0,steps:d.allow?.steps||0}};}catch(e){}
+return{disc:new Set,syn:new Set,unlocked:new Set,puzzles:new Set,runs:0,bestR:0,totalR:0,vaultO:false,sealU:false,found46:false,savings:0,
+allow:{gems:0,coins:0,keys:0,steps:0}};}
 function saveP(){try{localStorage.setItem('bm2',JSON.stringify({...P,disc:[...P.disc],syn:[...P.syn],unlocked:[...P.unlocked],puzzles:[...P.puzzles]}));}catch(e){}}
 
 let S=null,prevScr='title',hintShown={};
@@ -553,13 +698,20 @@ function draw(ct,entrySide){
   let s1=pick(common.length?common:nonDead);res.push(s1);used.add(s1);
   let s2=pick(nonDead);let att=0;while((used.has(s2)||s2===s1)&&att<30){s2=pick(nonDead);att++;}
   res.push(s2);used.add(s2);
-  const hasMulti=res.some(id=>{const rm=R[id];return!rm.dead&&rm.doors.filter(d=>d!==entrySide).length>=1;});
-  if(!hasMulti&&multiDoor.length>0){
-    let s3=pick(multiDoor);att=0;while(used.has(s3)&&att<30){s3=pick(multiDoor);att++;}
+  // Guarantee at least one free option
+  const hasFree=res.some(id=>R[id].cost===0);
+  if(!hasFree&&common.length>0){
+    let s3=pick(common);att=0;while(used.has(s3)&&att<30){s3=pick(common);att++;}
     res.push(s3);
   } else {
-    let s3=pick(prem.length?prem:nonDead);att=0;while(used.has(s3)&&att<30){s3=pick(prem.length?prem:nonDead);att++;}
-    res.push(s3);
+    const hasMulti=res.some(id=>{const rm=R[id];return!rm.dead&&rm.doors.filter(d=>d!==entrySide).length>=1;});
+    if(!hasMulti&&multiDoor.length>0){
+      let s3=pick(multiDoor);att=0;while(used.has(s3)&&att<30){s3=pick(multiDoor);att++;}
+      res.push(s3);
+    } else {
+      let s3=pick(prem.length?prem:nonDead);att=0;while(used.has(s3)&&att<30){s3=pick(prem.length?prem:nonDead);att++;}
+      res.push(s3);
+    }
   }
   for(let i=res.length;i<ct;i++){
     let p=pick(av);att=0;while(used.has(p)&&att<20){p=pick(av);att++;}
@@ -574,7 +726,13 @@ function unlockRm(s){
   if(cand.length>0){const p=cand[Math.floor(s.rng()*cand.length)];P.unlocked.add(p);saveP();toast(R[p].n+' added to deck!');}
 }
 
-function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2400);}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2800);}
+function floatNum(txt,col,x,y){
+  const el=document.createElement('div');el.className='float-num';el.textContent=txt;el.style.color=col;
+  el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+
 function collectAll(rm){
   if(!rm.items||!rm.items.length)return;
   let msg=[];
@@ -589,6 +747,58 @@ function collectAll(rm){
 }
 function bumpEl(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');}
 
+// ═══ EVENT SYSTEM ═══
+function getEvent(roomId){
+  if(EV_ROOM[roomId])return EV_ROOM[roomId];
+  const d=R[roomId];if(!d)return null;
+  let pool=EV.common;
+  if(d.blue)pool=EV.blue;
+  else if(d.red)pool=EV.red;
+  else if(d.t==='discovery')pool=EV.discovery;
+  else if(d.t==='rare'||d.t==='special')pool=EV.rare||EV.common;
+  else if(d.t==='special')pool=EV.special;
+  if(!pool||!pool.length)pool=EV.common;
+  return pool[Math.floor(S.rng()*pool.length)];
+}
+
+function showEvent(roomId){
+  const ev=getEvent(roomId);if(!ev)return false;
+  const d=R[roomId];
+  // Update vault event description dynamically
+  if(roomId==='vault')ev.d='Seven locks guard a door of black iron. You have '+P.disc.size+' secrets.';
+  document.getElementById('ev-i').textContent=d.i;
+  document.getElementById('ev-t').textContent=ev.t;
+  document.getElementById('ev-d').textContent=ev.d;
+  document.getElementById('ev-r').textContent='';
+  const cEl=document.getElementById('ev-choices');
+  let h='';
+  ev.ch.forEach((c,i)=>{
+    h+=`<div class="ev-ch ${c.cls||''}" onclick="handleChoice(${i})">
+      <div class="ev-ch-label">${c.l}</div>
+      <div class="ev-ch-hint">${c.h}</div>
+    </div>`;
+  });
+  cEl.innerHTML=h;
+  S._curEvent=ev;
+  document.getElementById('ev').classList.add('on');
+  return true;
+}
+
+window.handleChoice=function(idx){
+  if(!S||!S._curEvent)return;
+  const ch=S._curEvent.ch[idx];if(!ch)return;
+  const result=ch.fx(S);
+  document.getElementById('ev-choices').innerHTML='';
+  document.getElementById('ev-r').textContent=result;
+  document.getElementById('ev-r').style.color=
+    result.includes('+')?'var(--green)':result.includes('-')?'var(--red)':'var(--gold)';
+  // Show continue button
+  const cEl=document.getElementById('ev-choices');
+  cEl.innerHTML='<div class="ev-ch safe" onclick="G.evOk()" style="text-align:center"><div class="ev-ch-label">Continue</div></div>';
+  S._curEvent=null;
+  hud();
+};
+
 const G={
 scr(id){document.querySelectorAll('.scr').forEach(s=>{s.classList.remove('on');s.style.display='none';});
   const el=document.getElementById(id);if(el){el.style.display='flex';requestAnimationFrame(()=>el.classList.add('on'));}},
@@ -600,26 +810,56 @@ startIntro(){
 
 start(){
   P.runs++;saveP();
-  S={steps:30,gems:P.allow.gems,coins:P.allow.coins,keys:P.allow.keys,
+  const baseSteps=30+P.allow.steps;
+  S={steps:baseSteps,maxSteps:baseSteps,gems:P.allow.gems,coins:P.allow.coins+Math.floor(P.savings/2),keys:P.allow.keys,
     pos:{x:2,y:0},rooms:{},blueStreak:0,dice:1,
     nursery:false,beds:0,shield:0,redOff:false,archHide:false,
-    studyRev:false,bonus4:false,tunnelOn:false,obsUsed:false,
+    studyRev:false,bonus4:false,tunnelOn:false,obsUsed:false,peekNext:false,
     draftPos:null,draftEntry:null,draftOpts:[],
-    roomsPlaced:0,secsRun:0,rng:rng32(daySeed()+P.runs)};
+    roomsPlaced:0,secsRun:0,coinsEarned:0,gemsEarned:0,eventsResolved:0,
+    loreCount:0,endedEarly:false,_curEvent:null,
+    rng:rng32(daySeed()+P.runs)};
   const fk=pk(S.pos);
-  S.rooms[fk]={id:'foyer',items:[],_vis:true,_int:false,_collected:{},actualDoors:['N','S','E','W']};S.roomsPlaced=1;
+  S.rooms[fk]={id:'foyer',items:[],_vis:true,_int:false,_ev:true,_collected:{},actualDoors:['N','S','E','W']};S.roomsPlaced=1;
   hintShown={};
   G.scr('game');render();
+  if(P.runs<=2){setTimeout(()=>toast('Tap a golden door to explore'),600);}
 },
 
 reroll(){if(!S||S.gems<1||S.dice<=0)return;S.gems--;S.dice--;
   S.draftOpts=draw(S.draftOpts.length,S.draftEntry);draftUI();hud();},
 
-evOk(){document.getElementById('ev').classList.remove('on');render();},
+evOk(){document.getElementById('ev').classList.remove('on');
+  if(S&&S.steps<=0){endRun(false);return;}
+  render();},
 
 toggleMap(){const m=document.getElementById('mmap');if(m.classList.contains('on')){m.classList.remove('on');}else{m.classList.add('on');renderMap();}},
 
 closeShop(){document.getElementById('shop').classList.remove('on');},
+
+endDayConfirm(){
+  if(!S||S.roomsPlaced<2)return;
+  const bonus=Math.max(0,S.roomsPlaced-5);
+  const banked=Math.floor(S.coins*0.5);
+  document.getElementById('ed-d').textContent=
+    `You've explored ${S.roomsPlaced} rooms today. Rest now to bank your gains, or keep pushing deeper.`;
+  document.getElementById('ed-stats').innerHTML=
+    `<div class="ed-r">Rooms explored: <b>${S.roomsPlaced}</b></div>
+     <div class="ed-r">Current coins: <b>${S.coins}🪙</b></div>
+     <div class="ed-r">Events resolved: <b>${S.eventsResolved}</b></div>`;
+  document.getElementById('ed-bonus').innerHTML=
+    `Banking bonus: <b>+${banked}🪙</b> savings · <b>+${bonus}</b> starting steps tomorrow`;
+  document.getElementById('endday').classList.add('on');
+},
+endDayEarly(){
+  document.getElementById('endday').classList.remove('on');
+  S.endedEarly=true;
+  const bonus=Math.max(0,S.roomsPlaced-5);
+  P.allow.steps+=bonus;
+  P.savings+=Math.floor(S.coins*0.5);
+  endRun(true);
+},
+endDayCancel(){document.getElementById('endday').classList.remove('on');},
 
 journal(){prevScr=document.querySelector('.scr.on')?.id||'title';G.scr('journal');G.jTab('secrets',document.querySelector('[data-j="secrets"]'));},
 jClose(){G.scr(prevScr);},
@@ -627,11 +867,12 @@ jTab(tab,btn){document.querySelectorAll('.jt').forEach(t=>t.classList.remove('on
   const el=document.getElementById('j-b');
   if(tab==='secrets'){let h='';for(const[id,s]of Object.entries(SECRETS)){const f=P.disc.has(id);h+=`<div class="je ${f?'':'lk'}"><div class="je-t">${f?s.t:'???'}</div><div class="je-d">${f?s.d:'Not yet discovered.'}</div></div>`;}el.innerHTML=h;}
   else if(tab==='combos'){let h='';for(const[id,s]of Object.entries(SYNS)){const f=P.syn.has(id);h+=`<div class="je ${f?'':'lk'}"><div class="je-t">${f?s.t:'???'}</div><div class="je-d">${f?s.d:'Not yet discovered.'}</div></div>`;}el.innerHTML=h;}
-  else{el.innerHTML=`<div class="je"><div class="je-t">Days Survived</div><div class="je-d" style="color:var(--gold);font-size:18px;font-family:'Cinzel',serif">${P.runs}</div></div>
-  <div class="je"><div class="je-t">Secrets Found</div><div class="je-d" style="color:var(--purple);font-size:18px;font-family:'Cinzel',serif">${P.disc.size}/${Object.keys(SECRETS).length}</div></div>
-  <div class="je"><div class="je-t">Best Rooms in a Day</div><div class="je-d" style="color:var(--gold);font-size:18px;font-family:'Cinzel',serif">${P.bestR}</div></div>
-  <div class="je"><div class="je-t">Starting Allowance</div><div class="je-d" style="font-size:14px">💎${P.allow.gems} 🪙${P.allow.coins} 🔑${P.allow.keys}</div></div>
-  <div class="je"><div class="je-t">Room 46</div><div class="je-d" style="color:${P.found46?'var(--gold)':'var(--txt-d)'};font-family:'Cinzel',serif">${P.found46?'Found.':'Not yet.'}</div></div>`;}
+  else{el.innerHTML=`<div class="je"><div class="je-t">Days Survived</div><div class="je-d" style="color:var(--gold);font-size:16px;font-family:'Cinzel',serif">${P.runs}</div></div>
+  <div class="je"><div class="je-t">Secrets Found</div><div class="je-d" style="color:var(--purple);font-size:16px;font-family:'Cinzel',serif">${P.disc.size}/${Object.keys(SECRETS).length}</div></div>
+  <div class="je"><div class="je-t">Best Rooms</div><div class="je-d" style="color:var(--gold);font-size:16px;font-family:'Cinzel',serif">${P.bestR}</div></div>
+  <div class="je"><div class="je-t">Savings</div><div class="je-d">${P.savings}🪙 banked</div></div>
+  <div class="je"><div class="je-t">Starting Bonus</div><div class="je-d">+${P.allow.steps}🥾 +${P.allow.gems}💎 +${P.allow.coins}🪙 +${P.allow.keys}🔑</div></div>
+  <div class="je"><div class="je-t">Room 46</div><div class="je-d" style="color:${P.found46?'var(--gold)':'var(--txt-d)'}">${P.found46?'Found.':'Not yet.'}</div></div>`;}
 },
 };
 window.G=G;
@@ -645,67 +886,66 @@ function hud(){if(!S)return;
   document.getElementById('h-keys').textContent=S.keys;
   document.getElementById('h-day').textContent='Day '+P.runs;
   document.getElementById('h-rms').textContent=S.roomsPlaced+' rooms';
-  const pct=Math.max(0,Math.min(100,(S.steps/30)*100));
+  const pct=Math.max(0,Math.min(100,(S.steps/S.maxSteps)*100));
   const bar=document.getElementById('step-fill');
   bar.style.width=pct+'%';bar.className='step-fill'+(S.steps<=5?' c':S.steps<=15?' w':'');
   let dots='';for(let i=0;i<8;i++)dots+=`<div class="bd${i<S.blueStreak?' on':''}"></div>`;
   document.getElementById('h-blue').innerHTML=dots;
+  // Show/hide rest button
+  const rb=document.getElementById('bar-rest');
+  if(rb)rb.style.opacity=S.roomsPlaced>=2?'1':'.3';
 }
 
 function roomBg(d){
   if(d.scene)return d.scene.bg;
-  if(d.blue)return'linear-gradient(180deg,#081828 0%,#0c2440 50%,#061420 100%)';
-  if(d.red)return'linear-gradient(180deg,#200810 0%,#2a1018 50%,#180610 100%)';
-  return'linear-gradient(180deg,#14181e 0%,#1a2028 50%,#10141c 100%)';
+  if(d.blue)return'linear-gradient(180deg,#0e2038 0%,#143050 50%,#0c1c30 100%)';
+  if(d.red)return'linear-gradient(180deg,#280e14 0%,#341820 50%,#200a10 100%)';
+  return'linear-gradient(180deg,#1c2028 0%,#222834 50%,#181c24 100%)';
 }
 
 function decoHtml(d){
   const sc=d.scene;if(!sc)return'';
   const a=sc.accent||'#888';
   let h='';
-  const box=(x,y,w,hh,o=.12)=>`<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${hh}%;background:${a};opacity:${o};border-radius:2px"></div>`;
-  const circ=(x,y,s,o=.1)=>`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}%;aspect-ratio:1;border-radius:50%;background:${a};opacity:${o}"></div>`;
   const glow=(x,y,s,o=.06)=>`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,${a},transparent);opacity:${o}"></div>`;
-  h+=glow(20,20,60,.04);
-  h+=glow(60,50,40,.03);
+  h+=glow(20,20,60,.05)+glow(60,50,40,.04);
   if(d.blue){
-    h+=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,${a}18,transparent 70%);pointer-events:none"></div>`;
-    h+=circ(15,70,3,.15)+circ(75,25,4,.12)+circ(50,80,2,.18);
+    h+=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,${a}20,transparent 70%)"></div>`;
+    for(let i=0;i<5;i++){const x=15+Math.random()*70,y=20+Math.random()*60;
+      h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;border-radius:50%;background:${a};opacity:${.1+Math.random()*.2};animation:flicker ${2+Math.random()*3}s ease-in-out infinite"></div>`;}
   }
   if(d.red){
-    h+=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,${a}10,transparent 60%);pointer-events:none"></div>`;
-    h+=box(10,20,3,15,.08)+box(80,30,3,12,.06);
+    h+=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,${a}14,transparent 60%)"></div>`;
   }
   if(sc.deco==='fire'||sc.deco==='candle'||sc.deco==='candles'){
-    h+=glow(40,35,30,.08);
-    h+=`<div style="position:absolute;left:48%;top:38%;width:4px;height:8px;background:${a};border-radius:50% 50% 20% 20%;animation:flicker 2s ease-in-out infinite alternate;opacity:.5"></div>`;
+    h+=glow(40,30,30,.1);
+    h+=`<div style="position:absolute;left:48%;top:35%;width:5px;height:10px;background:${a};border-radius:50% 50% 20% 20%;animation:flicker 2s ease-in-out infinite alternate;opacity:.6"></div>`;
   }
-  if(sc.deco==='pots'||sc.deco==='hooks'){
-    h+=box(15,10,8,1,.15)+box(35,10,8,1,.15)+box(55,10,8,1,.15);
-    h+=box(18,11,2,8,.1)+box(38,11,2,10,.08)+box(58,11,2,7,.1);
-  }
-  if(sc.deco==='crystal'||sc.deco==='ice'||sc.deco==='dust'||sc.deco==='lapis'){
-    h+=circ(20,30,6,.08)+circ(70,60,8,.06)+circ(40,70,5,.1)+circ(80,20,4,.07);
+  if(sc.deco==='crystal'||sc.deco==='ice'||sc.deco==='dust'||sc.deco==='lapis'||sc.deco==='butterflies'){
+    for(let i=0;i<4;i++){const x=15+Math.random()*70,y=20+Math.random()*60;
+      h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${4+Math.random()*6}px;aspect-ratio:1;border-radius:50%;background:${a};opacity:${.06+Math.random()*.12}"></div>`;}
   }
   if(sc.deco==='frames'||sc.deco==='portraits'){
-    h+=box(8,25,12,18,.08)+box(78,20,14,22,.06)+box(8,60,10,14,.05);
+    h+=`<div style="position:absolute;left:8%;top:25%;width:14%;height:20%;border:1px solid ${a}30;border-radius:2px;opacity:.3"></div>`;
+    h+=`<div style="position:absolute;right:8%;top:20%;width:16%;height:24%;border:1px solid ${a}25;border-radius:2px;opacity:.25"></div>`;
   }
   if(sc.deco==='shelves'||sc.deco==='books'){
-    h+=box(5,15,90,1,.12)+box(5,40,90,1,.1)+box(5,65,90,1,.08);
-    h+=box(8,16,8,24,.06)+box(20,41,6,24,.05)+box(70,16,10,24,.06);
-  }
-  if(sc.deco==='glass'||sc.deco==='dome'){
-    h+=`<div style="position:absolute;top:5%;left:30%;width:40%;height:35%;border-radius:50% 50% 0 0;border:1px solid ${a}30;background:radial-gradient(ellipse,${a}08,transparent);opacity:.5"></div>`;
-  }
-  if(sc.deco==='vines'){
-    h+=box(5,0,2,60,.1)+box(90,0,2,40,.08)+box(40,0,1,30,.06);
+    h+=`<div style="position:absolute;left:5%;top:15%;right:5%;height:1px;background:${a};opacity:.15"></div>`;
+    h+=`<div style="position:absolute;left:5%;top:40%;right:5%;height:1px;background:${a};opacity:.12"></div>`;
+    h+=`<div style="position:absolute;left:5%;top:65%;right:5%;height:1px;background:${a};opacity:.1"></div>`;
   }
   if(sc.deco==='water'){
-    h+=`<div style="position:absolute;bottom:10%;left:20%;width:60%;height:20%;background:radial-gradient(ellipse,${a}15,transparent);border-radius:50%;opacity:.4"></div>`;
+    h+=`<div style="position:absolute;bottom:10%;left:20%;width:60%;height:20%;background:radial-gradient(ellipse,${a}18,transparent);border-radius:50%;opacity:.5"></div>`;
   }
   if(sc.deco==='compass'){
-    h+=`<div style="position:absolute;left:35%;top:55%;width:30%;aspect-ratio:1;border-radius:50%;border:1px solid ${a}20;opacity:.3"></div>`;
-    h+=`<div style="position:absolute;left:48%;top:58%;width:4%;height:16%;background:${a};opacity:.15;transform:rotate(15deg)"></div>`;
+    h+=`<div style="position:absolute;left:35%;top:55%;width:30%;aspect-ratio:1;border-radius:50%;border:1px solid ${a}25;opacity:.3"></div>`;
+  }
+  if(sc.deco==='glass'||sc.deco==='dome'){
+    h+=`<div style="position:absolute;top:5%;left:30%;width:40%;height:35%;border-radius:50% 50% 0 0;border:1px solid ${a}30;background:radial-gradient(ellipse,${a}0a,transparent);opacity:.5"></div>`;
+  }
+  if(sc.deco==='vines'){
+    h+=`<div style="position:absolute;left:5%;top:0;width:2px;height:60%;background:${a};opacity:.12"></div>`;
+    h+=`<div style="position:absolute;right:8%;top:0;width:2px;height:40%;background:${a};opacity:.1"></div>`;
   }
   return h;
 }
@@ -732,24 +972,17 @@ function renderRoom(){
     if(w.type==='wall')doorHtml+=`<div class="door ${cls} wall"></div>`;
     else if(w.type==='blocked')doorHtml+=`<div class="door ${cls} blocked"><span class="door-arch" style="opacity:.3">✕</span></div>`;
     else if(w.type==='unexplored')doorHtml+=`<div class="door ${cls} unexplored" onclick="openDoor('${dir}',${w.x},${w.y})"><span class="door-arch">⌂ Explore</span></div>`;
-    else if(w.type==='explored')doorHtml+=`<div class="door ${cls} explored" onclick="moveTo(${w.x},${w.y})"><span class="door-arch">${w.icon}</span><span class="door-label">${w.name}</span></div>`;
+    else if(w.type==='explored')doorHtml+=`<div class="door ${cls} explored" onclick="goTo(${w.x},${w.y})"><span class="door-arch">${w.icon}</span><span class="door-label">${w.name}</span></div>`;
   }
-  let interHtml='';
-  if(!rm._int){
-    let inter=d.interact;if(d.interact_fn)inter=d.interact_fn(P);
-    if(inter)interHtml=`<button class="rv-act" onclick="doInteract()">${inter.label}</button>`;
-  }
+  let actionHtml='';
   if(d.isShop&&!rm._shopped){
-    interHtml=`<button class="rv-act" onclick="openShop()" style="border-color:var(--green);color:var(--green)">Browse Wares</button>`;
+    actionHtml=`<button class="rv-act" onclick="openShop()" style="border-color:var(--green);color:var(--green);padding:8px 20px;font-size:10px">Browse Wares</button>`;
   }
-  const tunnelMsg=S.tunnelOn&&rm.id==='tunnel'?'<div style="font-size:11px;color:var(--purple);margin-top:4px">Open the map to teleport to any room</div>':'';
+  const tunnelMsg=S.tunnelOn&&rm.id==='tunnel'?'<div style="font-size:10px;color:var(--purple);margin-top:2px">Open the map to teleport</div>':'';
   let hintHtml='';
   if(P.runs<=1&&!hintShown.foyer&&rm.id==='foyer'){
-    hintHtml='<div class="hint" style="bottom:60px;left:50%;transform:translateX(-50%)">Tap a golden door to explore</div>';
+    hintHtml='<div class="hint" style="bottom:50px;left:50%;transform:translateX(-50%)">Tap a golden door to explore</div>';
     hintShown.foyer=true;setTimeout(()=>{const h=wrap.querySelector('.hint');if(h)h.remove();},4000);
-  }
-  if(P.runs<=1&&!hintShown.steps&&S.roomsPlaced===2){
-    hintShown.steps=true;setTimeout(()=>toast('Each move costs 1 step. Manage them wisely.'),600);
   }
 
   wrap.innerHTML=`
@@ -767,27 +1000,27 @@ function renderRoom(){
     <div class="rv-desc">${d.d}</div>
     ${d.fx?`<div class="rv-fx ${fc}">${d.fx}</div>`:''}
     ${tunnelMsg}
-    ${interHtml}
+    ${actionHtml}
   </div>`;
 }
 
 function render(){
   if(!S)return;
-  if(S.steps<=0){endRun();return;}
+  if(S.steps<=0){endRun(false);return;}
   hud();renderRoom();
 }
 
-window.moveTo=function(x,y){
+window.goTo=function(x,y){
   if(!S)return;const k=x+','+y;if(!S.rooms[k])return;
   const rm=S.rooms[k],d=R[rm.id];
   if(d.entryCost){
-    if(d.entryCost.t==='coin'&&S.coins>=d.entryCost.n){S.coins-=d.entryCost.n;toast(`-${d.entryCost.n} 🪙`);}
-    else if(d.entryCost.t==='coin'){toast('Need '+d.entryCost.n+' 🪙');return;}
+    if(d.entryCost.t==='coin'&&S.coins>=d.entryCost.n){S.coins-=d.entryCost.n;toast(`-${d.entryCost.n}🪙`);}
+    else if(d.entryCost.t==='coin'){toast('Need '+d.entryCost.n+'🪙');return;}
   }
   if(S.tunnelOn){S.tunnelOn=false;}
   addS(S,-1);S.pos={x,y};rm._vis=true;
   if(d.onEnter)d.onEnter(S,rm);
-  if(S.steps<=0){endRun();return;}
+  if(S.steps<=0){endRun(false);return;}
   render();
 };
 
@@ -796,7 +1029,6 @@ window.openDoor=function(dir,x,y){
   S.draftPos={x,y};S.draftEntry=OPP[dir];
   const ct=S.bonus4?4:3;S.bonus4=false;
   S.draftOpts=draw(ct,S.draftEntry);
-  if(P.runs<=1&&!hintShown.draft){hintShown.draft=true;}
   draftUI();
 };
 
@@ -814,8 +1046,6 @@ function draftUI(){
     const doors=d.dead?[S.draftEntry]:d.doors;
     const exitCount=doors.filter(dd=>dd!==S.draftEntry).length;
     const itemTxt=d.items?.length?d.items.map(it=>(it.t==='gem'?'💎':it.t==='coin'?'🪙':'🔑')+'×'+it.n).join(' '):'';
-    const fxCls=d.red?'n':d.blue?'b':d.t==='discovery'?'s':'p';
-    const cardBg=show&&d.scene?`background:linear-gradient(135deg,var(--parch),var(--parch2));border-left:5px solid ${d.scene.accent}`:'';
 
     let doorsHtml='';
     if(show){
@@ -837,14 +1067,12 @@ function draftUI(){
       ${show&&d.fx?`<div class="dc-fx">${d.fx}</div>`:''}
       ${show&&itemTxt?`<div class="dc-items">${itemTxt}</div>`:''}
     </div>
-    <div class="dc-right">
-      <div class="dc-doors">${doorsHtml}</div>
-    </div>
+    <div class="dc-right"><div class="dc-doors">${doorsHtml}</div></div>
     </div>`;
   }
   el.innerHTML=h;
   const warn=document.getElementById('dr-warn');
-  warn.textContent=S.draftOpts.some(id=>R[id].cost<=S.gems)?'':'Not enough 💎 for any room! Reroll?';
+  warn.textContent=S.draftOpts.some(id=>R[id].cost<=S.gems)?'':'Not enough 💎 — try rerolling!';
   const rb=document.getElementById('dr-reroll');
   rb.textContent=`Reroll (💎1) · ${S.dice} left`;
   rb.className='dr-reroll'+(S.gems>=1&&S.dice>0?' ok':'');
@@ -857,7 +1085,7 @@ window.selectDraft=function(idx){
   S.gems-=d.cost;
   let actualDoors=d.dead?[S.draftEntry]:[...d.doors];
   const items=d.items?d.items.map(it=>({...it})):[];
-  S.rooms[k]={id,actualDoors,items,_vis:true,_int:false,_collected:{}};S.roomsPlaced++;
+  S.rooms[k]={id,actualDoors,items,_vis:true,_int:false,_ev:false,_collected:{}};S.roomsPlaced++;
   if(d.blue){S.blueStreak++;if(S.blueStreak>=8&&!P.sealU)triggerSeal(S);}
   else S.blueStreak=0;
   if(S.studyRev)S.studyRev=false;
@@ -866,21 +1094,17 @@ window.selectDraft=function(idx){
   addS(S,-1);S.pos={...pos};
   if(d.onEnter)d.onEnter(S,S.rooms[k]);
   if(id==='hidden_room'){triggerVictory();return;}
-  if(S.steps<=0){endRun();return;}
-  G.scr('game');render();
-};
-
-window.doInteract=function(){
-  const k=pk(S.pos),rm=S.rooms[k],d=R[rm.id];if(rm._int)return;rm._int=true;
-  let inter=d.interact;if(d.interact_fn)inter=d.interact_fn(P);if(!inter)return;
-  if(d.onInteract)d.onInteract(S);
-  if(inter.sec){P.disc.add(inter.sec);S.secsRun++;
-    if(inter.sec==='vault_opened')P.vaultO=true;
-    if(inter.sec==='fountain_stairs')addS(S,8);
-    if(inter.sec==='chapel_glass'){P.allow.keys++;P.puzzles.add('chapel');}
-    if(inter.sec==='telescope_bp')unlockRm(S);
-    saveP();}
-  showEv(d.i,inter.txt.split('.')[0],inter.txt,inter.rew,inter.sec?'var(--purple)':'var(--gold)');
+  if(S.steps<=0){endRun(false);return;}
+  G.scr('game');
+  // Trigger room event!
+  const rm=S.rooms[k];
+  if(!rm._ev&&rm.id!=='foyer'){
+    rm._ev=true;
+    setTimeout(()=>{
+      if(showEvent(rm.id)){S.eventsResolved++;}
+      else render();
+    },400);
+  } else render();
 };
 
 window.openShop=function(){
@@ -909,27 +1133,51 @@ window.buyShop=function(i){
 
 function showEv(icon,title,desc,rew,col){
   document.getElementById('ev-i').textContent=icon;document.getElementById('ev-t').textContent=title;
-  document.getElementById('ev-d').textContent=desc;const r=document.getElementById('ev-r');r.textContent=rew||'';r.style.color=col||'var(--gold)';
+  document.getElementById('ev-d').textContent=desc;
+  const r=document.getElementById('ev-r');r.textContent=rew||'';r.style.color=col||'var(--gold)';
+  document.getElementById('ev-choices').innerHTML='<div class="ev-ch safe" onclick="G.evOk()" style="text-align:center"><div class="ev-ch-label">Continue</div></div>';
   document.getElementById('ev').classList.add('on');
 }
 function triggerSeal(s){P.sealU=true;P.disc.add('seal_unlocked');saveP();
-  showEv('👑','The Blue Seal','Eight blue rooms in succession. The ancient seal shatters. The throne begins to rise.','Blue Seal broken!','var(--blue-b)');}
+  showEv('👑','The Blue Seal','Eight blue rooms in succession. The ancient seal shatters.','Blue Seal broken!','var(--blue-b)');}
 function triggerVictory(){P.found46=true;P.disc.add('room46');P.totalR+=S.roomsPlaced;saveP();
   G.scr('rend');const t=document.getElementById('re-t');t.textContent='Room 46';t.style.color='var(--gold)';
-  document.getElementById('re-narr').textContent='Light pours through the walls. The manor recognizes you — not as a guest, but as its keeper.';
-  document.getElementById('re-s').innerHTML=`<div class="re-r" style="font-size:16px;color:var(--gold);font-family:'Cinzel',serif;margin-bottom:8px">You have inherited Blue Manor.</div>
+  document.getElementById('re-narr').textContent='Light pours through the walls. The manor is yours.';
+  document.getElementById('re-s').innerHTML=`<div class="re-r" style="font-size:15px;color:var(--gold);font-family:'Cinzel',serif;margin-bottom:8px">You have inherited Blue Manor.</div>
   <div class="re-r">It took <b>${P.runs}</b> days</div><div class="re-r"><b>${P.disc.size}</b> secrets discovered</div>`;}
-function endRun(){
-  P.totalR+=S.roomsPlaced;if(S.roomsPlaced>P.bestR)P.bestR=S.roomsPlaced;saveP();
-  G.scr('rend');const t=document.getElementById('re-t');t.textContent='Nightfall';t.style.color='var(--txt-m)';
-  const narrs=['The shadows lengthen. The manor folds in on itself, rooms sliding back into darkness like drawers closing.',
-    'Nightfall comes. The walls shift and groan. Tomorrow the manor will be new again — and so will you.',
-    'Darkness claims the corridors. You stumble toward the entrance as the rooms rearrange behind you.'];
+
+function endRun(early){
+  P.totalR+=S.roomsPlaced;if(S.roomsPlaced>P.bestR)P.bestR=S.roomsPlaced;
+  if(!early){
+    const lost=Math.floor(S.coins*0.25);
+    S.coins=Math.max(0,S.coins-lost);
+  }
+  saveP();
+  G.scr('rend');const t=document.getElementById('re-t');
+  t.textContent=early?'Day\'s End':'Nightfall';t.style.color=early?'var(--green)':'var(--txt-m)';
+  const narrs=early?
+    ['You retire to the entrance hall. The manor hums its approval — it respects those who know when to rest.',
+     'You choose safety over ambition. Your savings grow. Tomorrow, the manor will offer more.']:
+    ['Darkness claims the corridors. You collapse at the entrance as rooms rearrange behind you.',
+     'Your steps fail. The shadows lengthen. The manor folds in on itself, rooms sliding away like closing drawers.',
+     'Nightfall. The walls groan. Tomorrow the manor will be new — and so will you.'];
   document.getElementById('re-narr').textContent=narrs[P.runs%narrs.length];
-  document.getElementById('re-s').innerHTML=`<div class="re-r">Rooms explored: <b>${S.roomsPlaced}</b></div>
-  <div class="re-r">Secrets found: <b>${S.secsRun}</b></div><div class="re-r">Blue streak: <b>${S.blueStreak}</b></div>
-  <div class="re-r" style="margin-top:6px">💎${S.gems} 🪙${S.coins} 🔑${S.keys}</div>
-  <div class="re-r" style="margin-top:8px;color:var(--txt-m);font-size:12px">Total discoveries: ${P.disc.size}/${Object.keys(SECRETS).length}</div>`;
+  let progHtml='';
+  const nextUnlock=P.runs<3?3:P.runs<8?8:P.runs<15?15:null;
+  if(nextUnlock){
+    const pct=Math.min(100,(P.runs/nextUnlock)*100);
+    progHtml=`<div class="re-unlock">New rooms unlock at Day ${nextUnlock}</div>
+    <div class="re-prog"><div class="re-prog-fill" style="width:${pct}%"></div></div>`;
+  }
+  document.getElementById('re-s').innerHTML=
+    `<div class="re-r">Rooms explored: <b>${S.roomsPlaced}</b></div>
+    <div class="re-r">Events resolved: <b>${S.eventsResolved}</b></div>
+    <div class="re-r">Blue streak: <b>${S.blueStreak}</b></div>
+    <div class="re-r" style="margin-top:4px">💎${S.gems} 🪙${S.coins} 🔑${S.keys}</div>
+    ${early?`<div class="re-r" style="color:var(--green);margin-top:4px">Banked ${Math.floor(S.coins*0.5)}🪙 savings</div>`
+    :`<div class="re-r" style="color:var(--red);margin-top:4px">Lost 25% coins (collapsed)</div>`}
+    <div class="re-r" style="margin-top:4px;color:var(--txt-m);font-size:11px">Discoveries: ${P.disc.size}/${Object.keys(SECRETS).length}</div>
+    ${progHtml}`;
 }
 
 function renderMap(){
@@ -939,32 +1187,33 @@ function renderMap(){
   const ctx=canvas.getContext('2d');ctx.scale(2,2);
   const cw=rect.width,ch=rect.height;
   const cs=Math.min(cw,ch)/GW-4;const ox=(cw-cs*GW)/2,oy=(ch-cs*GH)/2;
-  ctx.fillStyle='#0a1420';ctx.fillRect(0,0,cw,ch);
-  ctx.fillStyle='#111e30';ctx.fillRect(ox-6,oy-6,GW*cs+12,GH*cs+12);
-  ctx.strokeStyle='#1a3050';ctx.lineWidth=2;ctx.strokeRect(ox-6,oy-6,GW*cs+12,GH*cs+12);
-  ctx.strokeStyle='#1a2a40';ctx.lineWidth=.5;
+  // Brighter map background
+  ctx.fillStyle='#0e1c30';ctx.fillRect(0,0,cw,ch);
+  ctx.fillStyle='#142438';ctx.fillRect(ox-6,oy-6,GW*cs+12,GH*cs+12);
+  ctx.strokeStyle='#2a4060';ctx.lineWidth=2;ctx.strokeRect(ox-6,oy-6,GW*cs+12,GH*cs+12);
+  ctx.strokeStyle='#1e3450';ctx.lineWidth=.5;
   for(let x=0;x<=GW;x++){ctx.beginPath();ctx.moveTo(ox+x*cs,oy);ctx.lineTo(ox+x*cs,oy+GH*cs);ctx.stroke();}
   for(let y=0;y<=GH;y++){ctx.beginPath();ctx.moveTo(ox,oy+y*cs);ctx.lineTo(ox+GW*cs,oy+y*cs);ctx.stroke();}
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
     const k=x+','+(GH-1-y),rm=S.rooms[k];if(!rm)continue;
     const d=R[rm.id];const rx=ox+x*cs+2,ry=oy+y*cs+2,rw=cs-4,rh=cs-4;
     const cur=S.pos.x===x&&S.pos.y===(GH-1-y);
-    let fc='#1a3050';
-    if(d.blue)fc='#0c2848';else if(d.red)fc='#3a1020';
-    else if(d.t==='discovery')fc='#201040';else if(d.isShop)fc='#0c2818';
-    else if(d.t==='rare'||d.t==='special')fc='#20281a';
+    let fc='#1c3050';
+    if(d.blue)fc='#143860';else if(d.red)fc='#401828';
+    else if(d.t==='discovery')fc='#281848';else if(d.isShop)fc='#143820';
+    else if(d.t==='rare'||d.t==='special')fc='#283020';
     ctx.fillStyle=fc;
     ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,3);ctx.fill();
-    ctx.strokeStyle=cur?'#e8b830':d.blue?'#4499dd':d.red?'#cc3344':d.t==='discovery'?'#8855cc':d.scene?d.scene.accent+'80':'#2a4060';
+    ctx.strokeStyle=cur?'#e8b830':d.blue?'#4499dd':d.red?'#cc3344':d.t==='discovery'?'#8855cc':d.scene?d.scene.accent+'88':'#3a5070';
     ctx.lineWidth=cur?2.5:1;ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,3);ctx.stroke();
-    if(cur){ctx.shadowColor='rgba(232,184,48,.5)';ctx.shadowBlur=10;ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,3);ctx.stroke();ctx.shadowBlur=0;}
-    ctx.font=`${cs*.3}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle='#dde4ec';ctx.fillText(d.i,rx+rw/2,ry+rh/2-cs*.08);
-    ctx.font=`bold ${Math.max(7,cs*.14)}px Cinzel,serif`;ctx.fillStyle=cur?'rgba(232,184,48,.9)':'rgba(200,210,228,.6)';
+    if(cur){ctx.shadowColor='rgba(232,184,48,.6)';ctx.shadowBlur=12;ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,3);ctx.stroke();ctx.shadowBlur=0;}
+    ctx.font=`${cs*.32}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#e0e4f0';ctx.fillText(d.i,rx+rw/2,ry+rh/2-cs*.08);
+    ctx.font=`bold ${Math.max(7,cs*.15)}px Cinzel,serif`;ctx.fillStyle=cur?'rgba(232,184,48,.95)':'rgba(210,218,235,.7)';
     const name=d.n.length>10?d.n.slice(0,9)+'…':d.n;
-    ctx.fillText(name,rx+rw/2,ry+rh/2+cs*.18);
+    ctx.fillText(name,rx+rw/2,ry+rh/2+cs*.2);
     const actualDoors=rm.actualDoors||d.doors;
-    ctx.strokeStyle=cur?'rgba(232,184,48,.5)':'rgba(100,130,170,.3)';ctx.lineWidth=1.5;
+    ctx.strokeStyle=cur?'rgba(232,184,48,.6)':'rgba(120,150,190,.4)';ctx.lineWidth=1.5;
     for(const dir of actualDoors){
       const {dx,dy}=DIR[dir];const nx=x+dx,ny=(GH-1-y)+dy;const nk=pk({x:nx,y:ny});
       if(S.rooms[nk]){
@@ -977,17 +1226,18 @@ function renderMap(){
     }
   }
   if(S.tunnelOn){
-    ctx.font='11px Cinzel,serif';ctx.fillStyle='#8855cc';ctx.textAlign='center';
-    ctx.fillText('Tap a room to teleport',cw/2,oy+GH*cs+18);
+    ctx.font='10px Cinzel,serif';ctx.fillStyle='#8855cc';ctx.textAlign='center';
+    ctx.fillText('Tap a room to teleport',cw/2,oy+GH*cs+16);
     canvas.onclick=function(e){
       const r=canvas.getBoundingClientRect();const mx=(e.clientX-r.left),my=(e.clientY-r.top);
       const gx=Math.floor((mx-ox)/cs),gy=Math.floor((my-oy)/cs);
-      if(gx>=0&&gx<GW&&gy>=0&&gy<GH){const ty=GH-1-gy;const tk=gx+','+ty;if(S.rooms[tk]){moveTo(gx,ty);G.toggleMap();}}
+      if(gx>=0&&gx<GW&&gy>=0&&gy<GH){const ty=GH-1-gy;const tk=gx+','+ty;if(S.rooms[tk]){goTo(gx,ty);G.toggleMap();}}
     };
   } else canvas.onclick=null;
 }
 
 function updateTitle(){const el=document.getElementById('t-stats');
-  el.textContent=P.runs>0?`Day ${P.runs} · ${P.disc.size} secrets · 💎${P.allow.gems} 🪙${P.allow.coins} 🔑${P.allow.keys} starting`:'';}
+  if(P.runs>0)el.textContent=`Day ${P.runs} · ${P.disc.size} secrets · ${P.savings}🪙 savings`;
+  else el.textContent='';}
 updateTitle();
 </script>

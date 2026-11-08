@@ -79,3 +79,15 @@ production/session-logs/session-cost.md
 production/session-logs/session-log.md
 ---
 
+## Session End: 20261108_000225
+### Commits
+d7b4523 Update session logs and minor index.html comment
+4b08dfe Blue Manor v4: AAA visual overhaul — rich room scenes, atmospheric design, guided experience
+ccbf3db Update session logs
+8b84697 Update session logs
+b79622c Blue Manor v3: blueprint aesthetic and gameplay fixes
+e72d7f2 Add session logs from game studio pack hooks
+8bb0877 Add Claude Code Game Studios skill pack
+2d11589 Rewrite Blue Manor v2: proper roguelike mansion game
+---
+
