@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-title" content="Beats">
+<link id="manifest-link" rel="manifest">
+<link id="apple-icon" rel="apple-touch-icon">
+<title>Beats</title>
+<style>
+/* ── Reset & base ──────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --black: #111;
+  --orange: #ea580c;
+  --grey-line: #d1d5db;
+  --grey-border: #c5c9d0;
+  --bg: #fafafa;
+  --card-bg: #fff;
+  --text: #111;
+  --text-muted: #555;
+  --radius-card: 10px;
+  --radius-pill: 999px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+button { font: inherit; cursor: pointer; border: none; background: none; -webkit-appearance: none; }
+textarea { font: inherit; -webkit-appearance: none; }
+
+/* ── Header ────────────────────────────────── */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--grey-line);
+  padding: 8px 16px;
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+
+#story-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  border: none;
+  outline: none;
+  background: none;
+  padding: 4px 0;
+  color: var(--text);
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+#story-title:focus {
+  border-bottom-color: var(--blue);
+  white-space: normal;
+}
+
+.header-stats {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+#menu-btn:active { background: var(--blue-light); }
+
+/* Hamburger icon via CSS */
+#menu-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  position: relative;
+}
+#menu-btn span::before, #menu-btn span::after {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  position: absolute;
+  left: 0;
+}
+#menu-btn span::before { top: -6px; }
+#menu-btn span::after { top: 6px; }
+
+/* ── Main chain area ───────────────────────── */
+#chain {
+  flex: 1;
+  padding: 16px 16px 200px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.empty-state strong { color: var(--text); display: block; font-size: 20px; margin-bottom: 8px; }
+
+/* ── Event card ────────────────────────────── */
+.event-card {
+  background: var(--card-bg);
+  border: 1px solid var(--grey-line);
+  border-radius: var(--radius-card);
+  padding: 12px 14px;
+  position: relative;
+}
+.event-card.highlight { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
+
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.event-number {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 20px;
+}
+
+.event-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.event-action-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 18px;
+  color: var(--text-muted);
+  padding: 0;
+}
+.event-action-btn:active { background: var(--blue-light); }
+.event-action-btn.delete-btn { color: var(--orange); }
+.event-action-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+.event-text {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  min-height: 24px;
+  outline: none;
+  word-break: break-word;
+  padding: 2px 0;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+.event-text:focus { border-bottom-color: var(--blue); }
+.event-text:empty::before {
+  content: 'Tap to edit';
+  color: var(--text-muted);
+}
+
+/* ── Connector area ────────────────────────── */
+.connector-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.connector-line {
+  width: 2px;
+  height: 10px;
+  background: var(--grey-line);
+}
+
+.connector-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.conn-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.conn-btn:active { background: var(--blue-light); }
+
+.conn-insert { color: var(--blue); }
+.conn-delete { color: var(--text-muted); font-size: 14px; }
+
+/* Connector pills */
+.connector-pill {
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.1s;
+}
+.connector-pill:active { transform: scale(0.95); }
+
+.connector-pill.therefore { background: var(--blue); color: #fff; }
+.connector-pill.but { background: var(--black); color: #fff; }
+.connector-pill.meanwhile {
+  background: transparent;
+  border: 2px dashed var(--blue);
+  color: var(--blue);
+  padding: 3px 12px;
+}
+.connector-pill.unset {
+  background: var(--orange);
+  color: #fff;
+  animation: pulse-unset 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-unset {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+/* ── Connector area with insertion highlight ── */
+.connector-area.insert-here .connector-line { background: var(--blue); }
+.connector-area.insert-here { padding: 6px 0; }
+
+/* ── Act break ─────────────────────────────── */
+.act-break {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.act-break-line {
+  flex: 1;
+  height: 2px;
+  background: var(--grey-line);
+}
+
+.act-break-label {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  outline: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  padding: 2px 4px;
+}
+.act-break-label:focus { border-bottom-color: var(--blue); }
+
+.act-break-delete {
+  width: 28px;
+  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-muted);
+  border-radius: 50%;
+}
+.act-break-delete:active { background: var(--blue-light); }
+
+/* ── Input bar ─────────────────────────────── */
+#input-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  background: var(--card-bg);
+  border-top: 1px solid var(--grey-line);
+  padding: 8px 16px;
+  padding-bottom: calc(8px + var(--safe-bottom));
+  transition: bottom 0.1s;
+}
+
+#insert-indicator {
+  display: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 6px;
+  padding: 4px 0;
+}
+#insert-indicator.active { display: flex; align-items: center; gap: 8px; }
+
+#insert-cancel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--orange);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+#insert-cancel:active { background: #fff4ef; }
+
+#connector-chips {
+  display: none;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+#connector-chips.visible { display: flex; }
+
+.chip {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 700;
+  border: 2px solid var(--grey-border);
+  color: var(--text);
+  background: var(--card-bg);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  transition: all 0.12s;
+}
+.chip:active { transform: scale(0.97); }
+
+.chip.selected-therefore { background: var(--blue); color: #fff; border-color: var(--blue); }
+.chip.selected-but { background: var(--black); color: #fff; border-color: var(--black); }
+.chip.selected-meanwhile {
+  background: transparent;
+  color: var(--blue);
+  border: 2px dashed var(--blue);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#event-input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 10px 14px;
+  border: 2px solid var(--grey-border);
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  resize: none;
+  outline: none;
+  transition: border-color 0.15s;
+}
+#event-input:focus { border-color: var(--blue); }
+#event-input::placeholder { color: var(--text-muted); }
+
+#add-btn {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  transition: opacity 0.12s;
+}
+#add-btn:disabled { opacity: 0.35; pointer-events: none; }
+#add-btn:active { opacity: 0.8; }
+
+/* ── Menu overlay ──────────────────────────── */
+#menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0,0,0,0.4);
+}
+#menu-overlay.open { display: block; }
+
+#menu-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(280px, 80vw);
+  height: 100%;
+  background: var(--card-bg);
+  padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+}
+
+.menu-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--grey-line);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  border-radius: 8px;
+  text-align: left;
+}
+.menu-item:active { background: var(--blue-light); }
+.menu-item + .menu-item { border-top: 1px solid var(--grey-line); }
+
+/* ── Story switcher ────────────────────────── */
+#switcher-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#switcher-overlay.open { display: flex; }
+
+#switcher-panel {
+  background: var(--card-bg);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 340px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.switcher-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.story-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.story-item:active { background: var(--blue-light); }
+.story-item.active { background: var(--blue-light); border: 2px solid var(--blue); }
+
+.story-item-info { flex: 1; min-width: 0; }
+.story-item-title {
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.story-item-count { font-size: 14px; color: var(--text-muted); }
+
+.story-item-delete {
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  font-size: 18px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.story-item-delete:active { background: #fff4ef; }
+
+#switcher-close {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-radius: 8px;
+  border: 1px solid var(--grey-line);
+}
+#switcher-close:active { background: var(--bg); }
+
+/* ── Toast ─────────────────────────────────── */
+#toast {
+  display: none;
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 120px;
+  z-index: 400;
+  background: var(--black);
+  color: #fff;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+#toast.visible { display: flex; }
+
+#toast-text { flex: 1; }
+
+#toast-action {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue-light);
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+#toast-action:active { opacity: 0.7; }
+
+/* ── Act break position picker ─────────────── */
+#act-picker {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#act-picker.open { display: flex; }
+
+#act-picker-panel {
+  background: var(--card-bg);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 340px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.act-picker-title { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+
+.act-position-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  color: var(--text);
+  min-height: 44px;
+}
+.act-position-btn:active { background: var(--blue-light); }
+.act-position-btn + .act-position-btn { border-top: 1px solid var(--grey-line); }
+
+#act-picker-cancel {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-radius: 8px;
+  border: 1px solid var(--grey-line);
+}
+#act-picker-cancel:active { background: var(--bg); }
+
+/* ── Misc ──────────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); border: 0;
+}
+
+@media (min-width: 600px) {
+  #chain { max-width: 540px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────── -->
+<header id="header">
+  <input id="story-title" type="text" value="Untitled Story" aria-label="Story title">
+  <div class="header-stats">
+    <span id="event-count">0</span>
+    <span id="meanwhile-count" title="Meanwhile count">MW: 0</span>
+  </div>
+  <button id="menu-btn" aria-label="Menu"><span></span></button>
+</header>
+
+<!-- ── Story chain ────────────────────────── -->
+<main id="chain"></main>
+
+<!-- ── Input bar ──────────────────────────── -->
+<div id="input-bar">
+  <div id="insert-indicator">
+    <span id="insert-label">Inserting here</span>
+    <button id="insert-cancel">Cancel</button>
+  </div>
+  <div id="connector-chips">
+    <button class="chip" data-kind="therefore">Therefore</button>
+    <button class="chip" data-kind="but">But</button>
+    <button class="chip" data-kind="meanwhile">Meanwhile</button>
+  </div>
+  <div class="input-row">
+    <textarea id="event-input" rows="1" placeholder="What happens?"></textarea>
+    <button id="add-btn" disabled>Add</button>
+  </div>
+</div>
+
+<!-- ── Menu overlay ───────────────────────── -->
+<div id="menu-overlay">
+  <div id="menu-panel">
+    <div class="menu-title">Menu</div>
+    <button class="menu-item" id="menu-copy">Copy as text</button>
+    <button class="menu-item" id="menu-act">Add act break</button>
+    <button class="menu-item" id="menu-new">New story</button>
+    <button class="menu-item" id="menu-switch">Switch story</button>
+  </div>
+</div>
+
+<!-- ── Story switcher ─────────────────────── -->
+<div id="switcher-overlay">
+  <div id="switcher-panel">
+    <div class="switcher-title">Your stories</div>
+    <div id="switcher-list"></div>
+    <button id="switcher-close">Close</button>
+  </div>
+</div>
+
+<!-- ── Act break position picker ──────────── -->
+<div id="act-picker">
+  <div id="act-picker-panel">
+    <div class="act-picker-title">Insert act break after:</div>
+    <div id="act-picker-list"></div>
+    <button id="act-picker-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- ── Toast ───────────────────────────────── -->
+<div id="toast">
+  <span id="toast-text"></span>
+  <button id="toast-action"></button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   BEATS — Plot outlining with but / therefore
+   ═══════════════════════════════════════════════ */
+
+// ── DOM refs ──────────────────────────────────
+const $chain      = document.getElementById('chain');
+const $title      = document.getElementById('story-title');
+const $eventCount = document.getElementById('event-count');
+const $mwCount    = document.getElementById('meanwhile-count');
+const $menuBtn    = document.getElementById('menu-btn');
+const $menuOvl    = document.getElementById('menu-overlay');
+const $chips      = document.getElementById('connector-chips');
+const $input      = document.getElementById('event-input');
+const $addBtn     = document.getElementById('add-btn');
+const $insertInd  = document.getElementById('insert-indicator');
+const $insertLbl  = document.getElementById('insert-label');
+const $insertCanc = document.getElementById('insert-cancel');
+const $toast      = document.getElementById('toast');
+const $toastText  = document.getElementById('toast-text');
+const $toastAction= document.getElementById('toast-action');
+const $switchOvl  = document.getElementById('switcher-overlay');
+const $switchList = document.getElementById('switcher-list');
+const $switchClose= document.getElementById('switcher-close');
+const $actPicker  = document.getElementById('act-picker');
+const $actList    = document.getElementById('act-picker-list');
+const $actCancel  = document.getElementById('act-picker-cancel');
+const $inputBar   = document.getElementById('input-bar');
+
+const STORAGE_KEY = 'beats_data';
+const CONNECTOR_ORDER = ['therefore', 'but', 'meanwhile'];
+
+// ── State ─────────────────────────────────────
+let data = null;           // { stories: {}, activeStoryId: string }
+let selectedChip = null;   // 'therefore' | 'but' | 'meanwhile' | null
+let insertAfterIdx = -1;   // -1 = normal add, >= 0 = inserting at position
+let undoData = null;       // { snapshot: [...], storyId, timeout }
+let toastTimeout = null;
+
+// ── Data layer ────────────────────────────────
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function createStory(title) {
+  return { id: uid(), title: title || 'Untitled Story', items: [] };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      data = JSON.parse(raw);
+      if (!data.stories || !data.activeStoryId) throw new Error('bad data');
+      return;
+    }
+  } catch (e) { /* fall through to fresh data */ }
+  const first = createStory();
+  data = { stories: {}, activeStoryId: first.id };
+  data.stories[first.id] = first;
+  save();
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch (e) { /* storage full or unavailable */ }
+}
+
+function story() { return data.stories[data.activeStoryId]; }
+
+function eventItems(s) { return (s || story()).items.filter(i => i.type === 'event'); }
+function connectorItems(s) { return (s || story()).items.filter(i => i.type === 'connector'); }
+
+// ── Rendering ─────────────────────────────────
+
+function render() {
+  const s = story();
+  $title.value = s.title;
+  const events = eventItems(s);
+  const mw = connectorItems(s).filter(c => c.kind === 'meanwhile').length;
+  $eventCount.textContent = events.length;
+  $mwCount.textContent = 'MW: ' + mw;
+
+  // Show connector chips only when there is at least one event
+  $chips.classList.toggle('visible', events.length > 0);
+
+  if (s.items.length === 0) {
+    $chain.innerHTML =
+      '<div class="empty-state">' +
+      '<strong>Start your story</strong>' +
+      'Type your first event below and tap Add.' +
+      '</div>';
+    return;
+  }
+
+  let html = '';
+  let eventNum = 0;
+  for (let i = 0; i < s.items.length; i++) {
+    const item = s.items[i];
+    if (item.type === 'event') {
+      eventNum++;
+      const isFirst = (eventNum === 1);
+      const isLast = !s.items.slice(i + 1).some(x => x.type === 'event');
+      html += renderEventCard(item, eventNum, isFirst, isLast);
+    } else if (item.type === 'connector') {
+      html += renderConnector(item, i);
+    } else if (item.type === 'act-break') {
+      html += renderActBreak(item);
+    }
+  }
+  $chain.innerHTML = html;
+}
+
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderEventCard(item, num, isFirst, isLast) {
+  return (
+    '<div class="event-card" data-id="' + item.id + '">' +
+      '<div class="event-header">' +
+        '<span class="event-number">' + num + '</span>' +
+        '<div class="event-actions">' +
+          '<button class="event-action-btn" data-act="up" data-id="' + item.id + '"' +
+            (isFirst ? ' disabled' : '') +
+            ' aria-label="Move up" title="Move up">&uarr;</button>' +
+          '<button class="event-action-btn" data-act="down" data-id="' + item.id + '"' +
+            (isLast ? ' disabled' : '') +
+            ' aria-label="Move down" title="Move down">&darr;</button>' +
+          '<button class="event-action-btn delete-btn" data-act="delete" data-id="' + item.id + '"' +
+            ' aria-label="Delete" title="Delete">&times;</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="event-text" contenteditable="true" data-id="' + item.id + '">' +
+        esc(item.text) +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderConnector(item, idx) {
+  const kind = item.kind || 'unset';
+  const label = item.kind ? item.kind.charAt(0).toUpperCase() + item.kind.slice(1) : '?';
+  const insertClass = (idx === insertAfterIdx) ? ' insert-here' : '';
+  return (
+    '<div class="connector-area' + insertClass + '" data-idx="' + idx + '">' +
+      '<div class="connector-line"></div>' +
+      '<div class="connector-controls">' +
+        '<button class="conn-btn conn-insert" data-act="insert" data-idx="' + idx + '"' +
+          ' aria-label="Insert event" title="Insert event here">+</button>' +
+        '<button class="connector-pill ' + kind + '" data-act="cycle" data-id="' + item.id + '">' +
+          label +
+        '</button>' +
+        '<button class="conn-btn conn-delete" data-act="unset" data-id="' + item.id + '"' +
+          ' aria-label="Reset connector" title="Reset connector">&times;</button>' +
+      '</div>' +
+      '<div class="connector-line"></div>' +
+    '</div>'
+  );
+}
+
+function renderActBreak(item) {
+  return (
+    '<div class="act-break" data-id="' + item.id + '">' +
+      '<div class="act-break-line"></div>' +
+      '<span class="act-break-label" contenteditable="true" data-id="' + item.id + '">' +
+        esc(item.label) +
+      '</span>' +
+      '<div class="act-break-line"></div>' +
+      '<button class="act-break-delete" data-act="delete-act" data-id="' + item.id + '"' +
+        ' aria-label="Remove act break" title="Remove act break">&times;</button>' +
+    '</div>'
+  );
+}
+
+// ── Adding events ─────────────────────────────
+
+function updateAddButton() {
+  const hasText = $input.value.trim().length > 0;
+  const events = eventItems();
+  const needsConnector = events.length > 0;
+  const enabled = hasText && (!needsConnector || selectedChip !== null);
+  $addBtn.disabled = !enabled;
+}
+
+function addEvent() {
+  const text = $input.value.trim();
+  if (!text) return;
+
+  const s = story();
+  const events = eventItems(s);
+
+  if (insertAfterIdx >= 0) {
+    // Inserting at a specific position
+    const newEvent = { type: 'event', id: uid(), text };
+    const newConn = { type: 'connector', id: uid(), kind: selectedChip };
+    s.items.splice(insertAfterIdx + 1, 0, newEvent, newConn);
+    cancelInsert();
+  } else {
+    // Appending to the end
+    if (events.length > 0 && selectedChip) {
+      s.items.push({ type: 'connector', id: uid(), kind: selectedChip });
+    }
+    s.items.push({ type: 'event', id: uid(), text });
+  }
+
+  save();
+  resetInput();
+  render();
+  scrollToBottom();
+}
+
+function resetInput() {
+  $input.value = '';
+  $input.style.height = 'auto';
+  selectedChip = null;
+  updateChipStyles();
+  updateAddButton();
+}
+
+function cancelInsert() {
+  insertAfterIdx = -1;
+  $insertInd.classList.remove('active');
+  $addBtn.textContent = 'Add';
+  selectedChip = null;
+  updateChipStyles();
+  updateAddButton();
+  render();
+}
+
+function startInsert(connectorIdx) {
+  insertAfterIdx = connectorIdx;
+  $insertInd.classList.add('active');
+  $insertLbl.textContent = 'Inserting here';
+  $addBtn.textContent = 'Insert';
+  selectedChip = null;
+  updateChipStyles();
+  updateAddButton();
+  $input.focus();
+  render();
+}
+
+// ── Deleting events ───────────────────────────
+
+function deleteEvent(eventId) {
+  const s = story();
+  const idx = s.items.findIndex(i => i.id === eventId);
+  if (idx === -1) return;
+
+  // Save snapshot for undo
+  const snapshot = JSON.parse(JSON.stringify(s.items));
+
+  const toRemove = [idx];
+
+  // Find and remove the adjacent connector
+  if (idx + 1 < s.items.length && s.items[idx + 1].type === 'connector') {
+    toRemove.push(idx + 1);
+  } else if (idx - 1 >= 0 && s.items[idx - 1].type === 'connector') {
+    toRemove.push(idx - 1);
+  }
+
+  // Remove from highest index first
+  toRemove.sort((a, b) => b - a).forEach(i => s.items.splice(i, 1));
+
+  save();
+  render();
+  showUndoToast('Event deleted', snapshot);
+}
+
+function deleteActBreak(actId) {
+  const s = story();
+  const idx = s.items.findIndex(i => i.id === actId);
+  if (idx === -1) return;
+  const snapshot = JSON.parse(JSON.stringify(s.items));
+  s.items.splice(idx, 1);
+  save();
+  render();
+  showUndoToast('Act break removed', snapshot);
+}
+
+// ── Undo ──────────────────────────────────────
+
+function showUndoToast(message, snapshot) {
+  if (toastTimeout) clearTimeout(toastTimeout);
+  undoData = { snapshot, storyId: data.activeStoryId };
+
+  $toastText.textContent = message;
+  $toastAction.textContent = 'Undo';
+  $toastAction.onclick = performUndo;
+  $toast.classList.add('visible');
+
+  toastTimeout = setTimeout(dismissToast, 5000);
+}
+
+function showSimpleToast(message) {
+  if (toastTimeout) clearTimeout(toastTimeout);
+  undoData = null;
+  $toastText.textContent = message;
+  $toastAction.textContent = '';
+  $toastAction.onclick = null;
+  $toast.classList.add('visible');
+  toastTimeout = setTimeout(dismissToast, 2500);
+}
+
+function performUndo() {
+  if (!undoData) return;
+  const s = data.stories[undoData.storyId];
+  if (s) {
+    s.items = undoData.snapshot;
+    save();
+    render();
+  }
+  dismissToast();
+}
+
+function dismissToast() {
+  $toast.classList.remove('visible');
+  undoData = null;
+  if (toastTimeout) { clearTimeout(toastTimeout); toastTimeout = null; }
+}
+
+// ── Reordering ────────────────────────────────
+
+function moveEvent(eventId, direction) {
+  const s = story();
+  const idx = s.items.findIndex(i => i.id === eventId);
+  if (idx === -1) return;
+
+  let targetIdx = -1;
+  if (direction === 'up') {
+    for (let i = idx - 1; i >= 0; i--) {
+      if (s.items[i].type === 'event') { targetIdx = i; break; }
+    }
+  } else {
+    for (let i = idx + 1; i < s.items.length; i++) {
+      if (s.items[i].type === 'event') { targetIdx = i; break; }
+    }
+  }
+  if (targetIdx === -1) return;
+
+  // Swap the two event items
+  const tmp = s.items[idx];
+  s.items[idx] = s.items[targetIdx];
+  s.items[targetIdx] = tmp;
+
+  save();
+  render();
+
+  // Scroll the moved card into view
+  requestAnimationFrame(() => {
+    const card = $chain.querySelector('.event-card[data-id="' + eventId + '"]');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+// ── Connector actions ─────────────────────────
+
+function cycleConnector(connectorId) {
+  const s = story();
+  const item = s.items.find(i => i.id === connectorId);
+  if (!item) return;
+  const cur = CONNECTOR_ORDER.indexOf(item.kind);
+  item.kind = CONNECTOR_ORDER[(cur + 1) % CONNECTOR_ORDER.length];
+  save();
+  render();
+}
+
+function unsetConnector(connectorId) {
+  const s = story();
+  const item = s.items.find(i => i.id === connectorId);
+  if (!item) return;
+  item.kind = null;
+  save();
+  render();
+}
+
+// ── Act breaks ────────────────────────────────
+
+function openActPicker() {
+  const s = story();
+  const events = eventItems(s);
+  if (events.length === 0) {
+    showSimpleToast('Add at least one event first');
+    return;
+  }
+
+  closeMenu();
+
+  // Build list of positions: after each event
+  let html = '';
+  events.forEach((ev, i) => {
+    const idx = s.items.indexOf(ev);
+    const preview = ev.text.length > 40 ? ev.text.slice(0, 40) + '...' : ev.text;
+    html += '<button class="act-position-btn" data-after="' + idx + '">' +
+      (i + 1) + '. ' + esc(preview) + '</button>';
+  });
+  $actList.innerHTML = html;
+  $actPicker.classList.add('open');
+}
+
+function insertActBreak(afterEventIdx) {
+  const s = story();
+  const nextActNum = s.items.filter(i => i.type === 'act-break').length + 1;
+  const actBreak = { type: 'act-break', id: uid(), label: 'Act ' + (nextActNum + 1) };
+
+  // Insert after the event (and after its following connector if present)
+  let insertIdx = afterEventIdx + 1;
+  if (insertIdx < s.items.length && s.items[insertIdx].type === 'connector') {
+    insertIdx++;
+  }
+  s.items.splice(insertIdx, 0, actBreak);
+  save();
+  $actPicker.classList.remove('open');
+  render();
+}
+
+// ── Editing text ──────────────────────────────
+
+function handleContentEdit(e) {
+  const el = e.target;
+  const id = el.dataset.id;
+  if (!id) return;
+
+  const s = story();
+  const item = s.items.find(i => i.id === id);
+  if (!item) return;
+
+  if (item.type === 'event') {
+    item.text = el.textContent.trim();
+  } else if (item.type === 'act-break') {
+    item.label = el.textContent.trim() || 'Act';
+  }
+  save();
+}
+
+// ── Export ─────────────────────────────────────
+
+function copyAsText() {
+  const s = story();
+  let lines = [s.title, ''];
+  let eventNum = 0;
+
+  for (let i = 0; i < s.items.length; i++) {
+    const item = s.items[i];
+    if (item.type === 'event') {
+      eventNum++;
+      lines.push(eventNum + '. ' + item.text);
+    } else if (item.type === 'connector') {
+      if (item.kind) {
+        lines.push('   ' + item.kind.toUpperCase());
+      } else {
+        lines.push('   ???');
+      }
+    } else if (item.type === 'act-break') {
+      lines.push('');
+      lines.push('--- ' + item.label + ' ---');
+      lines.push('');
+    }
+  }
+
+  const text = lines.join('\n');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(
+      () => showSimpleToast('Copied to clipboard'),
+      () => fallbackCopy(text)
+    );
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showSimpleToast('Copied to clipboard');
+  } catch (e) {
+    showSimpleToast('Could not copy');
+  }
+  document.body.removeChild(ta);
+}
+
+// ── Story management ──────────────────────────
+
+function newStory() {
+  const s = createStory();
+  data.stories[s.id] = s;
+  data.activeStoryId = s.id;
+  save();
+  closeMenu();
+  cancelInsert();
+  resetInput();
+  render();
+  $title.focus();
+  $title.select();
+}
+
+function switchStory(storyId) {
+  if (storyId === data.activeStoryId) return;
+  data.activeStoryId = storyId;
+  save();
+  closeSwitcher();
+  cancelInsert();
+  resetInput();
+  render();
+}
+
+function deleteStory(storyId) {
+  const ids = Object.keys(data.stories);
+  if (ids.length <= 1) { showSimpleToast('Cannot delete your only story'); return; }
+  if (storyId === data.activeStoryId) return;
+  delete data.stories[storyId];
+  save();
+  renderSwitcher();
+}
+
+function openSwitcher() {
+  closeMenu();
+  renderSwitcher();
+  $switchOvl.classList.add('open');
+}
+
+function renderSwitcher() {
+  const ids = Object.keys(data.stories);
+  let html = '';
+  ids.forEach(id => {
+    const s = data.stories[id];
+    const active = id === data.activeStoryId;
+    const count = eventItems(s).length;
+    html +=
+      '<div class="story-item' + (active ? ' active' : '') + '" data-story="' + id + '">' +
+        '<div class="story-item-info">' +
+          '<div class="story-item-title">' + esc(s.title) + '</div>' +
+          '<div class="story-item-count">' + count + ' event' + (count !== 1 ? 's' : '') + '</div>' +
+        '</div>' +
+        (active ? '' :
+          '<button class="story-item-delete" data-del-story="' + id + '" title="Delete story">&times;</button>'
+        ) +
+      '</div>';
+  });
+  $switchList.innerHTML = html;
+}
+
+function closeSwitcher() { $switchOvl.classList.remove('open'); }
+
+// ── Menu ──────────────────────────────────────
+
+function openMenu() { $menuOvl.classList.add('open'); }
+function closeMenu() { $menuOvl.classList.remove('open'); }
+
+// ── Chip selection ────────────────────────────
+
+function selectChip(kind) {
+  selectedChip = (selectedChip === kind) ? null : kind;
+  updateChipStyles();
+  updateAddButton();
+}
+
+function updateChipStyles() {
+  document.querySelectorAll('.chip').forEach(chip => {
+    const k = chip.dataset.kind;
+    chip.className = 'chip';
+    if (k === selectedChip) {
+      chip.classList.add('selected-' + k);
+    }
+  });
+}
+
+// ── Textarea auto-resize ──────────────────────
+
+function autoResize() {
+  $input.style.height = 'auto';
+  $input.style.height = Math.min($input.scrollHeight, 120) + 'px';
+}
+
+// ── Scroll helpers ────────────────────────────
+
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    const lastCard = $chain.querySelector('.event-card:last-of-type');
+    if (lastCard) {
+      lastCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  });
+}
+
+// ── Keyboard handling ─────────────────────────
+// Keep the input bar above the iOS on-screen keyboard.
+
+function repositionInputBar() {
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const bottom = window.innerHeight - vv.height - vv.offsetTop;
+    $inputBar.style.bottom = Math.max(0, bottom) + 'px';
+  }
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', repositionInputBar);
+  window.visualViewport.addEventListener('scroll', repositionInputBar);
+}
+
+// ── PWA setup ─────────────────────────────────
+
+function setupPWA() {
+  // Generate a simple icon
+  const canvas = document.createElement('canvas');
+  canvas.width = 180; canvas.height = 180;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2563eb';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 180, 180, 32);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 110px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('B', 90, 95);
+  try {
+    const iconUrl = canvas.toDataURL('image/png');
+    document.getElementById('apple-icon').href = iconUrl;
+  } catch (e) { /* canvas may fail in some contexts */ }
+
+  // Create manifest as blob URL
+  const manifest = {
+    name: 'Beats',
+    short_name: 'Beats',
+    description: 'Plot outlining with but / therefore',
+    start_url: location.href.split('?')[0],
+    display: 'standalone',
+    background_color: '#fafafa',
+    theme_color: '#2563eb',
+    icons: [{
+      src: 'data:image/svg+xml,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">' +
+        '<rect width="192" height="192" rx="32" fill="#2563eb"/>' +
+        '<text x="96" y="136" text-anchor="middle" font-family="system-ui" ' +
+        'font-size="130" font-weight="900" fill="#fff">B</text></svg>'
+      ),
+      sizes: '192x192',
+      type: 'image/svg+xml',
+      purpose: 'any'
+    }]
+  };
+  try {
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    document.getElementById('manifest-link').href = URL.createObjectURL(blob);
+  } catch (e) { /* blob may fail */ }
+}
+
+// ── Event delegation ──────────────────────────
+
+// Chain area clicks
+$chain.addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const id = btn.dataset.id;
+  const idx = parseInt(btn.dataset.idx, 10);
+
+  switch (act) {
+    case 'up':     moveEvent(id, 'up'); break;
+    case 'down':   moveEvent(id, 'down'); break;
+    case 'delete': deleteEvent(id); break;
+    case 'cycle':  cycleConnector(id); break;
+    case 'unset':  unsetConnector(id); break;
+    case 'insert': startInsert(idx); break;
+    case 'delete-act': deleteActBreak(id); break;
+  }
+});
+
+// Save text edits on blur
+$chain.addEventListener('focusout', e => {
+  if (e.target.classList.contains('event-text') ||
+      e.target.classList.contains('act-break-label')) {
+    handleContentEdit(e);
+    // Update header counts in case nothing structural changed
+    const events = eventItems();
+    $eventCount.textContent = events.length;
+  }
+});
+
+// Prevent Enter from creating new lines in single-line editable fields
+$chain.addEventListener('keydown', e => {
+  if (e.target.classList.contains('act-break-label') && e.key === 'Enter') {
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+// Connector chips
+$chips.addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (chip) selectChip(chip.dataset.kind);
+});
+
+// Add button
+$addBtn.addEventListener('click', addEvent);
+
+// Input field
+$input.addEventListener('input', () => { autoResize(); updateAddButton(); });
+$input.addEventListener('keydown', e => {
+  // Cmd/Ctrl+Enter to add
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !$addBtn.disabled) {
+    e.preventDefault();
+    addEvent();
+  }
+});
+
+// Insert cancel
+$insertCanc.addEventListener('click', cancelInsert);
+
+// Title editing
+$title.addEventListener('input', () => {
+  story().title = $title.value.trim() || 'Untitled Story';
+  save();
+});
+$title.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); $title.blur(); }
+});
+
+// Menu
+$menuBtn.addEventListener('click', openMenu);
+$menuOvl.addEventListener('click', e => {
+  if (e.target === $menuOvl) closeMenu();
+});
+document.getElementById('menu-copy').addEventListener('click', () => { closeMenu(); copyAsText(); });
+document.getElementById('menu-act').addEventListener('click', openActPicker);
+document.getElementById('menu-new').addEventListener('click', newStory);
+document.getElementById('menu-switch').addEventListener('click', openSwitcher);
+
+// Story switcher
+$switchOvl.addEventListener('click', e => {
+  if (e.target === $switchOvl) closeSwitcher();
+  const storyBtn = e.target.closest('[data-story]');
+  const delBtn = e.target.closest('[data-del-story]');
+  if (delBtn) { e.stopPropagation(); deleteStory(delBtn.dataset.delStory); }
+  else if (storyBtn) switchStory(storyBtn.dataset.story);
+});
+$switchClose.addEventListener('click', closeSwitcher);
+
+// Act break picker
+$actPicker.addEventListener('click', e => {
+  if (e.target === $actPicker) $actPicker.classList.remove('open');
+  const posBtn = e.target.closest('[data-after]');
+  if (posBtn) insertActBreak(parseInt(posBtn.dataset.after, 10));
+});
+$actCancel.addEventListener('click', () => $actPicker.classList.remove('open'));
+
+// Toast dismiss on tap (not on action button)
+$toast.addEventListener('click', e => {
+  if (e.target !== $toastAction) dismissToast();
+});
+
+// ── Initialise ────────────────────────────────
+
+load();
+setupPWA();
+render();
+updateAddButton();
+
+</script>
+</body>
+</html>
